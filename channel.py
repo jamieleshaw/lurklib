@@ -147,6 +147,11 @@ def names ( self, channel ):
         names(), accepts one argument the name of the channel to list the nicks in, it returns a list of the nicks in the specified channel;
         if there are no nicks or the channel doesn't exist, it returns a empty list.
         '''
+        replies = {
+                353 : 'RPL_NAMEREPLY',
+                402 : 'ERR_NOSUCHSERVER',
+                366 : 'REPL_ENDOFNAMES'
+                }
         self.rsend ( 'NAMES ' + channel )
         names = []
         data = self.recv()
