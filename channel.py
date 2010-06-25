@@ -3,6 +3,20 @@ def join ( self, channel, key = None ):
         join() joins the specified channel, optionally a channel key may be specified.
         join() returns a list [0] is the channel topic and [1] is a list containing all nicks in the channel.
         '''
+        replies = {
+                461 : 'ERR_NEEDMOREPARAMS',
+                473 : 'ERR_INVITEONLYCHAN',
+                471 : 'ERR_CHANNELISFULL',
+                403 : 'ERR_NOSUCHCHANNEL',
+                407 : 'ERR_TOOMANYTARGETS',
+                332 : 'RPL_TOPIC',
+                474 : 'ERR_BANNEDFROMCHAN',
+                475 : 'ERR_BADCHANNELKEY',
+                476 : 'ERR_BADCHANMASK',
+                405 : 'TOOMANYCHANNELS',
+                437 : 'ERR_UNAVAILRESOURCE'
+                }
+                
         topic = ''
         names = []
         if key != None:
