@@ -41,6 +41,11 @@ def part ( self, channel, reason = None ):
     '''
     part() part's a channel, optionally a part message may be specified.
     '''
+    replies = {
+            461 : 'ERR_NEEDMOREPARAMS',
+            442 : 'ERR_NOTONCHANNEL',
+            403 : 'ERR_NOSUCHCHANNEL'
+            }
     if reason == None:
         self.rsend ( 'PART ' + channel )
     else:
@@ -52,6 +57,22 @@ def cmode ( self, channel, modes = '' ):
         '''
         cmode() sets channel modes, it accepts two arguments, the channel, and the modes to set.
         '''
+        replies = {
+                461 : 'ERR_NEEDMOREPARAMS',
+                477 : 'ERR_NOCHANMODES',
+                441 : 'ERR_USERNOTINCHANNEL',
+                324 : 'RPL_CHANNELMODEIS',
+                367 : 'RPL_BANLIST'
+                348 : 'RPL_EXCEPTLIST'
+                346 : 'RPL_INVITELIST'
+                325 : 'RPL_UNIQOPIS',
+                467 : 'ERR_KEYSET',
+                482 : 'ERR_CHANOPRIVSNEEDED',
+                472 : 'ERR_UNKNOWNMODE',
+                368 : 'RPL_ENDOFBANLIST',
+                349 : 'RPL_ENDOFEXCEPTLIST',
+                347 : 'RPL_ENDOFINVITELIST'
+                }
         if modes == '':
                 self.rsend ( 'MODE ' + channel )
                 return self.recv().split() [4]
