@@ -120,6 +120,14 @@ def topic ( self, channel, rtopic = None ):
         topic(), accepts 2 arguments, channel is required, and rtopic can optionally be specified, if you want to change the topic of the given channel;
         returns the topic
         '''
+        replies = {
+                461 : 'ERR_NEEDMOREPARAMS',
+                331 : 'RPL_NOTOPIC',
+                482 : 'ERR_CHANOPRIVSNEEDED',
+                442 : 'ERR_NOTONCHANNEL',
+                332 : 'RPL_TOPIC',
+                477 : 'ERR_NOCHANMODES'
+                }
         if rtopic != None:
             self.rsend ( 'TOPIC ' + channel + ' :' + rtopic )
         else:
