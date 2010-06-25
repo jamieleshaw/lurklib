@@ -62,9 +62,9 @@ def cmode ( self, channel, modes = '' ):
                 477 : 'ERR_NOCHANMODES',
                 441 : 'ERR_USERNOTINCHANNEL',
                 324 : 'RPL_CHANNELMODEIS',
-                367 : 'RPL_BANLIST'
-                348 : 'RPL_EXCEPTLIST'
-                346 : 'RPL_INVITELIST'
+                367 : 'RPL_BANLIST',
+                348 : 'RPL_EXCEPTLIST',
+                346 : 'RPL_INVITELIST',
                 325 : 'RPL_UNIQOPIS',
                 467 : 'ERR_KEYSET',
                 482 : 'ERR_CHANOPRIVSNEEDED',
@@ -148,10 +148,9 @@ def names ( self, channel ):
         if there are no nicks or the channel doesn't exist, it returns a empty list.
         '''
         replies = {
-                321 : 'RPL_LISTSTART',
-                322 : 'RPL_LIST',
-                323 : 'RPL_LISTEND'
+                353 : 'RPL_NAMEREPLY',
                 402 : 'ERR_NOSUCHSERVER',
+                366 : 'REPL_ENDOFNAMES'
                 }
         self.rsend ( 'NAMES ' + channel )
         names = []
@@ -171,10 +170,12 @@ def slist ( self ):
         slist(), Runs a LIST on the server.;
         '''
         replies = {
-                353 : 'RPL_NAMEREPLY',
-                402 : 'ERR_NOSUCHSERVER',
-                366 : 'REPL_ENDOFNAMES'
+                321 : 'RPL_LISTSTART',
+                322 : 'RPL_LIST',
+                323 : 'RPL_LISTEND',
+                402 : 'ERR_NOSUCHSERVER'
                 }
+        
         self.rsend ( 'LIST' )
         list_info = { }
         data = self.recv()
@@ -193,14 +194,30 @@ def slist ( self ):
                         return False
         return list_info
 def invite ( self, channel, nick ):
-    self.rsend ( 'INVITE ' + nick + ' ' + channel )
-    data = self.recv()
-    if data.find ( '341' ) == -1:
-            self.code = int ( data.split() [1] )
-            return False
+        replies = {
+                461 : 'ERR_NEEDMOREPARAMS',
+                442 : 'ERR_NOTONCHANNEL',
+                341 : 'RPL_INVITING',
+                401 : 'ERR_NOSUCHNICK',
+                443 : 'ERR_USERONCHANNEL',
+                301 : 'RPL_AWAY'
+                }
+        self.rsend ( 'INVITE ' + nick + ' ' + channel )
+        data = self.recv()
+        if data.find ( '341' ) == -1:
+                self.code = int ( data.split() [1] )
+                return False
 def kick ( self, channel, nick, reason = '' ):
-    self.rsend ( 'KICK ' + channel + ' ' + nick + ' :' + reason )
-    data = self.recv()
-    if data.find ( 'KICK' ) == -1:
+        replies = {
+                461 : 'ERR_NEEDMOREPARAMS',
+                476 : 'ERR_BADCHANMASK',
+                441 : 'ERR_USERNOTINCHANNEL',
+                403 : 'ERR_NOSUCHCHANNEL',
+                482 : 'ERR_CHANOPRIVSNEEDED',
+                442 : 'ERR_NOTONCHANNEL'
+                }
+        self.rsend ( 'KICK ' + channel + ' ' + nick + ' :' + reason )
+        data = self.recv()
+        if data.find ( 'KICK' ) == -1:
             self.code = int ( data.split() [1] )
             return False
