@@ -2,18 +2,18 @@ def join ( self, channel, key = None ):
         '''
         join() joins the specified channel, optionally a channel key may be specified.
         join() returns a list [0] is the channel topic and [1] is a list containing all nicks in the channel.
+        If it fails, to join the channel it will, [0] will be False, and [1] will be the error code.
         '''
-        replies = {
+        err_replies = [
                 461 : 'ERR_NEEDMOREPARAMS',
                 473 : 'ERR_INVITEONLYCHAN',
                 471 : 'ERR_CHANNELISFULL',
                 403 : 'ERR_NOSUCHCHANNEL',
                 407 : 'ERR_TOOMANYTARGETS',
-                332 : 'RPL_TOPIC',
                 474 : 'ERR_BANNEDFROMCHAN',
                 475 : 'ERR_BADCHANNELKEY',
                 476 : 'ERR_BADCHANMASK',
-                405 : 'TOOMANYCHANNELS',
+                405 : 'ERR_TOOMANYCHANNELS',
                 437 : 'ERR_UNAVAILRESOURCE'
                 }
                 
@@ -23,6 +23,21 @@ def join ( self, channel, key = None ):
             self.rsend ( 'JOIN ' + channel + ' ' + key )
         else:
             self.rsend ( 'JOIN ' + channel )
+        data = self.recv()
+        while data.find ( '366' ) == -1:
+                if data.find ( 'JOIN :' + channel ) != -1:
+                        self.buffer.append ( data )
+                elif data.find ( '332' ) != -1:
+                        topic = data.split() [4] [1:]
+                elif data.find ( '333' ) != -1:
+                        # implement topic, setter and time set collection
+                        pass
+                elif data.find ( '353' ) != -1:
+                        names = data.split() [5:]
+                        names [0] = names [0] [1:]
+                elif int ( data.split() [1] ) in err_replies.keys(): return [ False, data.split() [1] ]
+                data = self.recv()
+        return [ topic, names ]
 def part ( self, channel, reason = None ):
     '''
     part() part's a channel, optionally a part message may be specified.

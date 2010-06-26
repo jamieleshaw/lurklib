@@ -28,7 +28,6 @@ class irc:
         self.buffer = [ ]
         self.s = socket.socket()
         self.encoding = 'ascii'
-        self.code = -1
 
     def rsend ( self, msg ):
         '''
@@ -62,11 +61,6 @@ class irc:
         done = 0
         while 1:
             if done == 5:
-                print ( self.rsend ( 'WHOWAS LK' ) )
-            #if done == 23:
-            #    print ( self.cmode ( '#test', '+v LK' ) )
-            #    print ( self.join ( '#careface' ) )
+                print ( self.join ( '#test' ) )
             print ( self.recv() )
-            print ( self.code )
             done += 1
-            print ( done )
