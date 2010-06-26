@@ -26,6 +26,7 @@ class irc:
         '''
         self.index = 0
         self.buffer = [ ]
+        self.printed = []
         self.s = socket.socket()
         self.encoding = 'ascii'
 
@@ -45,8 +46,9 @@ class irc:
     def recv ( self ):
         if self.index == len ( self.buffer ): self.mcon()
         if len ( self.buffer ) >= 100: self.index, self.buffer = 0, []
-        self.index = self.index + 1
-        if self.buffer [ self.index - 1 ] != '': return self.buffer [ self.index - 1 ]
+        self.index += 1
+        if self.buffer [ self.index ] != '':
+            return self.buffer [ self.index ]
         return ''
     def pdata ( self ):
         '''
@@ -62,5 +64,6 @@ class irc:
         while 1:
             if done == 5:
                 print ( self.join ( '#test' ) )
+                print ( self.part ( '#test' ) )
             print ( self.recv() )
             done += 1

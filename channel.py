@@ -4,17 +4,17 @@ def join ( self, channel, key = None ):
         join() returns a list [0] is the channel topic and [1] is a list containing all nicks in the channel.
         If it fails, to join the channel it will, [0] will be False, and [1] will be the error code.
         '''
-        err_replies = [
-                461 : 'ERR_NEEDMOREPARAMS',
-                473 : 'ERR_INVITEONLYCHAN',
-                471 : 'ERR_CHANNELISFULL',
-                403 : 'ERR_NOSUCHCHANNEL',
-                407 : 'ERR_TOOMANYTARGETS',
-                474 : 'ERR_BANNEDFROMCHAN',
-                475 : 'ERR_BADCHANNELKEY',
-                476 : 'ERR_BADCHANMASK',
-                405 : 'ERR_TOOMANYCHANNELS',
-                437 : 'ERR_UNAVAILRESOURCE'
+        err_replies = {
+                '461' : 'ERR_NEEDMOREPARAMS',
+                '473' : 'ERR_INVITEONLYCHAN',
+                '471' : 'ERR_CHANNELISFULL',
+                '403' : 'ERR_NOSUCHCHANNEL',
+                '407' : 'ERR_TOOMANYTARGETS',
+                '474' : 'ERR_BANNEDFROMCHAN',
+                '475' : 'ERR_BADCHANNELKEY',
+                '476' : 'ERR_BADCHANMASK',
+                '405' : 'ERR_TOOMANYCHANNELS',
+                '437' : 'ERR_UNAVAILRESOURCE'
                 }
                 
         topic = ''
@@ -25,8 +25,10 @@ def join ( self, channel, key = None ):
             self.rsend ( 'JOIN ' + channel )
         data = self.recv()
         while data.find ( '366' ) == -1:
+                data = self.recv()
                 if data.find ( 'JOIN :' + channel ) != -1:
                         self.buffer.append ( data )
+                        print ( ':A' )
                 elif data.find ( '332' ) != -1:
                         topic = data.split() [4] [1:]
                 elif data.find ( '333' ) != -1:
@@ -35,25 +37,30 @@ def join ( self, channel, key = None ):
                 elif data.find ( '353' ) != -1:
                         names = data.split() [5:]
                         names [0] = names [0] [1:]
-                elif int ( data.split() [1] ) in err_replies.keys(): return [ False, data.split() [1] ]
-                data = self.recv()
+                elif data.split() [1]in err_replies.keys(): return [ False, data.split() [1] ]
+                
         return [ topic, names ]
 def part ( self, channel, reason = None ):
-    '''
-    part() part's a channel, optionally a part message may be specified.
-    '''
-    replies = {
-            461 : 'ERR_NEEDMOREPARAMS',
-            442 : 'ERR_NOTONCHANNEL',
-            403 : 'ERR_NOSUCHCHANNEL'
+        '''
+        part() part's a channel, optionally a part message may be specified.
+        On success, True is returned, on failure, [0] is False and [1] is the error code.
+        '''
+        err_replies = {
+            '461' : 'ERR_NEEDMOREPARAMS',
+            '442' : 'ERR_NOTONCHANNEL',
+            '403' : 'ERR_NOSUCHCHANNEL'
             }
-    if reason == None:
-        self.rsend ( 'PART ' + channel )
-    else:
-        self.rsend ( 'PART ' + channel + ' :' + reason )
-    if data.find ( 'PART' ) == -1:
-            self.code = int ( data.split() [1] )
-            return False
+        if reason == None:
+                self.rsend ( 'PART ' + channel )
+        else:
+                self.rsend ( 'PART ' + channel + ' :' + reason )
+        data = self.recv()
+        while data.find ( 'PART' ) == -1:
+                data = self.recv()
+                if data.find ( 'PART' ) != -1:
+                        self.buffer.append ( data )
+                elif data.split() [1] in err_replies.keys(): return [ False, data.split() [1] ]
+        return True
 def cmode ( self, channel, modes = '' ):
         '''
         cmode() sets channel modes, it accepts two arguments, the channel, and the modes to set.
