@@ -66,6 +66,6 @@ class irc:
                 print ( self.join ( '#test' ) )
                 
             if done == 7:
-                print ( self.banlist ( '#test' ) )
+                print ( self.topic ( '#test', 'k k k k ' ) )
             print ( self.recv() )
             done += 1

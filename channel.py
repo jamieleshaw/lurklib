@@ -28,7 +28,7 @@ def join ( self, channel, key = None ):
                 if data.find ( 'JOIN :' + channel ) != -1:
                         self.buffer.append ( data )
                 elif data.find ( '332' ) != -1:
-                        topic = data.split() [4] [1:]
+                        topic = data.split ( None, 4 ) [4] [1:]
                 elif data.find ( '333' ) != -1:
                         # implement topic, setter and time set collection
                         pass
@@ -106,6 +106,7 @@ def exceptlist ( self, channel ):
                 if data.find ( '348' ) != -1:
                         excepts.append ( data.split() [4] )
                 data = self.recv()
+        return excepts
 def invitelist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +i' )
         invites = []
@@ -114,25 +115,38 @@ def invitelist ( self, channel ):
                 if data.find ( '346' ) != -1:
                         invites.append ( data.split() [4] )
                 data = self.recv()
+        return invites
 def topic ( self, channel, rtopic = None ):
         '''
         topic(), accepts 2 arguments, channel is required, and rtopic can optionally be specified, if you want to change the topic of the given channel;
         returns the topic
         '''
-        replies = {
-                461 : 'ERR_NEEDMOREPARAMS',
-                331 : 'RPL_NOTOPIC',
-                482 : 'ERR_CHANOPRIVSNEEDED',
-                442 : 'ERR_NOTONCHANNEL',
-                332 : 'RPL_TOPIC',
-                477 : 'ERR_NOCHANMODES'
+        err_replies = {
+                '461' : 'ERR_NEEDMOREPARAMS',
+                '482' : 'ERR_CHANOPRIVSNEEDED',
+                '442' : 'ERR_NOTONCHANNEL',
+                '477' : 'ERR_NOCHANMODES'
                 }
         if rtopic != None:
             self.rsend ( 'TOPIC ' + channel + ' :' + rtopic )
         else:
             self.rsend ( 'TOPIC ' + channel )
-        topic = ''
-
+        topic = None
+        while topic == None:
+                data = self.recv()
+                if data.split() [1] in err_replies.keys():
+                        return [ False, data.split() [1] ]
+                elif data.find ( 'TOPIC' ) != -1:
+                        topic = ''
+                        self.buffer.append ( data )
+                elif data.find ( '332' ) != -1:
+                        topic = data.split ( None, 4 ) [4] [1:]
+                        self.recv()
+                elif data.find ( '333' ) != -1:
+                        # implement topic, setter and time set collection
+                        pass
+                elif data.find ( '331' ) != -1: topic = ''
+        return topic
 def names ( self, channel ):
         '''
         names(), accepts one argument the name of the channel to list the nicks in, it returns a list of the nicks in the specified channel;
