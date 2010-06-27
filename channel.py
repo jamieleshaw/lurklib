@@ -25,10 +25,8 @@ def join ( self, channel, key = None ):
             self.rsend ( 'JOIN ' + channel )
         data = self.recv()
         while data.find ( '366' ) == -1:
-                data = self.recv()
                 if data.find ( 'JOIN :' + channel ) != -1:
                         self.buffer.append ( data )
-                        print ( ':A' )
                 elif data.find ( '332' ) != -1:
                         topic = data.split() [4] [1:]
                 elif data.find ( '333' ) != -1:
@@ -38,7 +36,7 @@ def join ( self, channel, key = None ):
                         names = data.split() [5:]
                         names [0] = names [0] [1:]
                 elif data.split() [1]in err_replies.keys(): return [ False, data.split() [1] ]
-                
+                data = self.recv()
         return [ topic, names ]
 def part ( self, channel, reason = None ):
         '''
@@ -55,11 +53,14 @@ def part ( self, channel, reason = None ):
         else:
                 self.rsend ( 'PART ' + channel + ' :' + reason )
         data = self.recv()
-        while data.find ( 'PART' ) == -1:
+        while 1:
+                if data.split() [1] in err_replies.keys() or data.find ( 'PART' ) != -1:
+                        if data.split() [1] in err_replies.keys():
+                                return [ False, data.split() [1] ]
+                        elif data.find ( 'PART' ) != -1:
+                                self.buffer.append ( data )
+                        break
                 data = self.recv()
-                if data.find ( 'PART' ) != -1:
-                        self.buffer.append ( data )
-                elif data.split() [1] in err_replies.keys(): return [ False, data.split() [1] ]
         return True
 def cmode ( self, channel, modes = '' ):
         '''

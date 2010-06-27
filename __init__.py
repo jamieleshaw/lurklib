@@ -1,6 +1,7 @@
 # TODO;
 # Implement Sub-Modules, accoriding to RFC,
 # Impove/implement return collections
+# Do not call one irc lib directly after another, well it stuffs it up a little.
 import socket, sys
 sys.path.append ( './irc' )
 # Import IRC Sub-Modules
@@ -26,7 +27,6 @@ class irc:
         '''
         self.index = 0
         self.buffer = [ ]
-        self.printed = []
         self.s = socket.socket()
         self.encoding = 'ascii'
 
@@ -47,8 +47,8 @@ class irc:
         if self.index == len ( self.buffer ): self.mcon()
         if len ( self.buffer ) >= 100: self.index, self.buffer = 0, []
         self.index += 1
-        if self.buffer [ self.index ] != '':
-            return self.buffer [ self.index ]
+        if self.buffer [ self.index - 1 ] != '':
+            return self.buffer [ self.index - 1 ]
         return ''
     def pdata ( self ):
         '''
@@ -64,6 +64,8 @@ class irc:
         while 1:
             if done == 5:
                 print ( self.join ( '#test' ) )
+                
+            if done == 10:
                 print ( self.part ( '#test' ) )
             print ( self.recv() )
             done += 1
