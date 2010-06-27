@@ -65,7 +65,7 @@ class irc:
             if done == 5:
                 print ( self.join ( '#test' ) )
                 
-            if done == 10:
-                print ( self.part ( '#test' ) )
+            if done == 7:
+                print ( self.banlist ( '#test' ) )
             print ( self.recv() )
             done += 1

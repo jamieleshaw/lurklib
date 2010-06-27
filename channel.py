@@ -66,40 +66,54 @@ def cmode ( self, channel, modes = '' ):
         '''
         cmode() sets channel modes, it accepts two arguments, the channel, and the modes to set.
         '''
-        replies = {
-                461 : 'ERR_NEEDMOREPARAMS',
-                477 : 'ERR_NOCHANMODES',
-                441 : 'ERR_USERNOTINCHANNEL',
-                324 : 'RPL_CHANNELMODEIS',
-                367 : 'RPL_BANLIST',
-                348 : 'RPL_EXCEPTLIST',
-                346 : 'RPL_INVITELIST',
-                325 : 'RPL_UNIQOPIS',
-                467 : 'ERR_KEYSET',
-                482 : 'ERR_CHANOPRIVSNEEDED',
-                472 : 'ERR_UNKNOWNMODE',
-                368 : 'RPL_ENDOFBANLIST',
-                349 : 'RPL_ENDOFEXCEPTLIST',
-                347 : 'RPL_ENDOFINVITELIST'
+        err_replies = {
+                '461' : 'ERR_NEEDMOREPARAMS',
+                '477' : 'ERR_NOCHANMODES',
+                '441' : 'ERR_USERNOTINCHANNEL',
+                '467' : 'ERR_KEYSET',
+                '482' : 'ERR_CHANOPRIVSNEEDED',
+                '472' : 'ERR_UNKNOWNMODE',
                 }
         if modes == '':
                 self.rsend ( 'MODE ' + channel )
                 return self.recv().split() [4]
         else:   self.rsend ( 'MODE ' + channel + ' ' + modes )
-
+        
+        data = self.recv()
+        while 1:
+                if data.split() [1] in err_replies.keys() or data.find ( 'MODE' ) != -1:
+                        if data.split() [1] in err_replies.keys():
+                                return [ False, data.split() [1] ]
+                        elif data.find ( 'MODE' ) != -1:
+                                self.buffer.append ( data )
+                        break
+                data = self.recv()
         
 def banlist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +b' )
         bans = []
- 
+        data = self.recv()
+        while data.find ( '368' ) == -1:
+                if data.find ( '367' ) != -1:
+                        bans.append ( data.split() [4] )
+                data = self.recv()
+        return bans
 def exceptlist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +e' )
         excepts = []
- 
+        data = self.recv()
+        while data.find ( '349' ) == -1:
+                if data.find ( '348' ) != -1:
+                        excepts.append ( data.split() [4] )
+                data = self.recv()
 def invitelist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +i' )
         invites = []
-
+        data = self.recv()
+        while data.find ( '347' ) == -1:
+                if data.find ( '346' ) != -1:
+                        invites.append ( data.split() [4] )
+                data = self.recv()
 def topic ( self, channel, rtopic = None ):
         '''
         topic(), accepts 2 arguments, channel is required, and rtopic can optionally be specified, if you want to change the topic of the given channel;
