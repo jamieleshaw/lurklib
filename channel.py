@@ -79,15 +79,14 @@ def cmode ( self, channel, modes = '' ):
                 return self.recv().split() [4]
         else:   self.rsend ( 'MODE ' + channel + ' ' + modes )
         
-        data = self.recv()
         while 1:
+                data = self.recv()
                 if data.split() [1] in err_replies.keys() or data.find ( 'MODE' ) != -1:
                         if data.split() [1] in err_replies.keys():
                                 return [ False, data.split() [1] ]
                         elif data.find ( 'MODE' ) != -1:
                                 self.buffer.append ( data )
                         break
-                data = self.recv()
         
 def banlist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +b' )
@@ -152,44 +151,71 @@ def names ( self, channel ):
         names(), accepts one argument the name of the channel to list the nicks in, it returns a list of the nicks in the specified channel;
         if there are no nicks or the channel doesn't exist, it returns a empty list.
         '''
-        replies = {
-                353 : 'RPL_NAMEREPLY',
-                402 : 'ERR_NOSUCHSERVER',
-                366 : 'REPL_ENDOFNAMES'
-                }
         self.rsend ( 'NAMES ' + channel )
         names = []
-  
+        data = self.recv()
+        while data.find ( '366' ) == -1:
+                if data.find ( '353' ) != -1:
+                        names = data.split() [5:]
+                        names [0] = names [0] [1:]
+                data = self.recv()
+        return names
 def slist ( self ):
         '''
         slist(), Runs a LIST on the server.;
-        '''
-        replies = {
-                321 : 'RPL_LISTSTART',
-                322 : 'RPL_LIST',
-                323 : 'RPL_LISTEND',
-                402 : 'ERR_NOSUCHSERVER'
-                }
-        
+        '''        
         self.rsend ( 'LIST' )
         list_info = { }
+        data = self.recv()
+        while data.find ( '323' ) == -1:
+                if data.find ( '322' ) != -1:
+                        raw_lst = data.split ( None, 5 )
+                        list_info [ raw_lst [3] ] = [ raw_lst [4], raw_lst [5] [1:] ]
+                elif data.find ( '321' ) != -1:
+                        pass
+                data = self.recv()
+        return list_info
 def invite ( self, channel, nick ):
-        replies = {
-                461 : 'ERR_NEEDMOREPARAMS',
-                442 : 'ERR_NOTONCHANNEL',
-                341 : 'RPL_INVITING',
-                401 : 'ERR_NOSUCHNICK',
-                443 : 'ERR_USERONCHANNEL',
-                301 : 'RPL_AWAY'
+        '''
+        invite(), accepts a channel argument and nick, it invites the specified nick to the specified channel.
+        '''
+        err_replies = {
+                '461' : 'ERR_NEEDMOREPARAMS',
+                '442' : 'ERR_NOTONCHANNEL',
+                '401' : 'ERR_NOSUCHNICK',
+                '443' : 'ERR_USERONCHANNEL',
                 }
         self.rsend ( 'INVITE ' + nick + ' ' + channel )
+
+        while 1:
+                data = self.recv()
+                if data.split() [1] in err_replies.keys() or data.find ( 'INVITE' ) != -1:
+                        if data.split() [1] in err_replies.keys():
+                                return [ False, data.split() [1] ]
+                        elif data.find ( 'INVITE' ) != -1:
+                                self.buffer.append ( data )
+                        elif data.find ( '341' ) != -1:
+                                pass
+                        elif data.find ( '301' ) != -1:
+                                return 'AFK'
+                        break
+        return True
 def kick ( self, channel, nick, reason = '' ):
-        replies = {
-                461 : 'ERR_NEEDMOREPARAMS',
-                476 : 'ERR_BADCHANMASK',
-                441 : 'ERR_USERNOTINCHANNEL',
-                403 : 'ERR_NOSUCHCHANNEL',
-                482 : 'ERR_CHANOPRIVSNEEDED',
-                442 : 'ERR_NOTONCHANNEL'
+        err_replies = {
+                '461' : 'ERR_NEEDMOREPARAMS',
+                '476' : 'ERR_BADCHANMASK',
+                '441' : 'ERR_USERNOTINCHANNEL',
+                '403' : 'ERR_NOSUCHCHANNEL',
+                '482' : 'ERR_CHANOPRIVSNEEDED',
+                '442' : 'ERR_NOTONCHANNEL'
                 }
         self.rsend ( 'KICK ' + channel + ' ' + nick + ' :' + reason )
+        while 1:
+                data = self.recv()
+                if data.split() [1] in err_replies.keys() or data.find ( 'KICK' ) != -1:
+                        if data.split() [1] in err_replies.keys():
+                                return [ False, data.split() [1] ]
+                        elif data.find ( 'KICK' ) != -1:
+                                self.buffer.append ( data )
+                        break
+        return True

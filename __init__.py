@@ -63,9 +63,9 @@ class irc:
         done = 0
         while 1:
             if done == 5:
-                print ( self.join ( '#test' ) )
+                print ( self.join ( '#teast' ) )
                 
             if done == 7:
-                print ( self.topic ( '#test', 'k k k k ' ) )
+                print ( self.kick ( '#teast', 'LK', 'no reason' ) )
             print ( self.recv() )
             done += 1
