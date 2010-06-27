@@ -66,6 +66,6 @@ class irc:
                 print ( self.join ( '#teast' ) )
                 
             if done == 7:
-                print ( self.kick ( '#teast', 'LK', 'no reason' ) )
+                print ( self.whowas ( 'lk' ) )
             print ( self.recv() )
             done += 1

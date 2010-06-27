@@ -35,7 +35,7 @@ def join ( self, channel, key = None ):
                 elif data.find ( '353' ) != -1:
                         names = data.split() [5:]
                         names [0] = names [0] [1:]
-                elif data.split() [1]in err_replies.keys(): return [ False, data.split() [1] ]
+                elif data.split() [1] in err_replies.keys(): return [ False, data.split() [1] ]
                 data = self.recv()
         return [ topic, names ]
 def part ( self, channel, reason = None ):
