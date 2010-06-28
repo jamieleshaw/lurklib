@@ -8,7 +8,8 @@ sys.path.append ( './irc' )
 
 import connection
 import channel
-import uqueries 
+import uqueries
+import squeries
 import sending
 
 class irc:
@@ -19,6 +20,7 @@ class irc:
     for x in dir ( connection ): exec ( x + ' = connection.' + x )
     for x in dir ( channel ): exec ( x + ' = channel.' + x )
     for x in dir ( uqueries ): exec ( x + ' = uqueries.' + x )
+    for x in dir ( squeries ): exec ( x + ' = squeries.' + x )
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
     
     def __init__ ( self ):
@@ -63,9 +65,9 @@ class irc:
         done = 0
         while 1:
             if done == 5:
-                print ( self.join ( '#teast' ) )
-                
+                #print ( self.join ( '#teast' ) )
+                pass
             if done == 7:
-                print ( self.whowas ( 'lk' ) )
+                print ( self.motd (  ) )
             print ( self.recv() )
             done += 1

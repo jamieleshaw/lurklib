@@ -3,8 +3,20 @@ def motd ( self, server = None ):
         self.rsend ( 'MOTD' )
     else:
         self.rsend ( 'MOTD ' + server )
-
-
+    err_replies = { \
+        '422' : 'ERR_NOMOTD'
+        }
+    data = self.recv()
+    motd = [ ]
+    while data.find ( '376' ) == -1:
+            if data.find ( '372' ) != -1:
+                motd.append ( data.split ( None, 4 ) [4] [1:-1])
+            elif data.split() [1] in err_replies.keys():
+                return [ False, data.split() [1] ]
+            elif data.find ( '375' ) != -1:
+                pass
+            data = self.recv()
+    return motd
 def lusers ( self, mask = None, target = None ):
     if mask == None:
         self.rsend ( 'LUSERS' )
@@ -43,7 +55,7 @@ def time ( self, target = None ):
     else:
         self.rsend ( 'TIME' )
 
-def connect ( self, tserver, tport, r_server = None ):
+def connect_s ( self, tserver, tport, r_server = None ):
     if r_server == None:
         self.rsend ( 'CONNECT ' + tserver + ' ' + tport )
     else:
