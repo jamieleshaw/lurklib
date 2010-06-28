@@ -68,6 +68,6 @@ class irc:
                 #print ( self.join ( '#teast' ) )
                 pass
             if done == 7:
-                print ( self.motd (  ) )
+                print ( self.version (  ) )
             print ( self.recv() )
             done += 1

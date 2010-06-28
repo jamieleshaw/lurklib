@@ -31,7 +31,14 @@ def version ( self, target = None ):
         self.rsend ( 'VERSION' )
     else:
         self.rsend ( 'VERSION ' + target )
-
+    data = self.recv()
+    version = ''
+    while 1:
+            if data.find ( '351' ) != -1:
+                version = data.split ( None, 3 ) [3]
+                break
+            data = self.recv()
+    return version
 
 def stats ( self, query = None, target = None ):
     if query == None:
