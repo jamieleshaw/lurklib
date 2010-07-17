@@ -3,7 +3,7 @@
 # Impove/implement return collections
 # Do not call one irc lib directly after another, well it stuffs it up a little.
 import socket, sys
-sys.path.append ( './lurklib' )
+sys.path.append ( './irc' )
 # Import IRC Sub-Modules
 
 import connection
@@ -32,6 +32,15 @@ class irc:
         self.s = socket.socket()
         self.encoding = 'ascii'
 
+    def find ( self, haystack, needle ):
+        '''
+        Returns False, if needle is not found in the haystack, if the needle is found in the haystack it returns True.
+        '''
+        qstatus = haystack.find ( needle )
+        if qstatus == -1:
+            return False
+        elif qstatus != -1:
+            return True
     def rsend ( self, msg ):
         '''
         rsend() provides, a raw interface to the socket allowing the sending of raw data.
