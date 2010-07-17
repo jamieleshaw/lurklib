@@ -3,7 +3,7 @@
 # Impove/implement return collections
 # Do not call one irc lib directly after another, well it stuffs it up a little.
 import socket, sys
-sys.path.append ( './irc' )
+sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
 
 import connection

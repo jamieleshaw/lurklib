@@ -25,14 +25,14 @@ def join ( self, channel, key = None ):
             self.rsend ( 'JOIN ' + channel )
         data = self.recv()
         while data.find ( '366' ) == -1:
-                if data.find ( 'JOIN :' + channel ) != -1:
+                if self.find ( data, 'JOIN :' + channel ) == True:
                         self.buffer.append ( data )
-                elif data.find ( '332' ) != -1:
+                elif self.find ( data, '332' ) == True:
                         topic = data.split ( None, 4 ) [4] [1:]
-                elif data.find ( '333' ) != -1:
+                elif self.find ( data, '333' ) == True:
                         # implement topic, setter and time set collection
                         pass
-                elif data.find ( '353' ) != -1:
+                elif self.find ( data, '353' ) == True:
                         names = data.split() [5:]
                         names [0] = names [0] [1:]
                 elif data.split() [1] in err_replies.keys(): return [ False, data.split() [1] ]
@@ -54,10 +54,10 @@ def part ( self, channel, reason = None ):
                 self.rsend ( 'PART ' + channel + ' :' + reason )
         data = self.recv()
         while 1:
-                if data.split() [1] in err_replies.keys() or data.find ( 'PART' ) != -1:
+                if data.split() [1] in err_replies.keys() or self.find ( data, 'PART' ) == True:
                         if data.split() [1] in err_replies.keys():
                                 return [ False, data.split() [1] ]
-                        elif data.find ( 'PART' ) != -1:
+                        elif self.find ( data, 'PART' ) == True:
                                 self.buffer.append ( data )
                         break
                 data = self.recv()
@@ -81,10 +81,10 @@ def cmode ( self, channel, modes = '' ):
         
         while 1:
                 data = self.recv()
-                if data.split() [1] in err_replies.keys() or data.find ( 'MODE' ) != -1:
+                if data.split() [1] in err_replies.keys() or self.find ( data, 'MODE' ) == True:
                         if data.split() [1] in err_replies.keys():
                                 return [ False, data.split() [1] ]
-                        elif data.find ( 'MODE' ) != -1:
+                        elif self.find ( data, 'MODE' ) == True:
                                 self.buffer.append ( data )
                         break
         
@@ -92,8 +92,8 @@ def banlist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +b' )
         bans = []
         data = self.recv()
-        while data.find ( '368' ) == -1:
-                if data.find ( '367' ) != -1:
+        while self.find ( data, '368' ) == False:
+                if self.find ( data, '367' ) == True:
                         bans.append ( data.split() [4] )
                 data = self.recv()
         return bans
@@ -101,8 +101,8 @@ def exceptlist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +e' )
         excepts = []
         data = self.recv()
-        while data.find ( '349' ) == -1:
-                if data.find ( '348' ) != -1:
+        while self.find ( data, '349' ) == False:
+                if self.find ( data, '348' ) == True:
                         excepts.append ( data.split() [4] )
                 data = self.recv()
         return excepts
@@ -110,8 +110,8 @@ def invitelist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +i' )
         invites = []
         data = self.recv()
-        while data.find ( '347' ) == -1:
-                if data.find ( '346' ) != -1:
+        while self.find ( data, '347' ) == False:
+                if self.find ( data, '346' ) == False:
                         invites.append ( data.split() [4] )
                 data = self.recv()
         return invites
@@ -135,13 +135,13 @@ def topic ( self, channel, rtopic = None ):
                 data = self.recv()
                 if data.split() [1] in err_replies.keys():
                         return [ False, data.split() [1] ]
-                elif data.find ( 'TOPIC' ) != -1:
+                elif self.find ( data, 'TOPIC' ) == False:
                         topic = ''
                         self.buffer.append ( data )
-                elif data.find ( '332' ) != -1:
+                elif self.find ( data, '332' ) == False:
                         topic = data.split ( None, 4 ) [4] [1:]
                         self.recv()
-                elif data.find ( '333' ) != -1:
+                elif self.find ( data, '333' ) == False:
                         # implement topic, setter and time set collection
                         pass
                 elif data.find ( '331' ) != -1: topic = ''
@@ -154,8 +154,8 @@ def names ( self, channel ):
         self.rsend ( 'NAMES ' + channel )
         names = []
         data = self.recv()
-        while data.find ( '366' ) == -1:
-                if data.find ( '353' ) != -1:
+        while self.find ( data, '366' ) == False:
+                if data.find ( data, '353' ) == False:
                         names = data.split() [5:]
                         names [0] = names [0] [1:]
                 data = self.recv()
@@ -167,11 +167,11 @@ def slist ( self ):
         self.rsend ( 'LIST' )
         list_info = { }
         data = self.recv()
-        while data.find ( '323' ) == -1:
-                if data.find ( '322' ) != -1:
+        while self.find ( data, '323' ) == True:
+                if self.find ( data, '322' ) == False:
                         raw_lst = data.split ( None, 5 )
                         list_info [ raw_lst [3] ] = [ raw_lst [4], raw_lst [5] [1:] ]
-                elif data.find ( '321' ) != -1:
+                elif self.find ( data, '321' ) == False:
                         pass
                 data = self.recv()
         return list_info
@@ -189,14 +189,14 @@ def invite ( self, channel, nick ):
 
         while 1:
                 data = self.recv()
-                if data.split() [1] in err_replies.keys() or data.find ( 'INVITE' ) != -1:
+                if data.split() [1] in err_replies.keys() or self.find ( data, 'INVITE' ) == False:
                         if data.split() [1] in err_replies.keys():
                                 return [ False, data.split() [1] ]
-                        elif data.find ( 'INVITE' ) != -1:
+                        elif self.find ( data, 'INVITE' ) == False:
                                 self.buffer.append ( data )
-                        elif data.find ( '341' ) != -1:
+                        elif self.find ( data, '341' ) == False:
                                 pass
-                        elif data.find ( '301' ) != -1:
+                        elif self.find ( data, '301' ) == False:
                                 return 'AFK'
                         break
         return True
@@ -212,10 +212,10 @@ def kick ( self, channel, nick, reason = '' ):
         self.rsend ( 'KICK ' + channel + ' ' + nick + ' :' + reason )
         while 1:
                 data = self.recv()
-                if data.split() [1] in err_replies.keys() or data.find ( 'KICK' ) != -1:
+                if data.split() [1] in err_replies.keys() or self.find ( data, 'KICK' ) == False:
                         if data.split() [1] in err_replies.keys():
                                 return [ False, data.split() [1] ]
-                        elif data.find ( 'KICK' ) != -1:
+                        elif data.find ( 'KICK' ) == False:
                                 self.buffer.append ( data )
                         break
         return True
