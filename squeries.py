@@ -49,13 +49,20 @@ def stats ( self, query = None, target = None ):
         self.rsend ( 'STATS ' + query + ' ' + target )
 
 def links ( self, r_server = None, smask = None ):
+    #started doing this but got tired
     if r_server == None:
         self.rsend ( 'LINKS' )
     elif smask == None and r_server != None:
         self.rsend ( 'LINKS ' + r_server )
     else:
         self.rsend ( 'LINKS ' + r_server + ' ' + smask )
-
+    links = []
+    data = self.recv()
+    while data.find ( '365' ) == -1:
+            if data.find ( '364' ) != -1:
+                links.append ( data.split ( None, 4 ) [4] )
+            data = self.recv()
+    return links
 def time ( self, target = None ):
     if target == None:
         self.rsend ( 'TIME ' + target )

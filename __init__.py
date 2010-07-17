@@ -40,18 +40,19 @@ class irc:
     
     def mcon ( self ):
         sdata = self.s.recv ( 4096 ).decode ( self.encoding )
-        if sdata.find ( 'PING' ) != -1:
-            self.rsend ( 'PONG ' + sdata.split() [1] )
         lines = sdata.split ( '\r\n' )
         for x in lines:
+            if x.find ( 'PING' ) != -1: self.rsend ( 'PONG ' + x.split() [1] )
             if x != '': self.buffer.append ( x )
     def recv ( self ):
+        msg = ''
         if self.index == len ( self.buffer ): self.mcon()
-        if len ( self.buffer ) >= 100: self.index, self.buffer = 0, []
+        if len ( self.buffer ) >= 100:
+            self.index, self.buffer = 0, []
+            self.mcon()
+        if self.buffer [ self.index ] != '': msg =  self.buffer [ self.index ]
         self.index += 1
-        if self.buffer [ self.index - 1 ] != '':
-            return self.buffer [ self.index - 1 ]
-        return ''
+        return msg
     def pdata ( self ):
         '''
         pdata() is the overall receival function, it can return anything, it calls other functions, to PING/PONG and update the buffer etc.
@@ -68,6 +69,6 @@ class irc:
                 #print ( self.join ( '#teast' ) )
                 pass
             if done == 7:
-                print ( self.version (  ) )
+                print ( self.links (  ) )
             print ( self.recv() )
             done += 1
