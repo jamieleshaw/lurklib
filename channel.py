@@ -24,7 +24,7 @@ def join ( self, channel, key = None ):
         else:
             self.rsend ( 'JOIN ' + channel )
         data = self.recv()
-        while data.find ( '366' ) == -1:
+        while self.find ( data, '366' ) == False:
                 if self.find ( data, 'JOIN :' + channel ) == True:
                         self.buffer.append ( data )
                 elif self.find ( data, '332' ) == True:

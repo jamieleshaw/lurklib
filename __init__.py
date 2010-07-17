@@ -1,8 +1,6 @@
 # TODO;
 # Implement Sub-Modules, accoriding to RFC,
-# Impove/implement return collections
-# Do not call one irc lib directly after another, well it stuffs it up a little.
-import socket, sys
+import socket, sys, threading
 sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
 
@@ -22,15 +20,23 @@ class irc:
     for x in dir ( uqueries ): exec ( x + ' = uqueries.' + x )
     for x in dir ( squeries ): exec ( x + ' = squeries.' + x )
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
-    
-    def __init__ ( self ):
+
+    def __init__ ( self, encoding = 'utf-8', init_junk_count = 0 ):
         '''
         Initial Class Variables.
         '''
         self.index = 0
+        self.con_msg = []
+        self.ircd = ''
+        self.umodes = ''
+        self.cmodes = ''
+        self.server = ''
+        self.network = ''
         self.buffer = [ ]
         self.s = socket.socket()
-        self.encoding = 'ascii'
+        self.encoding = encoding
+        self.init_junk_count = init_junk_count
+        self.motd = []
 
     def find ( self, haystack, needle ):
         '''
@@ -46,7 +52,6 @@ class irc:
         rsend() provides, a raw interface to the socket allowing the sending of raw data.
         '''
         self.s.send ( bytes ( msg + '\r\n', self.encoding ) )    
-    
     def mcon ( self ):
         sdata = self.s.recv ( 4096 ).decode ( self.encoding )
         lines = sdata.split ( '\r\n' )
@@ -61,23 +66,22 @@ class irc:
             self.mcon()
         if self.buffer [ self.index ] != '': msg =  self.buffer [ self.index ]
         self.index += 1
+        if self.find ( msg, 'PING' ) == True: msg = self.recv()
         return msg
     def pdata ( self ):
         '''
         pdata() is the overall receival function, it can return anything, it calls other functions, to PING/PONG and update the buffer etc.
         it proccess, incoming socket data.
         '''
+        return self.recv()
     def test ( self ):
         '''
         test() may be removed at some point, it tests the irc class on a localhost ircd.
         '''
         self.init ( 'localhost', 6667, 'test', 'testident', 'Mr. Name' )
-        done = 0
+        print ( 'Connected' )
+        print ( self.network )
         while 1:
-            if done == 5:
-                #print ( self.join ( '#teast' ) )
-                pass
-            if done == 7:
-                print ( self.motd (  ) )
             print ( self.recv() )
-            done += 1
+
+

@@ -15,6 +15,7 @@ def motd ( self, server = None ):
                 return [ False, data.split() [1] ]
             elif data.find ( '375' ) != -1:
                 pass
+            else: self.buffer.append ( data )
             data = self.recv()
     return motd
 def lusers ( self, mask = None, target = None ):

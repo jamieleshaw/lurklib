@@ -23,7 +23,7 @@ def whois ( self, nick ):
             '431' : 'ERR_NONICKNAMEGIVEN',
             '401' : 'ERR_NOSUCHNICK' }
         self.rsend ( 'WHOIS ' + nick )
-        whois_r = {}
+        whois_r = { 'ETC': [] }
         data = self.recv()
         while data.find ( '318' ) == -1:
             info = data.split ( None, 7 )
@@ -46,6 +46,7 @@ def whois ( self, nick ):
             elif data.find ( '313' ) != -1:
                 whois_r [ 'OP' ] = True
             elif data.split() [1] in err_replies.keys(): return [ False, data.split() [1] ]
+            else: whois_r [ 'ETC' ].append ( data )
             data = self.recv()
         return whois_r
 def whowas ( self, nick ):
