@@ -3,7 +3,7 @@
 # Impove/implement return collections
 # Do not call one irc lib directly after another, well it stuffs it up a little.
 import socket, sys
-sys.path.append ( './irc' )
+sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
 
 import connection
@@ -69,6 +69,6 @@ class irc:
                 #print ( self.join ( '#teast' ) )
                 pass
             if done == 7:
-                print ( self.links (  ) )
+                print ( self.motd (  ) )
             print ( self.recv() )
             done += 1

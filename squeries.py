@@ -10,7 +10,7 @@ def motd ( self, server = None ):
     motd = [ ]
     while data.find ( '376' ) == -1:
             if data.find ( '372' ) != -1:
-                motd.append ( data.split ( None, 4 ) [4] [1:-1])
+                motd.append ( data.split ( None, 4 ) [4] )
             elif data.split() [1] in err_replies.keys():
                 return [ False, data.split() [1] ]
             elif data.find ( '375' ) != -1:
