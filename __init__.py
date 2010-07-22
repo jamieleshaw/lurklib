@@ -1,6 +1,10 @@
 # TODO;
-# Implement Sub-Modules, accoriding to RFC,
-import socket, sys, threading
+# Doc Strings
+# Make code look shiny e.g. fix spacing and such
+# sending.py - Completed
+# channel.py - Completed except where noted
+# Current focus - connection.py
+import socket, sys, re
 sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
 
@@ -21,22 +25,59 @@ class irc:
     for x in dir ( squeries ): exec ( x + ' = squeries.' + x )
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
-    def __init__ ( self, encoding = 'utf-8', init_junk_count = 0 ):
+    def __init__ ( self, encoding = 'utf-8', ):
         '''
         Initial Class Variables.
         '''
         self.index = 0
         self.con_msg = []
         self.ircd = ''
+        self.cnick = ''
         self.umodes = ''
         self.cmodes = ''
         self.server = ''
         self.network = ''
         self.buffer = [ ]
         self.s = socket.socket()
+        self.fallback_encoding = encoding
         self.encoding = encoding
-        self.init_junk_count = init_junk_count
         self.motd = []
+
+        self.err_replies = { \
+            '407' : 'ERR_TOOMANYTARGETS',
+            '402' : 'ERR_NOSUCHSERVER',
+##            'ERR_TOOMANYMATCHES' : 'ERR_TOOMANYMATCHES',
+            '476' : 'ERR_BADCHANMASK',
+            '474' : 'ERR_BANNEDFROMCHAN',
+            '443' : 'ERR_USERONCHANNEL',
+            '442' : 'ERR_NOTONCHANNEL',
+            '441' : 'ERR_USERNOTINCHANNEL',
+            '461' : 'ERR_NEEDMOREPARAMS',
+            '472' : 'ERR_UNKNOWNMODE',
+            '473' : 'ERR_INVITEONLYCHAN',
+            '405' : 'ERR_TOOMANYCHANNELS',
+            '471' : 'ERR_CHANNELISFULL',
+            '403' : 'ERR_NOSUCHCHANNEL',
+            '477' : 'ERR_NOCHANMODES',
+            '401' : 'ERR_NOSUCHNICK',
+            '475' : 'ERR_BADCHANNELKEY',
+            '437' : 'ERR_UNAVAILRESOURCE',
+            '467' : 'ERR_KEYSET',
+            '482' : 'ERR_CHANOPRIVSNEEDED',
+            '431' : 'ERR_NONICKNAMEGIVEN',
+            '433' : 'ERR_NICKNAMEINUSE',
+            '432' : 'ERR_ERRONEUSNICKNAME',
+            '436' : 'ERR_NICKCOLLISION',
+            '484' : 'ERR_RESTRICTED',
+            '462' : 'ERR_ALREADYREGISTRED',
+            '411' : 'ERR_NORECIPIENT',
+            '404' : 'ERR_CANNOTSENDTOCHAN',
+            '414' : 'ERR_WILDTOPLEVEL',
+            '301' : 'RPL_AWAY',
+            '412' : 'ERR_NOTEXTTOSEND',
+            '413' : 'ERR_NOTOPLEVEL',
+            '491' : 'ERR_NOOPERHOST',
+            '464' : 'ERR_PASSWDMISMATCH' }
 
     def find ( self, haystack, needle ):
         '''
@@ -51,37 +92,61 @@ class irc:
         '''
         rsend() provides, a raw interface to the socket allowing the sending of raw data.
         '''
-        self.s.send ( bytes ( msg + '\r\n', self.encoding ) )    
+        try: data = bytes ( msg + '\r\n', self.encoding )
+        except LookupError: bytes ( msg + '\r\n', self.fallback_encoding )
+        self.s.send ( data )    
     def mcon ( self ):
-        sdata = self.s.recv ( 4096 ).decode ( self.encoding )
+        sdata = self.s.recv ( 4096 )
+        try: sdata = sdata.decode ( self.encoding )
+        except LookupError: sdata = sdata.decode ( self.fallback_encoding )
+        sdata = re.sub ( r'^\r\n$', '', sdata )
         lines = sdata.split ( '\r\n' )
         for x in lines:
-            if x.find ( 'PING' ) != -1: self.rsend ( 'PONG ' + x.split() [1] )
-            if x != '': self.buffer.append ( x )
+            if x.find ( 'PING :' ) == 0:
+                self.rsend ( 'PONG ' + x.split() [1] )
+            elif x != '': self.buffer.append ( x )
     def recv ( self ):
         msg = ''
         if self.index == len ( self.buffer ): self.mcon()
-        if len ( self.buffer ) >= 100:
+        elif len ( self.buffer ) >= 50:
             self.index, self.buffer = 0, []
             self.mcon()
-        if self.buffer [ self.index ] != '': msg =  self.buffer [ self.index ]
+        try: msg = self.buffer [ self.index ]
+        except IndexError:
+            self.mcon()
+            msg = self.buffer [ self.index ]
         self.index += 1
-        if self.find ( msg, 'PING' ) == True: msg = self.recv()
         return msg
-    def pdata ( self ):
+    def stream ( self ):
         '''
         pdata() is the overall receival function, it can return anything, it calls other functions, to PING/PONG and update the buffer etc.
         it proccess, incoming socket data.
         '''
-        return self.recv()
+        def who ( who ):
+            host = who.split ( '@', 1 )
+            nickident = host [0].split ( '!', 1 )
+            nick = nickident [0]
+            ident = nickident [1]
+            host = host [1]
+            return [ nick, ident, host ]
+        data = self.recv()
+        segments = data.split()
+        try:
+            if segments [2] == self.nick:
+                pass
+            #Insert sajoin etc handling here
+        except IndexError:
+            if segments [1] == 'JOIN':
+                return { 'JOIN' : [ who ( segments [0] [1:] ), segments [2] [1:] ] }
+        else: return data
     def test ( self ):
         '''
         test() may be removed at some point, it tests the irc class on a localhost ircd.
         '''
-        self.init ( 'localhost', 6667, 'test', 'testident', 'Mr. Name' )
+        self.init ( 'localhost', 6667, 'sup', 'hahahno', 'Mr. Name' )
         print ( 'Connected' )
-        print ( self.network )
+        print ( self.join ( '#test' ) )
+        print ( self.stream() )
+        print ( self.oper ( 'LK', 'meh' ) )
         while 1:
             print ( self.recv() )
-
-
