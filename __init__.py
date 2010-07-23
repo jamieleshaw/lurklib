@@ -10,6 +10,7 @@
 # sending.py - Completed
 # channel.py - Completed except where noted
 # connection.py - Completed
+# uqueries.py - Completed
 # Maybe/Idea: Convert all while 1's to for x in range() for safety/stabilty.
 import socket, sys, re
 sys.path.append ( './lurklib' )
@@ -129,8 +130,7 @@ class irc:
         return msg
     def stream ( self ):
         '''
-        pdata() is the overall receival function, it can return anything, it calls other functions, to PING/PONG and update the buffer etc.
-        it proccess, incoming socket data.
+        stream() == Main function etc
         '''
         def who ( who ):
             host = who.split ( '@', 1 )
@@ -144,20 +144,36 @@ class irc:
         try:
             if segments [2] == self.nick:
                 pass
-            #Insert sajoin etc handling here
-        except IndexError:
-            if segments [1] == 'JOIN':
+                #Insert sajoin etc handling here
+
+            elif segments [1] == 'JOIN':
                 return { 'JOIN' : [ who ( segments [0] [1:] ), segments [2] [1:] ] }
-        else: return data
+
+            elif segments [1] == 'PART':
+                try: return { 'PART' : [ who ( segments [0] [1:] ), segments [2], segment [3] [1:] ] }
+                except IndexError: return { 'PART' : [ who ( segments [0] [1:] ), segments [2], '' ] }
+
+            elif segments [1] == 'PRIVMSG':
+                return { 'PRIVMSG' : [ who ( segments [0] [1:] ), segments [2], segments [3] [1:] ] }
+
+            elif segments [1] == 'MODE':
+                return { 'MODE' : [ who ( segments [0] [1:] ), segments [2], segments [3] ] }
+
+            elif segments [1] == 'KICK':
+                return { 'KICK' : [ who ( segments [0] [1:] ), segments [2], segments [3], segments [4] [1:] ] }
+
+            else: return data
+        except IndexError: pass
+        
     def test ( self ):
         '''
         test() may be removed at some point, it tests the irc class on a localhost ircd.
         '''
         self.init ( 'localhost', 6667, 'LurkTest', 'lurklib', 'lurklib' )
         print ( 'Connected' )
-        print ( self.con_msg )
         self.stream()
-        #print ( self.join ( '#bots' ) )
-        print ( self.umode ( 'LurkTest', '-w' ) )
+        self.join ( '#meh' )
+        #self.stream()
+        print ( self.who ( '#meh' ) )
         while 1:
-            print ( self.recv() )
+            print ( self.stream() )

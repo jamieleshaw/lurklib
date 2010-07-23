@@ -153,11 +153,11 @@ def disconnect ( self, reason = None ):
 def squit ( self, server, msg ):
         self.rsend ( 'SQUIT ' + server + ' :' + msg )
         while 1:
-        data = self.recv()
+                data = self.recv()
 
-        try: ncode = data.split() [1]
-        except IndexError: self.buffer.append ( data )
-        if ncode in self.err_replies.keys():
-                return [ False, ncode ]
-        elif self.find ( data, 'SQUIT' ):
-                return True
+                try: ncode = data.split() [1]
+                except IndexError: self.buffer.append ( data )
+                if ncode in self.err_replies.keys():
+                        return [ False, ncode ]
+                elif self.find ( data, 'SQUIT' ):
+                        return True
