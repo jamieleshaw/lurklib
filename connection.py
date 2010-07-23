@@ -54,8 +54,9 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                         break
                 elif self.find ( data, '422' ):
                         break
-
                 self.con_msg.append ( data )
+
+        return True
 
 def passwd ( self, passw ):
         '''
@@ -115,9 +116,20 @@ def oper ( self, name, password ):
                 elif ncode == '008':
                         snomasks = data.split ( '(' ) [1].split ( ')' ) [0]
                 else: self.buffer.append ( data )
-def umode ( self, nick, modes ):
+def umode ( self, nick, modes = '' ):
         self.rsend ( 'MODE ' + nick + ' ' + modes )
+        while 1:
+                data = self.recv()
 
+                try: ncode = data.split() [1]
+                except IndexError: self.buffer.append ( data )
+                if ncode in self.err_replies.keys():
+                        return [ False, ncode ]
+                elif ncode == '221':
+                        return data.split() [3] [1:]
+                elif self.find ( data, 'MODE' ):
+                        return True
+                else: self.buffer.append ( data )
 def service ( self ):
         # Not Implemented, because, I haven't seen this yet....
         pass
@@ -140,3 +152,12 @@ def disconnect ( self, reason = None ):
 
 def squit ( self, server, msg ):
         self.rsend ( 'SQUIT ' + server + ' :' + msg )
+        while 1:
+        data = self.recv()
+
+        try: ncode = data.split() [1]
+        except IndexError: self.buffer.append ( data )
+        if ncode in self.err_replies.keys():
+                return [ False, ncode ]
+        elif self.find ( data, 'SQUIT' ):
+                return True

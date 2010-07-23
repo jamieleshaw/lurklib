@@ -57,7 +57,7 @@ def cmode ( self, channel, modes = '' ):
                         if ncode in self.err_replies.keys():
                                 return [ False, ncode ]
                         elif self.find ( data, 'MODE' ):
-                        pass
+                                pass
                         else: self.buffer.append ( data )
                         break
         return True
@@ -175,7 +175,7 @@ def invite ( self, channel, nick ):
                         elif self.find ( data, '301' ):
                                 return 'AWAY'
                         elif self.find ( data, 'INVITE' ):
-                        pass
+                                pass
                         else: self.buffer.append ( data )
                         break
         return True

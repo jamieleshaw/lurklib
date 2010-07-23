@@ -9,8 +9,8 @@
 # Make code look shiny e.g. fix spacing and such
 # sending.py - Completed
 # channel.py - Completed except where noted
-# Current focus - connection.py
-
+# connection.py - Completed
+# Maybe/Idea: Convert all while 1's to for x in range() for safety/stabilty.
 import socket, sys, re
 sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
@@ -83,7 +83,10 @@ class irc:
             '412' : 'ERR_NOTEXTTOSEND',
             '413' : 'ERR_NOTOPLEVEL',
             '491' : 'ERR_NOOPERHOST',
-            '464' : 'ERR_PASSWDMISMATCH' }
+            '464' : 'ERR_PASSWDMISMATCH',
+            '501' : 'ERR_UMODEUNKNOWNFLAG',
+            '502' : 'ERR_USERSDONTMATCH',
+            '481' : 'ERR_NOPRIVILEGES' }
 
     def find ( self, haystack, needle ):
         '''
@@ -120,6 +123,7 @@ class irc:
         try: msg = self.buffer [ self.index ]
         except IndexError:
             self.mcon()
+            self.index -= 1
             msg = self.buffer [ self.index ]
         self.index += 1
         return msg
@@ -151,7 +155,9 @@ class irc:
         '''
         self.init ( 'localhost', 6667, 'LurkTest', 'lurklib', 'lurklib' )
         print ( 'Connected' )
+        print ( self.con_msg )
+        self.stream()
         #print ( self.join ( '#bots' ) )
-        print ( self.motd )
+        print ( self.umode ( 'LurkTest', '-w' ) )
         while 1:
             print ( self.recv() )
