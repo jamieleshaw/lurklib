@@ -2,7 +2,7 @@
 # called function should be proccessed by the function itself, before return;
 # control to the outside codosphere, this is good because, it means a lurklib;
 # function can be called directly after another without;
-# having to call stream(), which in the long run is alot cleaner, and simpler.
+# having to call stream(), which in the long run is alot cleaner, and simpler; however always call stream() after connecting.
 #
 # TODO;
 # Doc Strings
@@ -155,6 +155,9 @@ class irc:
 
             elif segments [1] == 'PRIVMSG':
                 return { 'PRIVMSG' : [ who ( segments [0] [1:] ), segments [2], segments [3] [1:] ] }
+
+            elif segments [1] == 'NOTICE':
+                return { 'NOTICE' : [ who ( segments [0] [1:] ), segments [2], segments [3] [1:] ] }
 
             elif segments [1] == 'MODE':
                 return { 'MODE' : [ who ( segments [0] [1:] ), segments [2], segments [3] ] }

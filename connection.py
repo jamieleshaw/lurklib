@@ -161,3 +161,4 @@ def squit ( self, server, msg ):
                         return [ False, ncode ]
                 elif self.find ( data, 'SQUIT' ):
                         return True
+                else: self.buffer.append ( data )
