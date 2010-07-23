@@ -1,9 +1,16 @@
+# lurklib functions work as follows; all data recvieved in relation to a;
+# called function should be proccessed by the function itself, before return;
+# control to the outside codosphere, this is good because, it means a lurklib;
+# function can be called directly after another without;
+# having to call stream(), which in the long run is alot cleaner, and simpler.
+#
 # TODO;
 # Doc Strings
 # Make code look shiny e.g. fix spacing and such
 # sending.py - Completed
 # channel.py - Completed except where noted
 # Current focus - connection.py
+
 import socket, sys, re
 sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
@@ -73,7 +80,6 @@ class irc:
             '411' : 'ERR_NORECIPIENT',
             '404' : 'ERR_CANNOTSENDTOCHAN',
             '414' : 'ERR_WILDTOPLEVEL',
-            '301' : 'RPL_AWAY',
             '412' : 'ERR_NOTEXTTOSEND',
             '413' : 'ERR_NOTOPLEVEL',
             '491' : 'ERR_NOOPERHOST',

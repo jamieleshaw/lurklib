@@ -173,7 +173,7 @@ def invite ( self, channel, nick ):
                         elif self.find ( data, '341' ):
                                 pass
                         elif self.find ( data, '301' ):
-                                return 'AFK'
+                                return 'AWAY'
                         elif self.find ( data, 'INVITE' ):
                         pass
                         else: self.buffer.append ( data )
@@ -188,8 +188,8 @@ def kick ( self, channel, nick, reason = '' ):
                 if ncode in self.err_replies.keys():
                         if ncode in self.err_replies.keys():
                                 return [ False, ncode ]
-                        elif self.find ( data, 'KIC' ):
-                        pass
+                        elif self.find ( data, 'KICK' ):
+                                pass
                         else: self.buffer.append ( data )
                         break
         return True
