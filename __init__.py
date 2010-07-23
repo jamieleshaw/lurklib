@@ -143,10 +143,9 @@ class irc:
         '''
         test() may be removed at some point, it tests the irc class on a localhost ircd.
         '''
-        self.init ( 'localhost', 6667, 'sup', 'hahahno', 'Mr. Name' )
+        self.init ( 'localhost', 6667, 'LurkTest', 'lurklib', 'lurklib' )
         print ( 'Connected' )
-        print ( self.join ( '#test' ) )
-        print ( self.stream() )
-        print ( self.oper ( 'LK', 'meh' ) )
+        #print ( self.join ( '#bots' ) )
+        print ( self.motd )
         while 1:
             print ( self.recv() )

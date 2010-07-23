@@ -48,7 +48,8 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                 elif self.find ( data, '375' ):
                         pass
                 elif self.find ( data, '372' ):
-                        self.motd.append ( data.split ( None, 4 ) [4] )
+                        try: self.motd.append ( data.split ( None, 3 ) [3] [1:] )
+                        except IndexError: pass
                 elif self.find ( data, '376' ):
                         break
                 elif self.find ( data, '422' ):
@@ -56,9 +57,6 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
 
                 self.con_msg.append ( data )
 
-        if self.motd != []:
-                return True
-        return False
 def passwd ( self, passw ):
         '''
         passd() sends a PASS <password>, message to the server, it has one required argument the password.
