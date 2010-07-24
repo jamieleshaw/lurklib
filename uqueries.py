@@ -11,8 +11,8 @@ def who ( self, channel ):
     who_lst = {}
     data = self.recv()
     while 1:
-            try: ncode = data.split() [1]
-            except IndexError: self.buffer.append ( data )
+            ncode = data.split() [1]
+
             if self.find ( data, '352' ):
                 raw_who = data.split ( None, 10 )
                 who_lst [ raw_who [7] ] = [ raw_who [4], raw_who [10], raw_who [5] ]
@@ -40,7 +40,7 @@ def whois ( self, nick ):
     self.rsend ( 'WHOIS ' + nick )
     whois_r = {}
     data = self.recv()
-    while data.find ( '318' ) == -1:
+    while self.find ( data, '318' ) == False:
         info = data.split ( None, 7 )
         ncode = info [1]
         if data.find ( '311' ) != -1:
@@ -54,13 +54,13 @@ def whois ( self, nick ):
             whois_r [ 'SERVER' ] = info [4]
             whois_r [ 'SERVER_INFO' ] = ' '.join ( info [5:] ) [1:]
         elif data.find ( '319' ) != -1:
-            whois_r [ 'CHANNELS' ] = ''.join ( info [4:] )[1:].split()
+            whois_r [ 'CHANNELS' ] = ' '.join ( info [4:] )[1:].split()
         elif data.find ( '317' ) != -1:
             whois_r [ 'IDLE' ] = info [5]
         elif data.find ( '301' ) != -1:
             whois_r [ 'AWAY' ] = info [4] [1:]
         elif data.find ( '313' ) != -1:
-            whois_r [ 'OP' ] = True
+            whois_r [ 'OP' ] = ' '.join ( info [4:] ) [1:]
         elif ncode in self.err_replies.keys(): return [ False, ncode ]
         else:
             if 'ETC' in whois_r.keys():
@@ -83,8 +83,8 @@ def whowas ( self, nick ):
     rwhowas = []
     while 1:
             data = self.recv()
-            try: ncode = data.split() [1]
-            except IndexError: self.buffer.append ( data )
+            ncode = data.split() [1]
+
             if self.find ( data, '314' ):
                 raw_whowas = data.split()
                 rwhowas = [ raw_whowas [3], raw_whowas [4], raw_whowas [5], raw_whowas [7] [1:] ]

@@ -78,7 +78,6 @@ def nick ( self, nick ):
         '''
         self.rsend ( 'NICK ' + nick )
 
-        self.cnick = nick
         data = self.recv()
         ncode = data.split() [1]
         if ncode in self.err_replies.keys():
@@ -105,8 +104,8 @@ def oper ( self, name, password ):
         new_umodes = ''
         while 1:
                 data = self.recv()
-                try: ncode = data.split() [1]
-                except IndexError: self.buffer.append ( data )
+                ncode = data.split() [1]
+
                 if ncode in self.err_replies.keys():
                         return [ False, ncode ]
                 elif self.find ( data, 'MODE' ):
@@ -121,8 +120,8 @@ def umode ( self, nick, modes = '' ):
         while 1:
                 data = self.recv()
 
-                try: ncode = data.split() [1]
-                except IndexError: self.buffer.append ( data )
+                ncode = data.split() [1]
+
                 if ncode in self.err_replies.keys():
                         return [ False, ncode ]
                 elif ncode == '221':
@@ -131,7 +130,7 @@ def umode ( self, nick, modes = '' ):
                         return True
                 else: self.buffer.append ( data )
 def service ( self ):
-        # Not Implemented, because, I haven't seen this yet....
+        # Not yet done..obviously
         pass
 
 def quit ( self, reason = None ):
@@ -154,9 +153,8 @@ def squit ( self, server, msg ):
         self.rsend ( 'SQUIT ' + server + ' :' + msg )
         while 1:
                 data = self.recv()
+                ncode = data.split() [1]
 
-                try: ncode = data.split() [1]
-                except IndexError: self.buffer.append ( data )
                 if ncode in self.err_replies.keys():
                         return [ False, ncode ]
                 elif self.find ( data, 'SQUIT' ):

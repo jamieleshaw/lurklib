@@ -6,6 +6,11 @@
 #
 # TODO;
 # Doc Strings
+# Use regex to make efnet compattible
+
+# make var to store whether their is more data to be read from the socket with stream()
+# stream() should handle returns things like the topic and /names upon sajoin
+
 # Make code look shiny e.g. fix spacing and such
 # sending.py - Completed
 # channel.py - Completed except where noted
@@ -40,7 +45,6 @@ class irc:
         self.index = 0
         self.con_msg = []
         self.ircd = ''
-        self.cnick = ''
         self.umodes = ''
         self.cmodes = ''
         self.server = ''
@@ -133,40 +137,47 @@ class irc:
         stream() == Main function etc
         '''
         def who ( who ):
-            host = who.split ( '@', 1 )
-            nickident = host [0].split ( '!', 1 )
-            nick = nickident [0]
-            ident = nickident [1]
-            host = host [1]
-            return [ nick, ident, host ]
+            try:
+                host = who.split ( '@', 1 )
+                nickident = host [0].split ( '!', 1 )
+                nick = nickident [0]
+                ident = nickident [1]
+                host = host [1]
+                return [ nick, ident, host ]
+            except IndexError: return who
         data = self.recv()
         segments = data.split()
-        try:
-            if segments [2] == self.nick:
-                pass
-                #Insert sajoin etc handling here
+        print ( data )
+        if segments [1] == 'JOIN':
+            return { 'JOIN' : [ who ( segments [0] [1:] ), segments [2] [1:] ] }
 
-            elif segments [1] == 'JOIN':
-                return { 'JOIN' : [ who ( segments [0] [1:] ), segments [2] [1:] ] }
+        elif segments [1] == 'PART':
+            try: return { 'PART' : [ who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
+            except IndexError: return { 'PART' : [ who ( segments [0] [1:] ), segments [2], '' ] }
 
-            elif segments [1] == 'PART':
-                try: return { 'PART' : [ who ( segments [0] [1:] ), segments [2], segment [3] [1:] ] }
-                except IndexError: return { 'PART' : [ who ( segments [0] [1:] ), segments [2], '' ] }
+        elif segments [1] == 'PRIVMSG':
+            return { 'PRIVMSG' : [ who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
 
-            elif segments [1] == 'PRIVMSG':
-                return { 'PRIVMSG' : [ who ( segments [0] [1:] ), segments [2], segments [3] [1:] ] }
+        elif segments [1] == 'NOTICE':
+            return { 'NOTICE' : [ who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
 
-            elif segments [1] == 'NOTICE':
-                return { 'NOTICE' : [ who ( segments [0] [1:] ), segments [2], segments [3] [1:] ] }
+        elif segments [1] == 'MODE':
+            try: return { 'MODE' : [ who ( segments [2] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
+            except IndexError: return { 'MODE' : [ segments [2], ' '.join ( segments [3:] ) [1:] ] }
+        
+        elif segments [1] == 'KICK':
+            return { 'KICK' : [ who ( segments [0] [1:] ), segments [2], segments [3], ' '.join ( segments [4:] ) [1:] ] }
 
-            elif segments [1] == 'MODE':
-                return { 'MODE' : [ who ( segments [0] [1:] ), segments [2], segments [3] ] }
+        elif segments [1] == 'INVITE':
+            return { 'INVITE' : [ who ( segments [0] [1:] ), segments [2], segments [3] [1:] ] }
 
-            elif segments [1] == 'KICK':
-                return { 'KICK' : [ who ( segments [0] [1:] ), segments [2], segments [3], segments [4] [1:] ] }
+        elif segments [1] == 'NICK':
+            return { 'NICK' : [ who ( segments [0] [1:] ), ' '.join ( segments [2:] ) [1:] ] }
 
-            else: return data
-        except IndexError: pass
+        elif segments [1] == 'TOPIC':
+            return { 'TOPIC' : [ who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
+        
+        else: return data
         
     def test ( self ):
         '''
@@ -174,9 +185,8 @@ class irc:
         '''
         self.init ( 'localhost', 6667, 'LurkTest', 'lurklib', 'lurklib' )
         print ( 'Connected' )
-        self.stream()
+        print ( self.stream() )
         self.join ( '#meh' )
         #self.stream()
-        print ( self.who ( '#meh' ) )
         while 1:
             print ( self.stream() )
