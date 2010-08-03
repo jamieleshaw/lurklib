@@ -19,8 +19,11 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
         if identstatus != True:
                 return [ False, ident [1] ]
         while 1:
+                #print ( self.con_msg )
                 data = self.recv()
-                print ( data )
+                #print ( repr ( data ) )
+                self.con_msg.append ( data )
+                
                 if self.find ( data, '001' ):
                         pass
                 elif self.find ( data, '002' ):
@@ -48,7 +51,7 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                 elif self.find ( data, '265' ):
                         pass
                 elif self.find ( data, '266' ):
-                        pass
+                        break
                 elif self.find ( data, '375' ):
                         pass
                 elif self.find ( data, '042' ):
@@ -57,14 +60,19 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                         try: self.motd.append ( data.split ( None, 3 ) [3] [1:] )
                         except IndexError: pass
                 elif self.find ( data, '376' ):
-                        break
+                        pass
                 elif self.find ( data, '422' ):
-                        break
+                        pass
                 elif self.find ( data, 'NOTICE' ):
                         pass
-                #else: break
-                self.con_msg.append ( data )
-
+##                elif data [0] != ':':
+##                        self.buffer [ self.index - 2 ] = self.buffer [ self.index - 2 ] + data
+##                        del self.buffer [ self.index - 1 ]
+##                        #print ( self.buffer [-15:] )
+##                        #print ( self.con_msg [-2:])
+##                        self.con_msg [-2:] = self.buffer [ self.index - 2 ] + data
+##                        self.motd [-2:]  =  self.buffer [ self.index - 2 ] + data
+##                else: break
         return True
 
 def passwd ( self, passw ):

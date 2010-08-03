@@ -117,14 +117,15 @@ class irc:
         sdata = self.s.recv ( 4096 )
         try: sdata = sdata.decode ( self.encoding )
         except LookupError: sdata = sdata.decode ( self.fallback_encoding )
-        split_line_regex = re.compile ( r'(?=\S*)' + self.clrf + '(?!' + self.clrf + ')' )
 
-        lines = split_line_regex.split ( sdata )
+        lines = sdata.split ( self.clrf )
         for x in lines:
             if x.find ( 'PING :' ) == 0:
                 self.rsend ( 'PONG ' + x.split() [1] )
                 self.mcon()
-            elif x != '': self.buffer.append ( x )
+            elif x == '':
+                break
+            else: self.buffer.append ( x )
     def recv ( self ):
         msg = ''
         if self.index == len ( self.buffer ): self.mcon()
@@ -132,8 +133,6 @@ class irc:
             self.index, self.buffer = 0, []
             self.mcon()
         msg = self.buffer [ self.index ]
-        if msg == '':
-            msg = self.recv()
         self.index += 1
         return msg
     def stream ( self ):
@@ -192,7 +191,8 @@ class irc:
         '''
         self.init ( 'localhost', 6667, 'LurkTest123', 'lurklib', 'lurklib' )
         print ( 'Connected' )
-        print ( self.recv() )
+        #print ( self.con_msg )
+        for x in self.buffer: print ( x )
         while 1:
             try: print ( self.recv() )
             except KeyboardInterrupt:
