@@ -10,13 +10,17 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
         '''
         self.connect ( server, port )
         if passwd != None:
-            self.passwd ( passwd )
-        self.nick ( nick )
-        self.ident ( ident, real_name )
-       
+                self.passwd ( passwd )
+        nstatus = self.nick ( nick )
+        if nstatus != True:
+                return [ False, nstatus [1] ]
+        
+        identstatus = self.ident ( ident, real_name )
+        if identstatus != True:
+                return [ False, ident [1] ]
         while 1:
                 data = self.recv()
-                
+                print ( data )
                 if self.find ( data, '001' ):
                         pass
                 elif self.find ( data, '002' ):
@@ -33,9 +37,9 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                         if self.network == '':
                                 info = data.split()
                                 for x in info:
-                                        if self.find ( x, 'NETWORK' ) == True:
+                                        if self.find ( x, 'NETWORK' ):
                                                 self.network = x.split ( '=' ) [1]          
-                                        elif self.find ( x, 'CASEMAPPING' ) == True:
+                                        elif self.find ( x, 'CASEMAPPING' ):
                                                 self.encoding = x.split ( '=' ) [1]
                 elif self.find ( data, '251' ):
                         pass
@@ -47,6 +51,8 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                         pass
                 elif self.find ( data, '375' ):
                         pass
+                elif self.find ( data, '042' ):
+                        pass
                 elif self.find ( data, '372' ):
                         try: self.motd.append ( data.split ( None, 3 ) [3] [1:] )
                         except IndexError: pass
@@ -54,6 +60,9 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                         break
                 elif self.find ( data, '422' ):
                         break
+                elif self.find ( data, 'NOTICE' ):
+                        pass
+                #else: break
                 self.con_msg.append ( data )
 
         return True

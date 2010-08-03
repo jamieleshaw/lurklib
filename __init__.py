@@ -6,10 +6,11 @@
 #
 # TODO;
 # Doc Strings
-# Use regex to make efnet compattible
-
-# make var to store whether their is more data to be read from the socket with stream()
+# Fix connection system - join the broken motd parts
 # stream() should handle returns things like the topic and /names upon sajoin
+# make it so the irc connection can be init'ed via __init__
+# change stream()'s return value thingy, so it returns a set or w/e
+# Hooks based event handling
 
 # Make code look shiny e.g. fix spacing and such
 # sending.py - Completed
@@ -38,13 +39,14 @@ class irc:
     for x in dir ( squeries ): exec ( x + ' = squeries.' + x )
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
-    def __init__ ( self, encoding = 'utf-8', ):
+    def __init__ ( self, encoding = 'utf-8', clrf = '\r\n' ):
         '''
         Initial Class Variables.
         '''
         self.index = 0
         self.con_msg = []
         self.ircd = ''
+        self.clrf = clrf
         self.umodes = ''
         self.cmodes = ''
         self.server = ''
@@ -106,18 +108,21 @@ class irc:
         '''
         rsend() provides, a raw interface to the socket allowing the sending of raw data.
         '''
-        try: data = bytes ( msg + '\r\n', self.encoding )
-        except LookupError: bytes ( msg + '\r\n', self.fallback_encoding )
-        self.s.send ( data )    
+        try: data = bytes ( msg + self.clrf, self.encoding )
+        except LookupError: data = bytes ( msg + self.clrf, self.fallback_encoding )
+        self.s.send ( data )
+        return msg
     def mcon ( self ):
         sdata = self.s.recv ( 4096 )
         try: sdata = sdata.decode ( self.encoding )
         except LookupError: sdata = sdata.decode ( self.fallback_encoding )
-        sdata = re.sub ( r'^\r\n$', '', sdata )
-        lines = sdata.split ( '\r\n' )
+        split_line_regex = re.compile ( r'(?=\S*)' + self.clrf + '(?!' + self.clrf + ')' )
+
+        lines = split_line_regex.split ( sdata )
         for x in lines:
             if x.find ( 'PING :' ) == 0:
                 self.rsend ( 'PONG ' + x.split() [1] )
+                self.mcon()
             elif x != '': self.buffer.append ( x )
     def recv ( self ):
         msg = ''
@@ -125,11 +130,9 @@ class irc:
         elif len ( self.buffer ) >= 50:
             self.index, self.buffer = 0, []
             self.mcon()
-        try: msg = self.buffer [ self.index ]
-        except IndexError:
-            self.mcon()
-            self.index -= 1
-            msg = self.buffer [ self.index ]
+        msg = self.buffer [ self.index ]
+        if msg == '':
+            msg = self.recv()
         self.index += 1
         return msg
     def stream ( self ):
@@ -147,7 +150,7 @@ class irc:
             except IndexError: return who
         data = self.recv()
         segments = data.split()
-        print ( data )
+        
         if segments [1] == 'JOIN':
             return { 'JOIN' : [ who ( segments [0] [1:] ), segments [2] [1:] ] }
 
@@ -176,6 +179,9 @@ class irc:
 
         elif segments [1] == 'TOPIC':
             return { 'TOPIC' : [ who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
+
+        elif segments [1] == 'QUIT':
+            return { 'QUIT' : [ who ( segments [0] [1:] ), ' '.join ( segments [3:] ) ] }
         
         else: return data
         
@@ -183,10 +189,11 @@ class irc:
         '''
         test() may be removed at some point, it tests the irc class on a localhost ircd.
         '''
-        self.init ( 'localhost', 6667, 'LurkTest', 'lurklib', 'lurklib' )
+        self.init ( 'localhost', 6667, 'LurkTest123', 'lurklib', 'lurklib' )
         print ( 'Connected' )
-        print ( self.stream() )
-        self.join ( '#meh' )
-        #self.stream()
+        print ( self.recv() )
         while 1:
-            print ( self.stream() )
+            try: print ( self.recv() )
+            except KeyboardInterrupt:
+                self.disconnect()
+                break

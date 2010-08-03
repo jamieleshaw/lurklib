@@ -1,6 +1,6 @@
 def msg ( self, target, message ):
 
-    self.rsend ( 'PRIVSMG ' + target + ' :' + message )
+    self.rsend ( 'PRIVMSG ' + target + ' :' + message )
     data = self.recv()
     ncode = data.split() [1]
 
