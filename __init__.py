@@ -11,6 +11,7 @@
 # make it so the irc connection can be init'ed via __init__
 # change stream()'s return value thingy, so it returns a set or w/e
 # Hooks based event handling
+# Add a Debug mode system thingy
 
 # Make code look shiny e.g. fix spacing and such
 # sending.py - Completed
