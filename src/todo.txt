@@ -1,0 +1,8 @@
+Write elaborate doc strings for lurklib's methods & write then all in the same formatting.
+Investigate Buffering problems and hide PING, as-well as fix the MOTD processors, issue with the next lot of data from the socket breaking the MOTD.
+stream() should process TOPIC & NAMES data upon SAJOIN.
+Allow instance the IRC connection upon instance creation.
+Improve speed of lurklib, by changing stream()'s return value to a set.
+Hook-in events based handling.
+Use the logging module to add debugging data and a debugging mode.
+Complete squeries.py.

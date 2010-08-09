@@ -1,24 +1,3 @@
-# lurklib functions work as follows; all data recvieved in relation to a;
-# called function should be proccessed by the function itself, before return;
-# control to the outside codosphere, this is good because, it means a lurklib;
-# function can be called directly after another without;
-# having to call stream(), which in the long run is alot cleaner, and simpler; however always call stream() after connecting.
-#
-# TODO;
-# Doc Strings
-# Fix connection system - join the broken motd parts
-# stream() should handle returns things like the topic and /names upon sajoin
-# make it so the irc connection can be init'ed via __init__
-# change stream()'s return value thingy, so it returns a set or w/e
-# Hooks based event handling
-# Add a Debug mode system thingy
-
-# Make code look shiny e.g. fix spacing and such
-# sending.py - Completed
-# channel.py - Completed except where noted
-# connection.py - Completed
-# uqueries.py - Completed
-# Maybe/Idea: Convert all while 1's to for x in range() for safety/stabilty.
 import socket, sys, re
 sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
@@ -30,9 +9,7 @@ import squeries
 import sending
 
 class irc:
-    '''
-    LK's IRC Class.
-    '''
+
     # Put them in this namespace...I'm sure there is a cleaner way of doing this, but I've haven't found it yet...
     for x in dir ( connection ): exec ( x + ' = connection.' + x )
     for x in dir ( channel ): exec ( x + ' = channel.' + x )
