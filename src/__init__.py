@@ -132,35 +132,35 @@ class irc:
         segments = data.split()
         
         if segments [1] == 'JOIN':
-            return { 'JOIN' : [ who ( segments [0] [1:] ), segments [2] [1:] ] }
+            return ( 'JOIN', ( who ( segments [0] [1:] ), segments [2] [1:] ) )
 
         elif segments [1] == 'PART':
-            try: return { 'PART' : [ who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
+            try: return ( 'PART', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
             except IndexError: return { 'PART' : [ who ( segments [0] [1:] ), segments [2], '' ] }
 
         elif segments [1] == 'PRIVMSG':
-            return { 'PRIVMSG' : [ who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
+            return ( 'PRIVMSG', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
 
         elif segments [1] == 'NOTICE':
-            return { 'NOTICE' : [ who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
+            return ( 'NOTICE', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
 
         elif segments [1] == 'MODE':
-            try: return { 'MODE' : [ who ( segments [2] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
+            try: return ( 'MODE', ( who ( segments [2] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
             except IndexError: return { 'MODE' : [ segments [2], ' '.join ( segments [3:] ) [1:] ] }
         
         elif segments [1] == 'KICK':
-            return { 'KICK' : [ who ( segments [0] [1:] ), segments [2], segments [3], ' '.join ( segments [4:] ) [1:] ] }
+            return ( 'KICK', ( who ( segments [0] [1:] ), segments [2], segments [3], ' '.join ( segments [4:] ) [1:] ) )
 
         elif segments [1] == 'INVITE':
-            return { 'INVITE' : [ who ( segments [0] [1:] ), segments [2], segments [3] [1:] ] }
+            return ( 'INVITE', ( who ( segments [0] [1:] ), segments [2], segments [3] [1:] ) )
 
         elif segments [1] == 'NICK':
-            return { 'NICK' : [ who ( segments [0] [1:] ), ' '.join ( segments [2:] ) [1:] ] }
+            return ( 'NICK', ( who ( segments [0] [1:] ), ' '.join ( segments [2:] ) [1:] ) )
 
         elif segments [1] == 'TOPIC':
-            return { 'TOPIC' : [ who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ] }
+            return ( 'TOPIC', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
 
         elif segments [1] == 'QUIT':
-            return { 'QUIT' : [ who ( segments [0] [1:] ), ' '.join ( segments [3:] ) ] }
+            return ( 'QUIT', ( who ( segments [0] [1:] ), ' '.join ( segments [3:] ) ) )
         
         else: return data
