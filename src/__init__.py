@@ -26,7 +26,6 @@ class irc:
         self.ircd = ''
         self.clrf = clrf
         self.umodes = ''
-        self.sdata = ''
         self.cmodes = ''
         self.server = ''
         self.network = ''
