@@ -26,6 +26,7 @@ class irc:
         self.ircd = ''
         self.clrf = clrf
         self.umodes = ''
+        self.sdata = ''
         self.cmodes = ''
         self.server = ''
         self.network = ''
@@ -86,15 +87,18 @@ class irc:
         '''
         rsend() provides, a raw interface to the socket allowing the sending of raw data.
         '''
-        try: data = bytes ( msg + self.clrf, self.encoding )
-        except LookupError: data = bytes ( msg + self.clrf, self.fallback_encoding )
+        msg = msg + self.clrf
+        try: data = bytes ( msg, self.encoding )
+        except LookupError: data = bytes ( msg, self.fallback_encoding )
         self.s.send ( data )
         return msg
     def mcon ( self ):
-        sdata = self.s.recv ( 4096 )
-        try: sdata = sdata.decode ( self.encoding )
-        except LookupError: sdata = sdata.decode ( self.fallback_encoding )
-
+        try: sdata = self.s.recv ( 4096 ).decode ( self.encoding )
+        except LookupError: sdata = self.s.recv ( 4096 ).decode ( self.fallback_encoding )
+        while sdata [-1] != self.clrf [-1]:
+                    try: sdata = sdata + self.s.recv ( 4096 ).decode ( self.encoding )
+                    except LookupError: sdata = sdata + self.s.recv ( 4096 ).decode ( self.fallback_encoding )
+                    
         lines = sdata.split ( self.clrf )
         for x in lines:
             if x.find ( 'PING :' ) == 0:
@@ -102,15 +106,14 @@ class irc:
             if x != '': self.buffer.append ( x )
     def recv ( self ):
         if self.index == len ( self.buffer ): self.mcon()
-        elif len ( self.buffer ) >= 50:
-            self.index, self.buffer = 0, []
-            self.mcon()
+
         msg = self.buffer [ self.index ]
-        if self.find ( msg, 'PING' ):
+        while self.find ( msg, 'PING :' ):
             self.index += 1
-            if self.index == len ( self.buffer ): self.mcon()
-            msg = self.buffer [ self.index ]
-                
+            try:
+                msg = self.buffer [ self.index ]
+            except IndexError:
+                self.mcon()
         self.index += 1
         return msg
     def stream ( self ):
@@ -162,9 +165,3 @@ class irc:
             return { 'QUIT' : [ who ( segments [0] [1:] ), ' '.join ( segments [3:] ) ] }
         
         else: return data
-        
-    def test ( self ):
-        '''
-        test() may be removed at some point, it tests the irc class on a localhost ircd.
-        '''
-        

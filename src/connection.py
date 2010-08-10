@@ -19,11 +19,8 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
         if identstatus != True:
                 return [ False, ident [1] ]
         while 1:
-                #print ( self.con_msg )
                 data = self.recv()
-                #print ( repr ( data ) )
-                self.con_msg.append ( data )
-                
+
                 if self.find ( data, '001' ):
                         pass
                 elif self.find ( data, '002' ):
@@ -42,7 +39,7 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                                 for x in info:
                                         if self.find ( x, 'NETWORK' ):
                                                 self.network = x.split ( '=' ) [1]          
-                                        elif self.find ( x, 'CASEMAPPING' ):
+                                        elif self.find ( x, 'CHARSET' ):
                                                 self.encoding = x.split ( '=' ) [1]
                 elif self.find ( data, '251' ):
                         pass
@@ -65,14 +62,8 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                         pass
                 elif self.find ( data, 'NOTICE' ):
                         pass
-##                elif data [0] != ':':
-##                        self.buffer [ self.index - 2 ] = self.buffer [ self.index - 2 ] + data
-##                        del self.buffer [ self.index - 1 ]
-##                        #print ( self.buffer [-15:] )
-##                        #print ( self.con_msg [-2:])
-##                        self.con_msg [-2:] = self.buffer [ self.index - 2 ] + data
-##                        self.motd [-2:]  =  self.buffer [ self.index - 2 ] + data
-##                else: break
+
+                self.con_msg.append ( data )
         return True
 
 def passwd ( self, passw ):
@@ -86,7 +77,7 @@ def passwd ( self, passw ):
         ncode = data.split() [1]
         if ncode in self.err_replies.keys():
                 return [ False, ncode ]
-        else: self.buffer.append ( data )
+        elif self.find ( data, 'NOTICE' ): self.buffer.append ( data )
         return True
 def nick ( self, nick ):
         '''
