@@ -99,17 +99,18 @@ class irc:
         for x in lines:
             if x.find ( 'PING :' ) == 0:
                 self.rsend ( 'PONG ' + x.split() [1] )
-                self.mcon()
-            elif x == '':
-                break
-            else: self.buffer.append ( x )
+            if x != '': self.buffer.append ( x )
     def recv ( self ):
-        msg = ''
         if self.index == len ( self.buffer ): self.mcon()
         elif len ( self.buffer ) >= 50:
             self.index, self.buffer = 0, []
             self.mcon()
         msg = self.buffer [ self.index ]
+        if self.find ( msg, 'PING' ):
+            self.index += 1
+            if self.index == len ( self.buffer ): self.mcon()
+            msg = self.buffer [ self.index ]
+                
         self.index += 1
         return msg
     def stream ( self ):
@@ -166,7 +167,7 @@ class irc:
         '''
         test() may be removed at some point, it tests the irc class on a localhost ircd.
         '''
-        self.init ( 'localhost', 6667, 'LurkTest123', 'lurklib', 'lurklib' )
+        self.init ( 'localhost', 6667, 'LurkTest', 'lurklib', 'lurklib' )
         print ( 'Connected' )
         #print ( self.con_msg )
         for x in self.buffer: print ( x )
