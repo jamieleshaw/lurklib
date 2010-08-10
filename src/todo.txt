@@ -6,3 +6,6 @@ Use the logging module to add debugging data and a debugging mode.
 Complete squeries.py.
 Implement buffer flush.
 Implement connect notices processing.
+In case of error, instead of returning the error code, implement an exceptions.py and raise an exception.
+Implement a CTCP class.
+Add argument, for if to swallow IRC events, such as KICK after calling irc.kick().

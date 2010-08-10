@@ -77,7 +77,7 @@ def passwd ( self, passw ):
         ncode = data.split() [1]
         if ncode in self.err_replies.keys():
                 return ncode
-        elif self.find ( data, 'NOTICE' ): self.buffer.append ( data )
+        elif self.find ( data, 'NOTICE' ) == False: self.index -= 1
         return True
 def nick ( self, nick ):
         '''
@@ -87,10 +87,15 @@ def nick ( self, nick ):
         self.rsend ( 'NICK ' + nick )
 
         data = self.recv()
-        ncode = data.split() [1]
+        
+        while self.find ( data, 'NOTICE' ):
+            data = self.recv()
+            ncode = data.split() [1]
         if ncode in self.err_replies.keys():
                 return ncode
-        else: self.buffer.append ( data )
+        
+        else: self.index -= 1
+            
         return True
 def ident ( self, ident, real_name ):
         '''
@@ -101,10 +106,12 @@ def ident ( self, ident, real_name ):
         self.rsend ( 'USER ' + ident + ' 0 * :' + real_name )
         
         data = self.recv()
+
         ncode = data.split() [1]
         if ncode in self.err_replies.keys():
                 return ncode
-        else: self.buffer.append ( data )
+        
+        else: self.index -= 1
         return True
 def oper ( self, name, password ):
         self.rsend ( 'OPER ' + name + ' ' + password )

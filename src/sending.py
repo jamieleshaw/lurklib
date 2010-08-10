@@ -8,7 +8,7 @@ def msg ( self, target, message ):
             return ncode
     elif ncode == '301':
         return [ 'AWAY', data.split ( None, 3 ) [3] [1:] ]
-    else: self.buffer.append ( data )
+    else: self.index -= 1
     return True
 def notice ( self, target, message ):
 
@@ -20,5 +20,5 @@ def notice ( self, target, message ):
             return ncode
     elif ncode == '301':
         return [ 'AWAY', data.split ( None, 3 ) [3] [1:] ]
-    else: self.buffer.append ( data )
+    else: self.index -= 1
     return True

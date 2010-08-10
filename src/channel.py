@@ -185,10 +185,9 @@ def kick ( self, channel, nick, reason = '' ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        if ncode in self.err_replies.keys():
-                                return ncode
-                        elif self.find ( data, 'KICK' ):
-                                pass
-                        else: self.buffer.append ( data )
-                        break
+                        return ncode
+                elif self.find ( data, 'KICK' ):
+                        pass
+                else: self.buffer.append ( data )
+                break
         return True
