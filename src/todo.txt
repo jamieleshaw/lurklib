@@ -6,4 +6,3 @@ Use the logging module to add debugging data and a debugging mode.
 Complete squeries.py.
 Implement buffer flush.
 Implement connect notices processing.
-Change return of functions in the case of an error.

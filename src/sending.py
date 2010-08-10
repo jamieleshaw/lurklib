@@ -5,7 +5,7 @@ def msg ( self, target, message ):
     ncode = data.split() [1]
 
     if ncode in self.err_replies.keys():
-            return [ False, ncode ]
+            return ncode
     elif ncode == '301':
         return [ 'AWAY', data.split ( None, 3 ) [3] [1:] ]
     else: self.buffer.append ( data )
@@ -17,7 +17,7 @@ def notice ( self, target, message ):
     ncode = data.split() [1]
 
     if ncode in self.err_replies.keys():
-            return [ False, ncode ]
+            return ncode
     elif ncode == '301':
         return [ 'AWAY', data.split ( None, 3 ) [3] [1:] ]
     else: self.buffer.append ( data )

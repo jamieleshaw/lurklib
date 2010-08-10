@@ -20,7 +20,7 @@ def join ( self, channel, key = None ):
                         names [0] = names [0] [1:]
                 elif self.find ( data, 'JOIN' ):
                         pass
-                elif ncode in self.err_replies.keys(): return [ False, ncode ]
+                elif ncode in self.err_replies.keys(): return ncode
                 else: self.buffer.append ( data )
                 data = self.recv()
 
@@ -36,7 +36,7 @@ def part ( self, channel, reason = None ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        return [ False, ncode ]
+                        return ncode
                 elif self.find ( data, 'PART' ):
                         pass
                 else: self.buffer.append ( data )
@@ -55,7 +55,7 @@ def cmode ( self, channel, modes = '' ):
 
                 if ncode in self.err_replies.keys():
                         if ncode in self.err_replies.keys():
-                                return [ False, ncode ]
+                                return ncode
                         elif self.find ( data, 'MODE' ):
                                 pass
                         else: self.buffer.append ( data )
@@ -69,7 +69,7 @@ def banlist ( self, channel ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        return [ False, ncode ]
+                        return ncode
                 elif self.find ( data, '367' ):
                         bans.append ( data.split() [4] )
                 else: self.buffer.append ( data )
@@ -83,7 +83,7 @@ def exceptlist ( self, channel ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        return [ False, ncode ]
+                        return ncode
                 elif self.find ( data, '348' ):
                         excepts.append ( data.split() [4] )
                 else: self.buffer.append ( data )
@@ -97,7 +97,7 @@ def invitelist ( self, channel ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        return [ False, ncode ]
+                        return ncode
                 elif self.find ( data, '346' ):
                         invites.append ( data.split() [4] )
                 else: self.buffer.append ( data )
@@ -114,7 +114,7 @@ def topic ( self, channel, rtopic = None ):
                 data = self.recv()
                 ncode = data.split() [1]
                 if ncode in self.err_replies.keys():
-                        return [ False, ncode ]
+                        return ncode
                 elif self.find ( data, '332' ):
                         topic = data.split ( None, 4 ) [4] [1:]
                         self.recv()
@@ -137,7 +137,7 @@ def names ( self, channel ):
                         names = data.split() [5:]
                         names [0] = names [0] [1:]
                 elif ncode in self.err_replies.keys():
-                        return [ False, ncode ]
+                        return ncode
                 else: self.buffer.append ( data )
                 data = self.recv()
         return names
@@ -155,7 +155,7 @@ def slist ( self ):
                 elif self.find ( data, '321' ) == False:
                         pass
                 elif ncode in self.err_replies.keys():
-                        return [ False, ncode ]
+                        return ncode
                 else: self.buffer.append ( data )
                 data = self.recv()
         return list_info
@@ -168,7 +168,7 @@ def invite ( self, channel, nick ):
 
                 if ncode in self.err_replies.keys():
                         if ncode in self.err_replies.keys():
-                                return [ False, ncode ]
+                                return ncode
                         elif self.find ( data, '341' ):
                                 pass
                         elif self.find ( data, '301' ):
@@ -186,7 +186,7 @@ def kick ( self, channel, nick, reason = '' ):
 
                 if ncode in self.err_replies.keys():
                         if ncode in self.err_replies.keys():
-                                return [ False, ncode ]
+                                return ncode
                         elif self.find ( data, 'KICK' ):
                                 pass
                         else: self.buffer.append ( data )

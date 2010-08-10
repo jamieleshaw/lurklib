@@ -13,11 +13,11 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                 self.passwd ( passwd )
         nstatus = self.nick ( nick )
         if nstatus != True:
-                return [ False, nstatus [1] ]
+                return nstatus
         
         identstatus = self.ident ( ident, real_name )
         if identstatus != True:
-                return [ False, ident [1] ]
+                return identstatus
         while 1:
                 data = self.recv()
 
@@ -76,7 +76,7 @@ def passwd ( self, passw ):
         data = self.recv()
         ncode = data.split() [1]
         if ncode in self.err_replies.keys():
-                return [ False, ncode ]
+                return ncode
         elif self.find ( data, 'NOTICE' ): self.buffer.append ( data )
         return True
 def nick ( self, nick ):
@@ -89,7 +89,7 @@ def nick ( self, nick ):
         data = self.recv()
         ncode = data.split() [1]
         if ncode in self.err_replies.keys():
-                return [ False, ncode ]
+                return ncode
         else: self.buffer.append ( data )
         return True
 def ident ( self, ident, real_name ):
@@ -103,7 +103,7 @@ def ident ( self, ident, real_name ):
         data = self.recv()
         ncode = data.split() [1]
         if ncode in self.err_replies.keys():
-                return [ False, ncode ]
+                return ncode
         else: self.buffer.append ( data )
         return True
 def oper ( self, name, password ):
@@ -115,7 +115,7 @@ def oper ( self, name, password ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        return [ False, ncode ]
+                        return ncode
                 elif self.find ( data, 'MODE' ):
                         new_umodes = data.split() [-1] [1:]
                 elif ncode == '381':
@@ -131,7 +131,7 @@ def umode ( self, nick, modes = '' ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        return [ False, ncode ]
+                        return ncode
                 elif ncode == '221':
                         return data.split() [3] [1:]
                 elif self.find ( data, 'MODE' ):
@@ -164,7 +164,8 @@ def squit ( self, server, msg ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        return [ False, ncode ]
+                        return ncode
+                    
                 elif self.find ( data, 'SQUIT' ):
                         return True
                 else: self.buffer.append ( data )
