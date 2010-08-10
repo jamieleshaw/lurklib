@@ -167,12 +167,4 @@ class irc:
         '''
         test() may be removed at some point, it tests the irc class on a localhost ircd.
         '''
-        self.init ( 'localhost', 6667, 'LurkTest', 'lurklib', 'lurklib' )
-        print ( 'Connected' )
-        #print ( self.con_msg )
-        for x in self.buffer: print ( x )
-        while 1:
-            try: print ( self.recv() )
-            except KeyboardInterrupt:
-                self.disconnect()
-                break
+        
