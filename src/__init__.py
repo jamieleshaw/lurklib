@@ -92,9 +92,9 @@ class irc:
         self.s.send ( data )
         return msg
     def mcon ( self ):
-        try: sdata = self.s.recv ( 4096 ).decode ( self.encoding )
-        except LookupError: sdata = self.s.recv ( 4096 ).decode ( self.fallback_encoding )
+        sdata = ' '
         while sdata [-1] != self.clrf [-1]:
+                    if sdata == ' ': sdata = ''
                     try: sdata = sdata + self.s.recv ( 4096 ).decode ( self.encoding )
                     except LookupError: sdata = sdata + self.s.recv ( 4096 ).decode ( self.fallback_encoding )
                     
