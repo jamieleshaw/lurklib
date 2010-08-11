@@ -1,14 +1,26 @@
-def connect ( self, server, port ):
+def connect ( self, server, port, ssl = False ):
         '''
         connect() starts the socket connection with the server, use init() instead.
         '''
+        if ssl == True:
+            self.s = self.ssllib.wrap_socket ( self.s )
         self.s.connect ( ( server, port ) )
+        self.ssl = ssl
 
-def init ( self, server, port, nick, ident, real_name, passwd = None, end_code = '266' ):
+def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl = False ):
         '''
         init() starts the socket connection with the server, and sets your nick/ident/real name, optionally a password may be specified for the PASS command.
         '''
-        self.connect ( server, port )
+        if ssl:
+            if port == None:
+                port = 6697
+            self.connect ( server, port, True )
+        else:
+            if port == None:
+                port = 6667
+            
+            self.connect ( server, port )
+        
         if passwd != None:
                 self.passwd ( passwd )
         self.nick ( nick )

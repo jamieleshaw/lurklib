@@ -1,4 +1,4 @@
-import socket, sys
+import socket, sys, ssl
 sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
 
@@ -28,6 +28,8 @@ class irc:
         self.umodes = ''
         self.cmodes = ''
         self.server = ''
+        self.ssl = False
+        self.ssllib = ssl
         self.buffer = [ ]
         self.s = socket.socket()
         self.fallback_encoding = encoding
@@ -89,14 +91,19 @@ class irc:
         msg = msg + self.clrf
         try: data = bytes ( msg, self.encoding )
         except LookupError: data = bytes ( msg, self.fallback_encoding )
-        self.s.send ( data )
+        if self.ssl: self.s.write ( data )
+        else: self.s.send ( data )
         return msg
     def mcon ( self ):
         sdata = ' '
         while sdata [-1] != self.clrf [-1]:
                     if sdata == ' ': sdata = ''
-                    try: sdata = sdata + self.s.recv ( 4096 ).decode ( self.encoding )
-                    except LookupError: sdata = sdata + self.s.recv ( 4096 ).decode ( self.fallback_encoding )
+                    if ssl:
+                        try: sdata = sdata + self.s.read ( 4096 ).decode ( self.encoding )
+                        except LookupError: sdata = sdata + self.s.read ( 4096 ).decode ( self.fallback_encoding )
+                    else:
+                        try: sdata = sdata + self.s.reacv ( 4096 ).decode ( self.encoding )
+                        except LookupError: sdata = sdata + self.s.recv ( 4096 ).decode ( self.fallback_encoding )
                     
         lines = sdata.split ( self.clrf )
         for x in lines:

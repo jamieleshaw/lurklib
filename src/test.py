@@ -1,7 +1,7 @@
 import __init__
 irc = __init__.irc()
 print ( 'Connecting' )
-irc.init ( 'localhost', 6667, 'LurkTest', 'lurklib', 'lurklib' )
+irc.init ( 'irc.codeshock.org', ssl = True )
 print ( 'Connected' )
 for x in irc.con_msg: print ( x )
 print ( irc.info )
