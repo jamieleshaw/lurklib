@@ -74,12 +74,12 @@ def passwd ( self, passw ):
         '''
         self.rsend ( 'PASS ' + passw )
         
-        data = self.recv()
-        ncode = data.split() [1]
-        if ncode in self.err_replies.keys():
-                return ncode
-        elif self.find ( data, 'NOTICE' ) == False: self.index -= 1
-        return True
+        for x in range ( 2 ):
+            data = self.recv()
+            ncode = data.split() [1]
+            if ncode in self.err_replies.keys():
+                    return ncode
+            else: self.buffer.append ( data )
 def nick ( self, nick ):
         '''
         nick() is either used to set your nick upon connection to the IRC server, or used to change your nick in the current connection.
