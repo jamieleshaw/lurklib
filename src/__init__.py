@@ -17,6 +17,7 @@ class irc:
     for x in dir ( squeries ): exec ( x + ' = squeries.' + x )
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
+
     def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {} ):
         '''
         Initial Class Variables.
@@ -38,45 +39,85 @@ class irc:
         self.motd = []
         self.info = {}
         
+        self.NOPRIVILEGES = Exception
+        self.NOSUCHNICK = Exception
+        self.USERONCHANNEL = Exception
+        self.NOTONCHANNEL = Exception
+        self.USERNOTINCHANNEL = Exception
+        self.WILDTOPLEVEL = Exception
+        self.NEEDMOREPARAMS = Exception
+        self.ALREADYREGISTRED = Exception
+        self.NICKCOLLISION = Exception
+        self.UNAVAILRESOURCE = Exception
+        self.UMODEUNKNOWNFLAG = Exception
+        self.NOTOPLEVEL = Exception
+        self.RESTRICTED = Exception
+        self.CHANOPRIVSNEEDED = Exception
+        self.USERSDONTMATCH = Exception
+        self.NORECIPIENT = Exception
+        self.UNKNOWNMODE = Exception
+        self.NOOPERHOST = Exception
+        self.NOTEXTTOSEND = Exception
+        self.CANNOTSENDTOCHAN = Exception
+        self.NICKNAMEINUSE = Exception
+        self.TOOMANYTARGETS = Exception
+        self.INVITEONLYCHAN = Exception
+        self.TOOMANYCHANNELS = Exception
+        self.CHANNELISFULL = Exception
+        self.BADCHANMASK = Exception
+        self.NOSUCHSERVER = Exception
+        self.BANNEDFROMCHAN = Exception
+        self.BADCHANNELKEY = Exception
+        self.NOSUCHCHANNEL = Exception
+        self.NONICKNAMEGIVEN = Exception
+        self.ERRONEUSNICKNAME = Exception
+        self.KEYSET = Exception
+        self.PASSWDMISMATCH = Exception
+        self.NOCHANMODES = Exception
+
+
+
         self.err_replies = { \
-            '407' : 'ERR_TOOMANYTARGETS',
-            '402' : 'ERR_NOSUCHSERVER',
-##            'ERR_TOOMANYMATCHES' : 'ERR_TOOMANYMATCHES',
-            '476' : 'ERR_BADCHANMASK',
-            '474' : 'ERR_BANNEDFROMCHAN',
-            '443' : 'ERR_USERONCHANNEL',
-            '442' : 'ERR_NOTONCHANNEL',
-            '441' : 'ERR_USERNOTINCHANNEL',
-            '461' : 'ERR_NEEDMOREPARAMS',
-            '472' : 'ERR_UNKNOWNMODE',
-            '473' : 'ERR_INVITEONLYCHAN',
-            '405' : 'ERR_TOOMANYCHANNELS',
-            '471' : 'ERR_CHANNELISFULL',
-            '403' : 'ERR_NOSUCHCHANNEL',
-            '477' : 'ERR_NOCHANMODES',
-            '401' : 'ERR_NOSUCHNICK',
-            '475' : 'ERR_BADCHANNELKEY',
-            '437' : 'ERR_UNAVAILRESOURCE',
-            '467' : 'ERR_KEYSET',
-            '482' : 'ERR_CHANOPRIVSNEEDED',
-            '431' : 'ERR_NONICKNAMEGIVEN',
-            '433' : 'ERR_NICKNAMEINUSE',
-            '432' : 'ERR_ERRONEUSNICKNAME',
-            '436' : 'ERR_NICKCOLLISION',
-            '484' : 'ERR_RESTRICTED',
-            '462' : 'ERR_ALREADYREGISTRED',
-            '411' : 'ERR_NORECIPIENT',
-            '404' : 'ERR_CANNOTSENDTOCHAN',
-            '414' : 'ERR_WILDTOPLEVEL',
-            '412' : 'ERR_NOTEXTTOSEND',
-            '413' : 'ERR_NOTOPLEVEL',
-            '491' : 'ERR_NOOPERHOST',
-            '464' : 'ERR_PASSWDMISMATCH',
-            '501' : 'ERR_UMODEUNKNOWNFLAG',
-            '502' : 'ERR_USERSDONTMATCH',
-            '481' : 'ERR_NOPRIVILEGES' }
+                    '407' : 'TOOMANYTARGETS',
+                    '402' : 'NOSUCHSERVER',
+                    '476' : 'BADCHANMASK',
+                    '474' : 'BANNEDFROMCHAN',
+                    '443' : 'USERONCHANNEL',
+                    '442' : 'NOTONCHANNEL',
+                    '441' : 'USERNOTINCHANNEL',
+                    '461' : 'NEEDMOREPARAMS',
+                    '472' : 'UNKNOWNMODE',
+                    '473' : 'INVITEONLYCHAN',
+                    '405' : 'TOOMANYCHANNELS',
+                    '471' : 'CHANNELISFULL',
+                    '403' : 'NOSUCHCHANNEL',
+                    '477' : 'NOCHANMODES',
+                    '401' : 'NOSUCHNICK',
+                    '475' : 'BADCHANNELKEY',
+                    '437' : 'UNAVAILRESOURCE',
+                    '467' : 'KEYSET',
+                    '482' : 'CHANOPRIVSNEEDED',
+                    '431' : 'NONICKNAMEGIVEN',
+                    '433' : 'NICKNAMEINUSE',
+                    '432' : 'ERRONEUSNICKNAME',
+                    '436' : 'NICKCOLLISION',
+                    '484' : 'RESTRICTED',
+                    '462' : 'ALREADYREGISTRED',
+                    '411' : 'NORECIPIENT',
+                    '404' : 'CANNOTSENDTOCHAN',
+                    '414' : 'WILDTOPLEVEL',
+                    '412' : 'NOTEXTTOSEND',
+                    '413' : 'NOTOPLEVEL',
+                    '491' : 'NOOPERHOST',
+                    '464' : 'PASSWDMISMATCH',
+                    '501' : 'UMODEUNKNOWNFLAG',
+                    '502' : 'USERSDONTMATCH',
+                    '481' : 'NOPRIVILEGES' }
+        
+        
         if server != None:
             self.init ( server, port, nick, ident, real_name, passwd, end_code, ssl_on )
+            
     def find ( self, haystack, needle ):
         '''
         Returns False, if needle is not found in the haystack, if the needle is found in the haystack it returns True.

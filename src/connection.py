@@ -97,7 +97,7 @@ def passwd ( self, passw ):
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
-                    return ncode
+                    exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
             else: self.buffer.append ( data )
 def nick ( self, nick ):
         '''
@@ -123,7 +123,7 @@ def ident ( self, ident, real_name ):
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
-                    return ncode
+                    exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
             else: self.buffer.append ( data )
 def oper ( self, name, password ):
         self.rsend ( 'OPER ' + name + ' ' + password )
@@ -134,7 +134,7 @@ def oper ( self, name, password ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        return ncode
+                        exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
                 elif self.find ( data, 'MODE' ):
                         new_umodes = data.split() [-1] [1:]
                 elif ncode == '381':
@@ -150,7 +150,7 @@ def umode ( self, nick, modes = '' ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        return ncode
+                        exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
                 elif ncode == '221':
                         return data.split() [3] [1:]
                 elif self.find ( data, 'MODE' ):
@@ -183,8 +183,8 @@ def squit ( self, server, msg ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        return ncode
+                        exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
                     
                 elif self.find ( data, 'SQUIT' ):
-                        return True
+                        pass
                 else: self.buffer.append ( data )
