@@ -4,7 +4,6 @@ Allow instance the IRC connection upon instance creation.
 Hook-in events based handling.
 Complete squeries.py.
 Implement buffer flush.
-Implement connect notices processing.
 In case of error, instead of returning the error code, implement an exceptions.py and raise an exception.
 Implement a CTCP class.
 Add argument, for if to swallow IRC events, such as KICK after calling irc.kick().

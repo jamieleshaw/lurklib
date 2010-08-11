@@ -28,12 +28,12 @@ class irc:
         self.umodes = ''
         self.cmodes = ''
         self.server = ''
-        self.network = ''
         self.buffer = [ ]
         self.s = socket.socket()
         self.fallback_encoding = encoding
         self.encoding = encoding
         self.motd = []
+        self.info = {}
 
         self.err_replies = { \
             '407' : 'ERR_TOOMANYTARGETS',
@@ -126,10 +126,10 @@ class irc:
                 nick = nickident [0]
                 ident = nickident [1]
                 host = host [1]
+                print ( 'AAA' )
                 return [ nick, ident, host ]
             except IndexError: return who
-        data = self.recv()
-        segments = data.split()
+        segments = self.recv().split()
         
         if segments [1] == 'JOIN':
             return ( 'JOIN', ( who ( segments [0] [1:] ), segments [2] [1:] ) )
@@ -140,7 +140,7 @@ class irc:
 
         elif segments [1] == 'PRIVMSG':
             return ( 'PRIVMSG', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
-
+        
         elif segments [1] == 'NOTICE':
             return ( 'NOTICE', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
 
