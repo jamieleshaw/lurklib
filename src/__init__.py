@@ -1,4 +1,4 @@
-import socket, sys, re
+import socket, sys
 sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
 

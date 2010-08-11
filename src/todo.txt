@@ -1,8 +1,7 @@
 Write elaborate doc strings for lurklib's methods & write then all in the same formatting.
-stream() should process TOPIC & NAMES data upon SAJOIN.
+stream() should process TOPIC & NAMES data upon SAJOIN and return them as extras is the JOIN tuple.
 Allow instance the IRC connection upon instance creation.
 Hook-in events based handling.
-Use the logging module to add debugging data and a debugging mode.
 Complete squeries.py.
 Implement buffer flush.
 Implement connect notices processing.

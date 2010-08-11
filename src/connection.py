@@ -54,16 +54,17 @@ def init ( self, server, port, nick, ident, real_name, passwd = None ):
                 elif self.find ( data, '042' ):
                         pass
                 elif self.find ( data, '372' ):
-                        try: self.motd.append ( data.split ( None, 3 ) [3] [1:] )
-                        except IndexError: pass
+                        self.motd.append ( data.split ( None, 3 ) [3] [1:] )
                 elif self.find ( data, '376' ):
                         pass
                 elif self.find ( data, '422' ):
                         pass
                 elif self.find ( data, 'NOTICE' ):
+                        #self.index -= 1
+                        #data = self.stream()
                         pass
-
                 self.con_msg.append ( data )
+                self.motd = tuple ( self.motd )
         return True
 
 def passwd ( self, passw ):
@@ -85,18 +86,14 @@ def nick ( self, nick ):
         Returns True on success, False on fail.
         '''
         self.rsend ( 'NICK ' + nick )
-
-        data = self.recv()
         
-        while self.find ( data, 'NOTICE' ):
+        for x in range ( 2 ):
             data = self.recv()
             ncode = data.split() [1]
-        if ncode in self.err_replies.keys():
-                return ncode
-        
-        else: self.index -= 1
-            
-        return True
+            if ncode in self.err_replies.keys():
+                    return ncode
+            else: self.buffer.append ( data )
+
 def ident ( self, ident, real_name ):
         '''
         ident() is used at startup to send your ident and real name.
@@ -105,14 +102,12 @@ def ident ( self, ident, real_name ):
 
         self.rsend ( 'USER ' + ident + ' 0 * :' + real_name )
         
-        data = self.recv()
-
-        ncode = data.split() [1]
-        if ncode in self.err_replies.keys():
-                return ncode
-        
-        else: self.index -= 1
-        return True
+        for x in range ( 2 ):
+            data = self.recv()
+            ncode = data.split() [1]
+            if ncode in self.err_replies.keys():
+                    return ncode
+            else: self.buffer.append ( data )
 def oper ( self, name, password ):
         self.rsend ( 'OPER ' + name + ' ' + password )
         snomasks = ''
