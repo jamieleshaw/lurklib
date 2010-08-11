@@ -1,7 +1,7 @@
 def join ( self, channel, key = None ):
        
         topic = ''
-        names = []
+        names = ()
         if key != None:
             self.rsend ( 'JOIN ' + channel + ' ' + key )
         else:
@@ -17,14 +17,14 @@ def join ( self, channel, key = None ):
                         pass
                 elif self.find ( data, '353' ):
                         names = data.split() [5:]
-                        names [0] = names [0] [1:]
+                        names [0] = set ( names [0] [1:] )
                 elif self.find ( data, 'JOIN' ):
                         pass
                 elif ncode in self.err_replies.keys(): return ncode
                 else: self.buffer.append ( data )
                 data = self.recv()
 
-        return [ topic, names ]
+        return ( topic, names )
 def part ( self, channel, reason = None ):
 
         if reason == None:
@@ -74,7 +74,7 @@ def banlist ( self, channel ):
                         bans.append ( data.split() [4] )
                 else: self.buffer.append ( data )
                 data = self.recv()
-        return bans
+        return set ( bans )
 def exceptlist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +e' )
         excepts = []
@@ -88,7 +88,7 @@ def exceptlist ( self, channel ):
                         excepts.append ( data.split() [4] )
                 else: self.buffer.append ( data )
                 data = self.recv()
-        return excepts
+        return set ( excepts )
 def invitelist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +i' )
         invites = []
@@ -102,7 +102,7 @@ def invitelist ( self, channel ):
                         invites.append ( data.split() [4] )
                 else: self.buffer.append ( data )
                 data = self.recv()
-        return invites
+        return set ( invites )
 def topic ( self, channel, rtopic = None ):
 
         if rtopic != None:
@@ -128,7 +128,7 @@ def topic ( self, channel, rtopic = None ):
         return topic
 def names ( self, channel ):
         self.rsend ( 'NAMES ' + channel )
-        names = []
+        names = ()
         data = self.recv()
         while self.find ( data, '366' ) == False:
                 ncode = data.split() [1]
@@ -140,7 +140,7 @@ def names ( self, channel ):
                         return ncode
                 else: self.buffer.append ( data )
                 data = self.recv()
-        return names
+        return set ( names )
 def slist ( self ):
   
         self.rsend ( 'LIST' )
@@ -151,7 +151,7 @@ def slist ( self ):
 
                 if self.find ( data, '322' ) == True:
                         raw_lst = data.split ( None, 5 )
-                        list_info [ raw_lst [3] ] = [ raw_lst [4], raw_lst [5] [1:] ]
+                        list_info [ raw_lst [3] ] = ( raw_lst [4], raw_lst [5] [1:] )
                 elif self.find ( data, '321' ) == False:
                         pass
                 elif ncode in self.err_replies.keys():

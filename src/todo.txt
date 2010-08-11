@@ -1,8 +1,6 @@
 Write elaborate doc strings for lurklib's methods & write then all in the same formatting.
 stream() should process TOPIC & NAMES data upon SAJOIN and return them as extras is the JOIN tuple.
-Hook-in events based handling.
 Complete squeries.py.
-Implement buffer flush.
 In case of error, instead of returning the error code, implement an exceptions.py and raise an exception.
 Implement a CTCP class.
 Add argument, for if to swallow IRC events, such as KICK after calling irc.kick().

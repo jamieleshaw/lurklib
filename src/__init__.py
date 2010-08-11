@@ -17,11 +17,12 @@ class irc:
     for x in dir ( squeries ): exec ( x + ' = squeries.' + x )
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
-    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl_on = False, encoding = 'utf-8', clrf = '\r\n' ):
+    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {}, silent_unhandled_events = False ):
         '''
         Initial Class Variables.
         '''
         self.index = 0
+        self.hooks = hooks
         self.con_msg = []
         self.ircd = ''
         self.clrf = clrf
@@ -36,7 +37,7 @@ class irc:
         self.encoding = encoding
         self.motd = []
         self.info = {}
-
+        self.silent_unhandled_events = silent_unhandled_events
         self.err_replies = { \
             '407' : 'ERR_TOOMANYTARGETS',
             '402' : 'ERR_NOSUCHSERVER',
@@ -113,7 +114,9 @@ class irc:
             if x != '': self.buffer.append ( x )
     def recv ( self ):
         if self.index == len ( self.buffer ): self.mcon()
-
+        if self.index >= 199:
+            self.resetbuffer()
+            self.mcon()
         msg = self.buffer [ self.index ]
         while self.find ( msg, 'PING :' ):
             self.index += 1
@@ -123,6 +126,8 @@ class irc:
                 self.mcon()
         self.index += 1
         return msg
+    def resetbuffer ( self ):
+        self.index, self.buffer = 0, []
     def stream ( self ):
         '''
         stream() == Main function etc
@@ -134,8 +139,7 @@ class irc:
                 nick = nickident [0]
                 ident = nickident [1]
                 host = host [1]
-                print ( 'AAA' )
-                return [ nick, ident, host ]
+                return ( nick, ident, host )
             except IndexError: return who
         segments = self.recv().split()
         
@@ -171,4 +175,10 @@ class irc:
         elif segments [1] == 'QUIT':
             return ( 'QUIT', ( who ( segments [0] [1:] ), ' '.join ( segments [3:] ) ) )
         
-        else: return data
+        else: pass
+    def mainloop ( self ):
+        while 1:
+            event = self.stream()
+            if event [0] in self.hooks.keys():
+                self.hooks [ event [0] ] ( event = event [1:] )
+            elif self.silent_unhandled_events == False: pass # raise Unhandled event

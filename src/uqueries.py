@@ -15,7 +15,7 @@ def who ( self, channel ):
 
             if self.find ( data, '352' ):
                 raw_who = data.split ( None, 10 )
-                who_lst [ raw_who [7] ] = [ raw_who [4], raw_who [10], raw_who [5] ]
+                who_lst [ raw_who [7] ] = ( raw_who [4], raw_who [10], raw_who [5] )
             elif ncode in self.err_replies.keys():
                 return ncode
             elif ncode == '315': return who_lst
@@ -87,7 +87,7 @@ def whowas ( self, nick ):
 
             if self.find ( data, '314' ):
                 raw_whowas = data.split()
-                rwhowas = [ raw_whowas [3], raw_whowas [4], raw_whowas [5], raw_whowas [7] [1:] ]
+                rwhowas = ( raw_whowas [3], raw_whowas [4], raw_whowas [5], raw_whowas [7] [1:] )
             elif ncode in self.err_replies.keys():
                 return ncode
             elif ncode == '312': pass
