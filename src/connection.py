@@ -93,12 +93,13 @@ def passwd ( self, passw ):
         '''
         self.rsend ( 'PASS ' + passw )
         
-        for x in range ( 2 ):
+        def x():
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
-                    exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+                    self.exception ( ncode )
             else: self.buffer.append ( data )
+        x(); x()
 def nick ( self, nick ):
         '''
         nick() is either used to set your nick upon connection to the IRC server, or used to change your nick in the current connection.
@@ -106,12 +107,13 @@ def nick ( self, nick ):
         '''
         self.rsend ( 'NICK ' + nick )
 
-        for x in range ( 2 ):
+        def x():
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
-                    return ncode
+                    self.exception ( ncode )
             else: self.buffer.append ( data )
+        x(); x()
 def ident ( self, ident, real_name ):
         '''
         ident() is used at startup to send your ident and real name.
@@ -119,12 +121,13 @@ def ident ( self, ident, real_name ):
         '''
 
         self.rsend ( 'USER ' + ident + ' 0 * :' + real_name )
-        for x in range ( 2 ):
+        def x():
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
-                    exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+                    self.exception ( ncode )
             else: self.buffer.append ( data )
+        x(); x()
 def oper ( self, name, password ):
         self.rsend ( 'OPER ' + name + ' ' + password )
         snomasks = ''
@@ -134,11 +137,11 @@ def oper ( self, name, password ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+                        self.exception ( ncode )
                 elif self.find ( data, 'MODE' ):
                         new_umodes = data.split() [-1] [1:]
                 elif ncode == '381':
-                        return [ new_umodes, snomasks ]
+                        return ( new_umodes, snomasks )
                 elif ncode == '008':
                         snomasks = data.split ( '(' ) [1].split ( ')' ) [0]
                 else: self.buffer.append ( data )
@@ -150,11 +153,11 @@ def umode ( self, nick, modes = '' ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+                        self.exception ( ncode )
                 elif ncode == '221':
                         return data.split() [3] [1:]
                 elif self.find ( data, 'MODE' ):
-                        return True
+                        pass
                 else: self.buffer.append ( data )
 def service ( self ):
         # Not yet done..obviously
@@ -183,7 +186,7 @@ def squit ( self, server, msg ):
                 ncode = data.split() [1]
 
                 if ncode in self.err_replies.keys():
-                        exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+                        self.exception ( ncode )
                     
                 elif self.find ( data, 'SQUIT' ):
                         pass

@@ -127,6 +127,8 @@ class irc:
             return False
         elif qstatus != -1:
             return True
+    def exception ( self, ncode ):
+        exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
     def rsend ( self, msg ):
         '''
         rsend() provides, a raw interface to the socket allowing the sending of raw data.
@@ -184,8 +186,8 @@ class irc:
                 host = host [1]
                 return ( nick, ident, host )
             except IndexError: return who
-        segments = self.recv().split()
-        
+        data = self.recv()
+        segments = data.split()
         if segments [1] == 'JOIN':
             return 'JOIN', ( who ( segments [0] [1:] ), segments [2] [1:] )
 
@@ -218,7 +220,7 @@ class irc:
         elif segments [1] == 'QUIT':
             return 'QUIT', ( who ( segments [0] [1:] ), ' '.join ( segments [3:] ) )
         
-        else: pass
+        else: return 'UNKNOWN', data
     def mainloop ( self ):
         while 1:
             event = self.stream()

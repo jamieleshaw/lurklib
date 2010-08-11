@@ -5,7 +5,7 @@ def msg ( self, target, message ):
     ncode = data.split() [1]
 
     if ncode in self.err_replies.keys():
-            exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+            self.exception ( ncode )
     elif ncode == '301':
         return ( 'AWAY', data.split ( None, 3 ) [3] [1:] )
     else: self.index -= 1
@@ -17,7 +17,7 @@ def notice ( self, target, message ):
     ncode = data.split() [1]
 
     if ncode in self.err_replies.keys():
-            exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+            self.exception ( ncode )
     elif ncode == '301':
         return ( 'AWAY', data.split ( None, 3 ) [3] [1:] )
     else: self.index -= 1

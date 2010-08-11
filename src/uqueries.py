@@ -17,7 +17,7 @@ def who ( self, channel ):
                 raw_who = data.split ( None, 10 )
                 who_lst [ raw_who [7] ] = ( raw_who [4], raw_who [10], raw_who [5] )
             elif ncode in self.err_replies.keys():
-                exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+                self.exception ( ncode )
             elif ncode == '315': return who_lst
             else: self.buffer.append ( data )
             data = self.recv()
@@ -61,7 +61,7 @@ def whois ( self, nick ):
             whois_r [ 'AWAY' ] = info [4] [1:]
         elif data.find ( '313' ) != -1:
             whois_r [ 'OP' ] = ' '.join ( info [4:] ) [1:]
-        elif ncode in self.err_replies.keys(): exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+        elif ncode in self.err_replies.keys(): self.exception ( ncode )
         else:
             if 'ETC' in whois_r.keys():
                 whois_r [ 'ETC' ].append ( data.split ( ':', 2 ) [2] )
@@ -89,7 +89,7 @@ def whowas ( self, nick ):
                 raw_whowas = data.split()
                 rwhowas = ( raw_whowas [3], raw_whowas [4], raw_whowas [5], raw_whowas [7] [1:] )
             elif ncode in self.err_replies.keys():
-                exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+                self.exception ( ncode )
             elif ncode == '312': pass
             elif ncode == '369': return rwhowas
             else: self.buffer.append ( data )
