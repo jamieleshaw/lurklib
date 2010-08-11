@@ -17,7 +17,7 @@ class irc:
     for x in dir ( squeries ): exec ( x + ' = squeries.' + x )
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
-    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {}, silent_unhandled_events = False ):
+    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {} ):
         '''
         Initial Class Variables.
         '''
@@ -37,7 +37,7 @@ class irc:
         self.encoding = encoding
         self.motd = []
         self.info = {}
-        self.silent_unhandled_events = silent_unhandled_events
+        
         self.err_replies = { \
             '407' : 'ERR_TOOMANYTARGETS',
             '402' : 'ERR_NOSUCHSERVER',
@@ -124,6 +124,8 @@ class irc:
                 msg = self.buffer [ self.index ]
             except IndexError:
                 self.mcon()
+                self.index -= 1
+
         self.index += 1
         return msg
     def resetbuffer ( self ):
@@ -144,36 +146,36 @@ class irc:
         segments = self.recv().split()
         
         if segments [1] == 'JOIN':
-            return ( 'JOIN', ( who ( segments [0] [1:] ), segments [2] [1:] ) )
+            return 'JOIN', ( who ( segments [0] [1:] ), segments [2] [1:] )
 
         elif segments [1] == 'PART':
-            try: return ( 'PART', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
-            except IndexError: return { 'PART' : [ who ( segments [0] [1:] ), segments [2], '' ] }
+            try: return 'PART', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            except IndexError: return 'PART', ( who ( segments [0] [1:] ), segments [2], '' )
 
         elif segments [1] == 'PRIVMSG':
-            return ( 'PRIVMSG', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
+            return 'PRIVMSG', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
         
         elif segments [1] == 'NOTICE':
-            return ( 'NOTICE', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
+            return 'NOTICE', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
 
         elif segments [1] == 'MODE':
-            try: return ( 'MODE', ( who ( segments [2] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
-            except IndexError: return { 'MODE' : [ segments [2], ' '.join ( segments [3:] ) [1:] ] }
+            try: return 'MODE', ( who ( segments [2] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            except IndexError: return 'MODE', ( segments [2], ' '.join ( segments [3:] ) [1:] )
         
         elif segments [1] == 'KICK':
-            return ( 'KICK', ( who ( segments [0] [1:] ), segments [2], segments [3], ' '.join ( segments [4:] ) [1:] ) )
+            return 'KICK', ( who ( segments [0] [1:] ), segments [2], segments [3], ' '.join ( segments [4:] ) [1:] )
 
         elif segments [1] == 'INVITE':
-            return ( 'INVITE', ( who ( segments [0] [1:] ), segments [2], segments [3] [1:] ) )
+            return 'INVITE', ( who ( segments [0] [1:] ), segments [2], segments [3] [1:] )
 
         elif segments [1] == 'NICK':
-            return ( 'NICK', ( who ( segments [0] [1:] ), ' '.join ( segments [2:] ) [1:] ) )
+            return 'NICK', ( who ( segments [0] [1:] ), ' '.join ( segments [2:] ) [1:] )
 
         elif segments [1] == 'TOPIC':
-            return ( 'TOPIC', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] ) )
+            return 'TOPIC', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
 
         elif segments [1] == 'QUIT':
-            return ( 'QUIT', ( who ( segments [0] [1:] ), ' '.join ( segments [3:] ) ) )
+            return 'QUIT', ( who ( segments [0] [1:] ), ' '.join ( segments [3:] ) )
         
         else: pass
     def mainloop ( self ):
@@ -181,4 +183,4 @@ class irc:
             event = self.stream()
             if event [0] in self.hooks.keys():
                 self.hooks [ event [0] ] ( event = event [1:] )
-            elif self.silent_unhandled_events == False: pass # raise Unhandled event
+            else: pass # raise Unhandled event

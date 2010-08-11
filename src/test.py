@@ -1,6 +1,6 @@
 import __init__
 
-def notice ( event ):
+def msg ( event ):
     print ( event)
-irc = __init__.irc('localhost', hooks = {'NOTICE': notice})
+irc = __init__.irc('localhost', hooks = {'PRIVMSG': msg})
 irc.mainloop()
