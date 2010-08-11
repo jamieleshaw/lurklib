@@ -39,41 +39,42 @@ class irc:
         self.motd = []
         self.info = {}
         
-        self.NOPRIVILEGES = Exception
-        self.NOSUCHNICK = Exception
-        self.USERONCHANNEL = Exception
-        self.NOTONCHANNEL = Exception
-        self.USERNOTINCHANNEL = Exception
-        self.WILDTOPLEVEL = Exception
-        self.NEEDMOREPARAMS = Exception
-        self.ALREADYREGISTRED = Exception
-        self.NICKCOLLISION = Exception
-        self.UNAVAILRESOURCE = Exception
-        self.UMODEUNKNOWNFLAG = Exception
-        self.NOTOPLEVEL = Exception
-        self.RESTRICTED = Exception
-        self.CHANOPRIVSNEEDED = Exception
-        self.USERSDONTMATCH = Exception
-        self.NORECIPIENT = Exception
-        self.UNKNOWNMODE = Exception
-        self.NOOPERHOST = Exception
-        self.NOTEXTTOSEND = Exception
-        self.CANNOTSENDTOCHAN = Exception
-        self.NICKNAMEINUSE = Exception
-        self.TOOMANYTARGETS = Exception
-        self.INVITEONLYCHAN = Exception
-        self.TOOMANYCHANNELS = Exception
-        self.CHANNELISFULL = Exception
-        self.BADCHANMASK = Exception
-        self.NOSUCHSERVER = Exception
-        self.BANNEDFROMCHAN = Exception
-        self.BADCHANNELKEY = Exception
-        self.NOSUCHCHANNEL = Exception
-        self.NONICKNAMEGIVEN = Exception
-        self.ERRONEUSNICKNAME = Exception
-        self.KEYSET = Exception
-        self.PASSWDMISMATCH = Exception
-        self.NOCHANMODES = Exception
+        self.IRCError = Exception
+        self.NOPRIVILEGES = self.IRCError
+        self.NOSUCHNICK = self.IRCError
+        self.USERONCHANNEL = self.IRCError
+        self.NOTONCHANNEL = self.IRCError
+        self.USERNOTINCHANNEL = self.IRCError
+        self.WILDTOPLEVEL = self.IRCError
+        self.NEEDMOREPARAMS = self.IRCError
+        self.ALREADYREGISTRED = self.IRCError
+        self.NICKCOLLISION = self.IRCError
+        self.UNAVAILRESOURCE = self.IRCError
+        self.UMODEUNKNOWNFLAG = self.IRCError
+        self.NOTOPLEVEL = self.IRCError
+        self.RESTRICTED = self.IRCError
+        self.CHANOPRIVSNEEDED = self.IRCError
+        self.USERSDONTMATCH = self.IRCError
+        self.NORECIPIENT = self.IRCError
+        self.UNKNOWNMODE = self.IRCError
+        self.NOOPERHOST = self.IRCError
+        self.NOTEXTTOSEND = self.IRCError
+        self.CANNOTSENDTOCHAN = self.IRCError
+        self.NICKNAMEINUSE = self.IRCError
+        self.TOOMANYTARGETS = self.IRCError
+        self.INVITEONLYCHAN = self.IRCError
+        self.TOOMANYCHANNELS = self.IRCError
+        self.CHANNELISFULL = self.IRCError
+        self.BADCHANMASK = self.IRCError
+        self.NOSUCHSERVER = self.IRCError
+        self.BANNEDFROMCHAN = self.IRCError
+        self.BADCHANNELKEY = self.IRCError
+        self.NOSUCHCHANNEL = self.IRCError
+        self.NONICKNAMEGIVEN = self.IRCError
+        self.ERRONEUSNICKNAME = self.IRCError
+        self.KEYSET = self.IRCError
+        self.PASSWDMISMATCH = self.IRCError
+        self.NOCHANMODES = self.IRCError
 
 
 
@@ -128,7 +129,7 @@ class irc:
         elif qstatus != -1:
             return True
     def exception ( self, ncode ):
-        exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "' + self.err_replies [ ncode ] + '" )' )
+        exec ( 'raise self.' + self.err_replies [ ncode ] + ' ( "IRCError: ' + self.err_replies [ ncode ] + '" )' )
     def rsend ( self, msg ):
         '''
         rsend() provides, a raw interface to the socket allowing the sending of raw data.
