@@ -17,7 +17,7 @@ class irc:
     for x in dir ( squeries ): exec ( x + ' = squeries.' + x )
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
-    def __init__ ( self, encoding = 'utf-8', clrf = '\r\n' ):
+    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl_on = False, encoding = 'utf-8', clrf = '\r\n' ):
         '''
         Initial Class Variables.
         '''
@@ -28,8 +28,8 @@ class irc:
         self.umodes = ''
         self.cmodes = ''
         self.server = ''
-        self.ssl = False
-        self.ssllib = ssl
+        self.ssl_on = ssl_on
+        self.ssl = ssl
         self.buffer = [ ]
         self.s = socket.socket()
         self.fallback_encoding = encoding
@@ -74,7 +74,8 @@ class irc:
             '501' : 'ERR_UMODEUNKNOWNFLAG',
             '502' : 'ERR_USERSDONTMATCH',
             '481' : 'ERR_NOPRIVILEGES' }
-
+        if server != None:
+            self.init ( server, port, nick, ident, real_name, passwd, end_code, ssl_on )
     def find ( self, haystack, needle ):
         '''
         Returns False, if needle is not found in the haystack, if the needle is found in the haystack it returns True.
@@ -91,18 +92,18 @@ class irc:
         msg = msg + self.clrf
         try: data = bytes ( msg, self.encoding )
         except LookupError: data = bytes ( msg, self.fallback_encoding )
-        if self.ssl: self.s.write ( data )
+        if self.ssl_on: self.s.write ( data )
         else: self.s.send ( data )
         return msg
     def mcon ( self ):
         sdata = ' '
         while sdata [-1] != self.clrf [-1]:
                     if sdata == ' ': sdata = ''
-                    if ssl:
+                    if self.ssl_on:
                         try: sdata = sdata + self.s.read ( 4096 ).decode ( self.encoding )
                         except LookupError: sdata = sdata + self.s.read ( 4096 ).decode ( self.fallback_encoding )
                     else:
-                        try: sdata = sdata + self.s.reacv ( 4096 ).decode ( self.encoding )
+                        try: sdata = sdata + self.s.recv ( 4096 ).decode ( self.encoding )
                         except LookupError: sdata = sdata + self.s.recv ( 4096 ).decode ( self.fallback_encoding )
                     
         lines = sdata.split ( self.clrf )
