@@ -18,7 +18,7 @@ class irc:
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
 
-    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {}, hide_called_events = True ):
+    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_of_init_extends_to_lusers = False, ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {}, hide_called_events = True ):
         '''
         Initial Class Variables.
         '''
@@ -122,7 +122,7 @@ class irc:
         
         
         if server != None:
-            self.init ( server, port, nick, ident, real_name, passwd, end_code, ssl_on )
+            self.init ( server, port, nick, ident, real_name, passwd, end_of_init_extends_to_lusers, ssl_on )
             
     def find ( self, haystack, needle ):
         '''

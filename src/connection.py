@@ -7,7 +7,7 @@ def connect ( self, server, port, ssl_on = False ):
         self.s.connect ( ( server, port ) )
         self.ssl_on = ssl_on
 
-def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl_on = False ):
+def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_of_init_extends_to_lusers = False, ssl_on = False ):
         '''
         init() starts the socket connection with the server, and sets your nick/ident/real name, optionally a password may be specified for the PASS command.
         '''
@@ -20,7 +20,8 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                 port = 6667
             
             self.connect ( server, port )
-        
+        if end_of_init_extends_to_lusers == True: end_code = '266'
+        else: end_code = '376'
         if passwd != None:
                 self.passwd ( passwd )
         self.nick ( nick )
