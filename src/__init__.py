@@ -287,3 +287,8 @@ class irc:
             elif 'UNHANDLED' in self.hooks.keys():
                 self.hooks [ 'UNHANDLED' ] ( event )
             else: raise self.UnhandledEvent ('Unhandled Event')
+    def set_hook ( self, trigger, method ):
+        self.hooks [ trigger ] = method
+    
+    def remove_hook ( self, trigger ):
+        del self.hooks [ trigger ]
