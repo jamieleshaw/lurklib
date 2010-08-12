@@ -283,7 +283,7 @@ class irc:
         while 1:
             event = self.stream()
             if event [0] in self.hooks.keys():
-                self.hooks [ event [0] ] ( event = event [1:] [0] )
+                self.hooks [ event [0] ] ( event = event [1] )
             elif 'UNHANDLED' in self.hooks.keys():
                 self.hooks [ 'UNHANDLED' ] ( event )
             else: raise self.UnhandledEvent ('Unhandled Event')
