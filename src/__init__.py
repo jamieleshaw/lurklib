@@ -221,8 +221,15 @@ class irc:
             except IndexError: return 'PART', ( who ( segments [0] [1:] ), segments [2], '' )
 
         elif segments [1] == 'PRIVMSG':
-            return 'PRIVMSG', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
-        
+            
+            privmsg = 'PRIVMSG', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            if privmsg [1] [2].find ( '\001' ) == 0: # Temporary CTCP VERSION hack
+                if privmsg [1] [2].find ( 'VERSION' ) != -1:
+                    self.notice ( privmsg [1] [0] [0], '\001VERSION The Lurk Internet Relay Chat Library : Alpha 1\001' )
+                elif privmsg [1] [2].find ( 'SOURCE' ) != -1:
+                    self.notice ( privmsg [1] [0] [0], '\001SOURCE irc.codeshock.org/6697:SSL -> #lurklib\001' )
+                return 'CTCP', ( privmsg [1] [0], privmsg [1] [2] )
+            else: return privmsg
         elif segments [1] == 'NOTICE':
             return 'NOTICE', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
 
@@ -276,6 +283,12 @@ class irc:
             self.lusers [ 'GLOBALUSERS' ] = segments [6]
             self.lusers [ 'GLOBALMAX' ] = segments [8]
             return ( 'LUSERS', self.lusers )
+        
+        elif segments [1] == '301':
+            return ( 'AWAY', data.split ( None, 3 ) [3] [1:] )
+        
+        elif segments [1] in self.err_replies.keys():
+            self.exception ( segments [1] )
         
         else: return 'UNKNOWN', data
         
