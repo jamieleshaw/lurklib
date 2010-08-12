@@ -75,7 +75,7 @@ class irc:
         self.KEYSET = self.IRCError
         self.PASSWDMISMATCH = self.IRCError
         self.NOCHANMODES = self.IRCError
-
+        self.UnhandledEvent = Exception
 
 
         self.err_replies = { \
@@ -219,12 +219,14 @@ class irc:
             return 'TOPIC', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
 
         elif segments [1] == 'QUIT':
-            return 'QUIT', ( who ( segments [0] [1:] ), ' '.join ( segments [3:] ) )
+            return 'QUIT', ( who ( segments [0] [1:] ), ' '.join ( segments [2:] [1:] ) )
         
         else: return 'UNKNOWN', data
     def mainloop ( self ):
         while 1:
             event = self.stream()
             if event [0] in self.hooks.keys():
-                self.hooks [ event [0] ] ( event = event [1:] )
-            else: pass # raise Unhandled event
+                self.hooks [ event [0] ] ( event = event [1:] [0] )
+            elif 'UNHANDLED' in self.hooks.keys():
+                self.hooks [ 'UNHANDLED' ] ( event )
+            else: raise self.UnhandledEvent ('Unhandled Event')
