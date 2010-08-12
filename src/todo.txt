@@ -2,4 +2,6 @@ Write elaborate doc strings for lurklib's methods & write then all in the same f
 Complete squeries.py & optional.py.
 Implement a CTCP thingy.
 Implement topic setter & time set collection.
-Make irc.init() process lusers data.
+Add irc.add_hook() & irc.remove_hook() function.
+Look into:
+event = event [1:] [0] thingy

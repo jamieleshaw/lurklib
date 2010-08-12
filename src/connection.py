@@ -7,7 +7,7 @@ def connect ( self, server, port, ssl_on = False ):
         self.s.connect ( ( server, port ) )
         self.ssl_on = ssl_on
 
-def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_of_init_extends_to_lusers = False, ssl_on = False ):
+def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, ssl_on = False ):
         '''
         init() starts the socket connection with the server, and sets your nick/ident/real name, optionally a password may be specified for the PASS command.
         '''
@@ -20,8 +20,6 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                 port = 6667
             
             self.connect ( server, port )
-        if end_of_init_extends_to_lusers == True: end_code = '266'
-        else: end_code = '376'
         if passwd != None:
                 self.passwd ( passwd )
         self.nick ( nick )
@@ -67,21 +65,27 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                 elif ncode == '265':
                         data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '266':
-                        pass
+                        data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '375':
                         data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '042':
                         data = ' '.join ( data.split() [3:] )
                 elif ncode == '372':
                         self.motd.append ( data.split ( None, 3 ) [3] [1:] )
-                        data = data.split ( ' ', 3 ) [3]
+                        data = data.split ( ' ', 3 ) [3] [1:]
                 elif ncode == '376':
                         data = ' '.join ( data.split() [3:] ) [1:]
+                        self.con_msg.append ( data )
+                        break
                 elif ncode == '422':
-                        pass
+                        data = ' '.join ( data.split() [3:] ) [1:]
+                        self.con_msg.append ( data )
+                        break
                 elif self.find ( data, 'NOTICE' ):
                         data = ( 'NOTICE', ' '.join ( data.split() [3:] ) [1:] )
-                if ncode == end_code: break
+                else:
+                    self.index -= 1
+                    break
                 self.con_msg.append ( data )
 
         self.motd = tuple ( self.motd )
@@ -174,7 +178,7 @@ def quit ( self, reason = None ):
         else:
             self.rsend ( 'QUIT :' + reason )
 
-def disconnect ( self, reason = None ):
+def end ( self, reason = None ):
         '''
         disconnect(), sends the quit message to the server, optionally a quit message may be specified, it also closes the socket connection.
         '''

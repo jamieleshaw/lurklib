@@ -18,7 +18,7 @@ class irc:
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
 
-    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_of_init_extends_to_lusers = False, ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {}, hide_called_events = True ):
+    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {}, hide_called_events = True ):
         '''
         Initial Class Variables.
         '''
@@ -28,6 +28,7 @@ class irc:
         self.hide_called_events = hide_called_events
         self.con_msg = []
         self.ircd = ''
+        self.lusers = {}
         self.clrf = clrf
         self.umodes = ''
         self.cmodes = ''
@@ -122,7 +123,7 @@ class irc:
         
         
         if server != None:
-            self.init ( server, port, nick, ident, real_name, passwd, end_of_init_extends_to_lusers, ssl_on )
+            self.init ( server, port, nick, ident, real_name, passwd, ssl_on )
             
     def find ( self, haystack, needle ):
         '''
@@ -159,7 +160,7 @@ class irc:
         lines = sdata.split ( self.clrf )
         for x in lines:
             if x.find ( 'PING :' ) == 0:
-                self.rsend ( 'PONG ' + x.split() [1] )
+                self.rsend ( x.replace ( 'PING', 'PONG' ) )
             if x != '': self.buffer.append ( x )
     def recv ( self ):
         if self.index == len ( self.buffer ): self.mcon()
@@ -201,7 +202,7 @@ class irc:
                 data = self.recv()
                 topic = ''
                 names = ()
-                for x in range ( 3 ):
+                while 1:
                     if self.find ( data, '332' ):
                         topic = data.split ( None, 4 ) [4] [1:]
                     elif self.find ( data, '333' ):
@@ -243,9 +244,41 @@ class irc:
 
         elif segments [1] == 'QUIT':
             return 'QUIT', ( who ( segments [0] [1:] ), ' '.join ( segments [2:] [1:] ) )
+        
         elif segments [1] == '396':
             return 'VHOST', segments [3]
+       
+        elif segments [1] == '251':
+            self.lusers [ 'USERS' ] = segments [5]
+            self.lusers [ 'INVISIBLE' ] = segments [8]
+            self.lusers [ 'SERVERS' ] = segments [11]
+            return ( 'LUSERS', self.lusers )
+        
+        elif segments [1] == '252':
+            self.lusers [ 'OPERATORS' ] = segments [3]
+            return ( 'LUSERS', self.lusers )
+        
+        elif segments [1] == '254':
+            self.lusers [ 'CHANNELS' ] = segments [3]
+            return ( 'LUSERS', self.lusers )
+        
+        elif segments [1] == '255':
+            self.lusers [ 'CLIENTS' ] = segments [5]
+            self.lusers [ 'LSERVERS' ] = segments [8]
+            return ( 'LUSERS', self.lusers )
+        
+        elif segments [1] == '265':
+            self.lusers [ 'LOCALUSERS' ] = segments [6]
+            self.lusers [ 'LOCALMAX' ] = segments [8]
+            return ( 'LUSERS', self.lusers )
+        
+        elif segments [1] == '266':
+            self.lusers [ 'GLOBALUSERS' ] = segments [6]
+            self.lusers [ 'GLOBALMAX' ] = segments [8]
+            return ( 'LUSERS', self.lusers )
+        
         else: return 'UNKNOWN', data
+        
     def mainloop ( self ):
         while 1:
             event = self.stream()
