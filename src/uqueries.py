@@ -5,7 +5,7 @@ def who ( self, channel ):
     [0] == ident
     [1] == name
     [3] == host
-    On fail, [0] will be False, and [1] will be the error code.
+
     '''
     self.rsend ( 'WHO ' + channel )
     who_lst = {}

@@ -223,7 +223,7 @@ class irc:
         elif segments [1] == 'PRIVMSG':
             
             privmsg = 'PRIVMSG', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
-            if privmsg [1] [2].find ( '\001' ) == 0: # Temporary CTCP VERSION hack
+            if privmsg [1] [2].find ( '\001' ) == 0:
                 if privmsg [1] [2].find ( 'VERSION' ) != -1:
                     self.notice ( privmsg [1] [0] [0], '\001VERSION The Lurk Internet Relay Chat Library : Alpha 1\001' )
                 elif privmsg [1] [2].find ( 'SOURCE' ) != -1:
