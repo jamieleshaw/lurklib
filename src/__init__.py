@@ -18,13 +18,14 @@ class irc:
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
 
-    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {} ):
+    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, end_code = '266', ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {}, hide_called_events = True ):
         '''
         Initial Class Variables.
         '''
         self.current_nick = nick
         self.index = 0
         self.hooks = hooks
+        self.hide_called_events = hide_called_events
         self.con_msg = []
         self.ircd = ''
         self.clrf = clrf
@@ -230,7 +231,7 @@ class irc:
             return 'INVITE', ( who ( segments [0] [1:] ), segments [2], segments [3] [1:] )
 
         elif segments [1] == 'NICK':
-            return 'NICK', ( who ( segments [0] [1:] ), ' '.join ( segments [2:] ) [1:] )
+            return 'NICK', ( who ( segments [0] [1:] ), ' '.join ( segments [2:] ) )
 
         elif segments [1] == 'TOPIC':
             return 'TOPIC', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )

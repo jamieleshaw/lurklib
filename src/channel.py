@@ -18,7 +18,7 @@ def join ( self, channel, key = None ):
                 elif self.find ( data, '353' ):
                         names = data.split() [5:]
                         names [0] = tuple ( names [0] [1:] )
-                elif self.find ( data, 'JOIN' ):
+                elif self.find ( data, 'JOIN' ) and self.hide_called_events:
                         pass
                 elif ncode in self.err_replies.keys(): self.exception ( ncode )
                 else: self.buffer.append ( data )
@@ -37,7 +37,7 @@ def part ( self, channel, reason = None ):
 
                 if ncode in self.err_replies.keys():
                         self.exception ( ncode )
-                elif self.find ( data, 'PART' ):
+                elif self.find ( data, 'PART' ) and self.hide_called_events:
                         pass
                 else: self.buffer.append ( data )
                 break
@@ -56,7 +56,7 @@ def cmode ( self, channel, modes = '' ):
                 if ncode in self.err_replies.keys():
                         if ncode in self.err_replies.keys():
                                 self.exception ( ncode )
-                        elif self.find ( data, 'MODE' ):
+                        elif self.find ( data, 'MODE' ) and self.hide_called_events:
                                 pass
                         else: self.buffer.append ( data )
                         break
@@ -117,7 +117,7 @@ def topic ( self, channel, rtopic = None ):
                 elif self.find ( data, '332' ):
                         topic = data.split ( None, 4 ) [4] [1:]
                         self.recv()
-                elif self.find ( data, 'PART' ):
+                elif self.find ( data, 'TOPIC' ) and self.hide_called_events:
                         pass
                 elif self.find ( data, '333' ):
                         # implement topic, tupleter and time tuple collection
@@ -172,7 +172,7 @@ def invite ( self, channel, nick ):
                                 pass
                         elif self.find ( data, '301' ):
                                 return 'AWAY'
-                        elif self.find ( data, 'INVITE' ):
+                        elif self.find ( data, 'INVITE' ) and self.hide_called_events:
                                 pass
                         else: self.buffer.append ( data )
                         break
@@ -185,7 +185,7 @@ def kick ( self, channel, nick, reason = '' ):
                 if ncode in self.err_replies.keys():
                 
                         self.exception ( ncode )
-                elif self.find ( data, 'KICK' ):
+                elif self.find ( data, 'KICK' ) and self.hide_called_events:
                         pass
                 else: self.buffer.append ( data )
                 break

@@ -2,5 +2,4 @@ Write elaborate doc strings for lurklib's methods & write then all in the same f
 Complete squeries.py & optional.py.
 Implement a CTCP class.
 Implement topic setter & time set collection.
-Add argument, for if to swallow IRC events, such as KICK after calling irc.kick().
 Make irc.init() process lusers data, and maybe a simpler way to let the developer specify what signifies the end of the connection init.

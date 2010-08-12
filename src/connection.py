@@ -112,6 +112,7 @@ def nick ( self, nick ):
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
                     self.exception ( ncode )
+            elif data.split() [1] == 'NICK' and self.hide_called_events: pass
             else: self.buffer.append ( data )
         nickp(); nickp();
 def ident ( self, ident, real_name ):
@@ -156,7 +157,7 @@ def umode ( self, nick, modes = '' ):
                         self.exception ( ncode )
                 elif ncode == '221':
                         return data.split() [3] [1:]
-                elif self.find ( data, 'MODE' ):
+                elif self.find ( data, 'MODE' ) and self.hide_called_events:
                         pass
                 else: self.buffer.append ( data )
 def service ( self ):
@@ -188,6 +189,6 @@ def squit ( self, server, msg ):
                 if ncode in self.err_replies.keys():
                         self.exception ( ncode )
                     
-                elif self.find ( data, 'SQUIT' ):
+                elif self.find ( data, 'SQUIT' ) and self.hide_called_events:
                         pass
                 else: self.buffer.append ( data )
