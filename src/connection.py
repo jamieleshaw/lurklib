@@ -93,27 +93,27 @@ def passwd ( self, passw ):
         '''
         self.rsend ( 'PASS ' + passw )
         
-        def x():
+        def passwdp():
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
                     self.exception ( ncode )
             else: self.buffer.append ( data )
-        x(); x()
+        passwdp(); passwdp()
 def nick ( self, nick ):
         '''
         nick() is either used to set your nick upon connection to the IRC server, or used to change your nick in the current connection.
         Returns True on success, False on fail.
         '''
         self.rsend ( 'NICK ' + nick )
-
-        def x():
+        self.current_nick = nick
+        def nickp():
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
                     self.exception ( ncode )
             else: self.buffer.append ( data )
-        x(); x()
+        nickp(); nickp();
 def ident ( self, ident, real_name ):
         '''
         ident() is used at startup to send your ident and real name.
@@ -121,13 +121,13 @@ def ident ( self, ident, real_name ):
         '''
 
         self.rsend ( 'USER ' + ident + ' 0 * :' + real_name )
-        def x():
+        def identp():
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
                     self.exception ( ncode )
             else: self.buffer.append ( data )
-        x(); x()
+        identp(); identp()
 def oper ( self, name, password ):
         self.rsend ( 'OPER ' + name + ' ' + password )
         snomasks = ''

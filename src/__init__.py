@@ -22,6 +22,7 @@ class irc:
         '''
         Initial Class Variables.
         '''
+        self.current_nick = nick
         self.index = 0
         self.hooks = hooks
         self.con_msg = []
@@ -190,8 +191,24 @@ class irc:
         data = self.recv()
         segments = data.split()
         if segments [1] == 'JOIN':
-            return 'JOIN', ( who ( segments [0] [1:] ), segments [2] [1:] )
-
+            who_is_it = who ( segments [0] [1:] )
+            
+            if who_is_it [0] == self.current_nick:
+                data = self.recv()
+                topic = ''
+                names = ()
+                while self.find ( data, '366' ) == False:
+                    if self.find ( data, '332' ):
+                        topic = data.split ( None, 4 ) [4] [1:]
+                    elif self.find ( data, '333' ):
+                        # implement topic, setter and time set collection
+                        pass
+                    elif self.find ( data, '353' ):
+                        names = data.split() [5:]
+                        names [0] = names [0] [1:]
+                    data = self.recv() 
+                return 'JOIN', who_is_it, segments [2] [1:], topic, tuple ( names )
+            else: return 'JOIN', who_is_it, segments [2] [1:]
         elif segments [1] == 'PART':
             try: return 'PART', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
             except IndexError: return 'PART', ( who ( segments [0] [1:] ), segments [2], '' )
@@ -203,7 +220,7 @@ class irc:
             return 'NOTICE', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
 
         elif segments [1] == 'MODE':
-            try: return 'MODE', ( who ( segments [2] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            try: return 'MODE', ( who ( segments [2] ), ' '.join ( segments [3:] ) )
             except IndexError: return 'MODE', ( segments [2], ' '.join ( segments [3:] ) [1:] )
         
         elif segments [1] == 'KICK':

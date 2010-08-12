@@ -13,11 +13,11 @@ def join ( self, channel, key = None ):
                 if self.find ( data, '332' ):
                         topic = data.split ( None, 4 ) [4] [1:]
                 elif self.find ( data, '333' ):
-                        # implement topic, setter and time set collection
+                        # implement topic, tupleter and time tuple collection
                         pass
                 elif self.find ( data, '353' ):
                         names = data.split() [5:]
-                        names [0] = set ( names [0] [1:] )
+                        names [0] = tuple ( names [0] [1:] )
                 elif self.find ( data, 'JOIN' ):
                         pass
                 elif ncode in self.err_replies.keys(): self.exception ( ncode )
@@ -73,7 +73,7 @@ def banlist ( self, channel ):
                         bans.append ( data.split() [4] )
                 else: self.buffer.append ( data )
                 data = self.recv()
-        return set ( bans )
+        return tuple ( bans )
 def exceptlist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +e' )
         excepts = []
@@ -87,7 +87,7 @@ def exceptlist ( self, channel ):
                         excepts.append ( data.split() [4] )
                 else: self.buffer.append ( data )
                 data = self.recv()
-        return set ( excepts )
+        return tuple ( excepts )
 def invitelist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +i' )
         invites = []
@@ -101,7 +101,7 @@ def invitelist ( self, channel ):
                         invites.append ( data.split() [4] )
                 else: self.buffer.append ( data )
                 data = self.recv()
-        return set ( invites )
+        return tuple ( invites )
 def topic ( self, channel, rtopic = None ):
 
         if rtopic != None:
@@ -120,7 +120,7 @@ def topic ( self, channel, rtopic = None ):
                 elif self.find ( data, 'PART' ):
                         pass
                 elif self.find ( data, '333' ):
-                        # implement topic, setter and time set collection
+                        # implement topic, tupleter and time tuple collection
                         pass
                 elif data.find ( '331' ) != -1: topic = ''
                 else: self.buffer.append ( data )
@@ -139,7 +139,7 @@ def names ( self, channel ):
                         self.exception ( ncode )
                 else: self.buffer.append ( data )
                 data = self.recv()
-        return set ( names )
+        return tuple ( names )
 def slist ( self ):
   
         self.rsend ( 'LIST' )
