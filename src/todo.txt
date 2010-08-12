@@ -1,5 +1,6 @@
 Write elaborate doc strings for lurklib's methods & write then all in the same formatting.
 Complete squeries.py & optional.py.
-Implement a CTCP class.
+Implement a CTCP thingy.
 Implement topic setter & time set collection.
+Make SAJOIN detector not conflict with hide_called_events = True.
 Make irc.init() process lusers data, and maybe a simpler way to let the developer specify what signifies the end of the connection init.

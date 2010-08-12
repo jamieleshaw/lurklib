@@ -41,6 +41,9 @@ class irc:
         self.motd = []
         self.info = {}
         
+        self.join_event_generated_internally = False # var to make sure the sajoin detection doesn't conflict with hide_called_events = False
+        
+        
         self.IRCError = Exception
         self.NOPRIVILEGES = self.IRCError
         self.NOSUCHNICK = self.IRCError
@@ -194,11 +197,11 @@ class irc:
         if segments [1] == 'JOIN':
             who_is_it = who ( segments [0] [1:] )
             
-            if who_is_it [0] == self.current_nick:
+            if who_is_it [0] == self.current_nick and self.join_event_generated_internally == False:
                 data = self.recv()
                 topic = ''
                 names = ()
-                while self.find ( data, '366' ) == False:
+                for x in range ( 3 ):
                     if self.find ( data, '332' ):
                         topic = data.split ( None, 4 ) [4] [1:]
                     elif self.find ( data, '333' ):
@@ -207,6 +210,8 @@ class irc:
                     elif self.find ( data, '353' ):
                         names = data.split() [5:]
                         names [0] = names [0] [1:]
+                    elif self.find ( data, '366' ):
+                        break
                     data = self.recv() 
                 return 'JOIN', who_is_it, segments [2] [1:], topic, tuple ( names )
             else: return 'JOIN', who_is_it, segments [2] [1:]

@@ -13,15 +13,16 @@ def join ( self, channel, key = None ):
                 if self.find ( data, '332' ):
                         topic = data.split ( None, 4 ) [4] [1:]
                 elif self.find ( data, '333' ):
-                        # implement topic, tupleter and time tuple collection
+                        # implement topic, setter and time tuple collection
                         pass
                 elif self.find ( data, '353' ):
                         names = data.split() [5:]
                         names [0] = tuple ( names [0] [1:] )
                 elif self.find ( data, 'JOIN' ) and self.hide_called_events:
-                        pass
+                    pass
                 elif ncode in self.err_replies.keys(): self.exception ( ncode )
                 else: self.buffer.append ( data )
+                if self.hide_called_events == False: self.join_event_generated_internally = True
                 data = self.recv()
 
         return ( topic, names )
