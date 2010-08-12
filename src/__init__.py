@@ -237,7 +237,8 @@ class irc:
 
         elif segments [1] == 'QUIT':
             return 'QUIT', ( who ( segments [0] [1:] ), ' '.join ( segments [2:] [1:] ) )
-        
+        elif segments [1] == '396':
+            return 'VHOST', segments [3]
         else: return 'UNKNOWN', data
     def mainloop ( self ):
         while 1:
