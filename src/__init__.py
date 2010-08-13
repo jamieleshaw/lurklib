@@ -1,4 +1,4 @@
-import socket, sys, ssl
+import socket, sys, ssl, threading
 sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
 
@@ -35,6 +35,7 @@ class irc:
         self.server = ''
         self.ssl_on = ssl_on
         self.ssl = ssl
+        self.threading = threading
         self.buffer = [ ]
         self.s = socket.socket()
         self.fallback_encoding = encoding
@@ -215,6 +216,7 @@ class irc:
                         break
                     data = self.recv() 
                 return 'JOIN', who_is_it, segments [2] [1:], topic, tuple ( names )
+            if self.hide_called_events == False: self.join_event_generated_internally = False
             else: return 'JOIN', who_is_it, segments [2] [1:]
         elif segments [1] == 'PART':
             try: return 'PART', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
@@ -259,25 +261,25 @@ class irc:
             self.lusers [ 'USERS' ] = segments [5]
             self.lusers [ 'INVISIBLE' ] = segments [8]
             self.lusers [ 'SERVERS' ] = segments [11]
-            return ( 'LUSERS', self.lusers )
+            return self.stream()
         
         elif segments [1] == '252':
             self.lusers [ 'OPERATORS' ] = segments [3]
-            return ( 'LUSERS', self.lusers )
+            return self.stream()
         
         elif segments [1] == '254':
             self.lusers [ 'CHANNELS' ] = segments [3]
-            return ( 'LUSERS', self.lusers )
+            return self.stream()
         
         elif segments [1] == '255':
             self.lusers [ 'CLIENTS' ] = segments [5]
             self.lusers [ 'LSERVERS' ] = segments [8]
-            return ( 'LUSERS', self.lusers )
+            return self.stream()
         
         elif segments [1] == '265':
             self.lusers [ 'LOCALUSERS' ] = segments [6]
             self.lusers [ 'LOCALMAX' ] = segments [8]
-            return ( 'LUSERS', self.lusers )
+            return self.stream()
         
         elif segments [1] == '266':
             self.lusers [ 'GLOBALUSERS' ] = segments [6]
@@ -291,6 +293,11 @@ class irc:
             self.exception ( segments [1] )
         
         else: return 'UNKNOWN', data
+
+    def auto ( self, function, args = (), delay = 0.2 ):
+        
+        auto_timer = self.threading.Timer ( delay, function, args )
+        auto_timer.start()
         
     def mainloop ( self ):
         while 1:

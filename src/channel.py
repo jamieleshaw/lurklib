@@ -9,7 +9,7 @@ def join ( self, channel, key = None ):
         data = self.recv()
         while self.find ( data, '366' ) == False:
                 ncode = data.split() [1]
-
+                print ( data )
                 if self.find ( data, '332' ):
                         topic = data.split ( None, 4 ) [4] [1:]
                 elif self.find ( data, '333' ):
@@ -26,6 +26,7 @@ def join ( self, channel, key = None ):
                 data = self.recv()
 
         return ( topic, names )
+
 def part ( self, channel, reason = None ):
 
         if reason == None:

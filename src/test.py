@@ -1,8 +1,8 @@
-def other ( event):
+
+def on_other ( event):
     print (event)
-def msg (event):
-    print(event)
-import __init__; irc = __init__.irc('irc.codeshock.org', ssl_on=True, hooks={'UNHANDLED': other } );
-for x in irc.con_msg: print (x)
-irc.set_hook ( 'PRIVMSG', msg)
+
+import __init__; irc = __init__.irc('localhost', ssl_on=False, hooks={'UNHANDLED': on_other } );
+
+
 irc.mainloop()
