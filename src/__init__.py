@@ -216,7 +216,7 @@ class irc:
                         break
                     data = self.recv() 
                 return 'JOIN', who_is_it, segments [2] [1:], topic, tuple ( names )
-            if self.hide_called_events == False: self.join_event_generated_internally = False
+            #if self.hide_called_events == False: self.join_event_generated_internally = False
             else: return 'JOIN', who_is_it, segments [2] [1:]
         elif segments [1] == 'PART':
             try: return 'PART', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )

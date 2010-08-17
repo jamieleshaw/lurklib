@@ -2,6 +2,7 @@ def join ( self, channel, key = None ):
        
         topic = ''
         names = ()
+        if self.hide_called_events == False: self.join_event_generated_internally = True
         if key != None:
             self.rsend ( 'JOIN ' + channel + ' ' + key )
         else:
@@ -10,6 +11,7 @@ def join ( self, channel, key = None ):
         while self.find ( data, '366' ) == False:
                 ncode = data.split() [1]
                 print ( data )
+                print ( 'AAA')
                 if self.find ( data, '332' ):
                         topic = data.split ( None, 4 ) [4] [1:]
                 elif self.find ( data, '333' ):
@@ -22,7 +24,6 @@ def join ( self, channel, key = None ):
                     pass
                 elif ncode in self.err_replies.keys(): self.exception ( ncode )
                 else: self.buffer.append ( data )
-                if self.hide_called_events == False: self.join_event_generated_internally = True
                 data = self.recv()
 
         return ( topic, names )
