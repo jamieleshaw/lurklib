@@ -1,4 +1,4 @@
-import socket, sys, ssl, threading, time
+import socket, sys, ssl
 sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
 
@@ -35,14 +35,12 @@ class irc:
         self.server = ''
         self.ssl_on = ssl_on
         self.ssl = ssl
-        self.threading = threading
         self.buffer = [ ]
         self.s = socket.socket()
         self.fallback_encoding = encoding
         self.encoding = encoding
         self.motd = []
         self.info = {}
-
 
         
         self.IRCError = Exception
@@ -276,13 +274,20 @@ class irc:
 
         
     def mainloop ( self ):
+        if 'NODATA' in self.hooks.keys(): self.s.setblocking ( 0 )
         while 1:
-            event = self.stream()
-            if event [0] in self.hooks.keys():
-                self.hooks [ event [0] ] ( event = event [1] )
-            elif 'UNHANDLED' in self.hooks.keys():
-                self.hooks [ 'UNHANDLED' ] ( event )
-            else: raise self.UnhandledEvent ('Unhandled Event')
+            try:
+                event = self.stream()
+                if event [0] in self.hooks.keys():
+                    self.hooks [ event [0] ] ( event = event [1] )
+                elif 'UNHANDLED' in self.hooks.keys():
+                    self.hooks [ 'UNHANDLED' ] ( event )
+                else: raise self.UnhandledEvent ('Unhandled Event')
+            except socket.error:
+                self.s.setblocking ( 1 )
+                if 'NODATA' in self.hooks.keys():
+                    self.hooks [ 'NODATA' ]()
+
     def set_hook ( self, trigger, method ):
         self.hooks [ trigger ] = method
     
