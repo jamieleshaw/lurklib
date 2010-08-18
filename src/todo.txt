@@ -2,6 +2,5 @@ Write elaborate doc strings for lurklib's methods & write then all in the same f
 Complete squeries.py & optional.py.
 Implement topic setter & time set collection.
 Implement CTCP handler/lib etc.
-Fix auto() thingy by using threading and sleep and adding a irc.treturn 
-etc.(is auto even needed?)
-Fix whois thingy.
+Implement SAJOIN detection
+Use select to make mainloop have auto() like functiinlity

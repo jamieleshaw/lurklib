@@ -32,7 +32,7 @@ def whois ( self, nick ):
     SERVER_INFO == The name of the server the user is on.
     CHANNELS == A list of channels the user is on.
     IDLE == The user's idle time.
-    AWAY, present if the user is away, returns a string contaning their away message.
+    AWAY, present if the user is away, returns a string containing their away message.
     OP == Present if the user is an IRC operator.
     ETC == Other data sent in response to the WHOIS query.
     '''
@@ -40,7 +40,7 @@ def whois ( self, nick ):
     self.rsend ( 'WHOIS ' + nick )
     whois_r = {}
     data = self.recv()
-    while self.find ( data, '318' ) == False:
+    while 1:
         info = data.split ( None, 7 )
         ncode = info [1]
         if data.find ( '311' ) != -1:
@@ -54,7 +54,7 @@ def whois ( self, nick ):
             whois_r [ 'SERVER' ] = info [4]
             whois_r [ 'SERVER_INFO' ] = ' '.join ( info [5:] ) [1:]
         elif data.find ( '319' ) != -1:
-            whois_r [ 'CHANNELS' ] = ' '.join ( info [4:] )[1:].split()
+            whois_r [ 'CHANNELS' ] = tuple ( ' '.join ( info [4:] )[1:].split() )
         elif data.find ( '317' ) != -1:
             whois_r [ 'IDLE' ] = info [5]
         elif data.find ( '301' ) != -1:
@@ -62,6 +62,7 @@ def whois ( self, nick ):
         elif data.find ( '313' ) != -1:
             whois_r [ 'OP' ] = ' '.join ( info [4:] ) [1:]
         elif ncode in self.err_replies.keys(): self.exception ( ncode )
+        elif ncode == '318': break
         else:
             if 'ETC' in whois_r.keys():
                 whois_r [ 'ETC' ].append ( data.split ( ':', 2 ) [2] )

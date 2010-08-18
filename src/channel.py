@@ -2,31 +2,35 @@ def join ( self, channel, key = None ):
        
         topic = ''
         names = ()
-        if self.hide_called_events == False: self.join_event_generated_internally = True
+
         if key != None:
             self.rsend ( 'JOIN ' + channel + ' ' + key )
         else:
             self.rsend ( 'JOIN ' + channel )
+            
         data = self.recv()
-        while self.find ( data, '366' ) == False:
+        
+        while 1:
                 ncode = data.split() [1]
-                print ( data )
-                print ( 'AAA')
+
                 if self.find ( data, '332' ):
                         topic = data.split ( None, 4 ) [4] [1:]
                 elif self.find ( data, '333' ):
-                        # implement topic, setter and time tuple collection
-                        pass
+                    # implement time topic was set
+                    set_by = self.who ( data.split () [4] )
+
                 elif self.find ( data, '353' ):
                         names = data.split() [5:]
-                        names [0] = tuple ( names [0] [1:] )
+                        names [0] = names [0] [1:]
+                        names = tuple ( names )
                 elif self.find ( data, 'JOIN' ) and self.hide_called_events:
                     pass
                 elif ncode in self.err_replies.keys(): self.exception ( ncode )
+                elif ncode == '366': break
                 else: self.buffer.append ( data )
                 data = self.recv()
 
-        return ( topic, names )
+        return ( topic, names, set_by )
 
 def part ( self, channel, reason = None ):
 

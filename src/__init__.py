@@ -1,4 +1,4 @@
-import socket, sys, ssl, threading
+import socket, sys, ssl, threading, time
 sys.path.append ( './lurklib' )
 # Import IRC Sub-Modules
 
@@ -42,9 +42,8 @@ class irc:
         self.encoding = encoding
         self.motd = []
         self.info = {}
-        
-        self.join_event_generated_internally = False # var to make sure the sajoin detection doesn't conflict with hide_called_events = False
-        
+
+
         
         self.IRCError = Exception
         self.NOPRIVILEGES = self.IRCError
@@ -181,50 +180,30 @@ class irc:
         return msg
     def resetbuffer ( self ):
         self.index, self.buffer = 0, []
+    def who ( self, who ):
+        try:
+            host = who.split ( '@', 1 )
+            nickident = host [0].split ( '!', 1 )
+            nick = nickident [0]
+            ident = nickident [1]
+            host = host [1]
+            return ( nick, ident, host )
+        except IndexError: return who
     def stream ( self ):
-        '''
-        stream() == Main function etc
-        '''
-        def who ( who ):
-            try:
-                host = who.split ( '@', 1 )
-                nickident = host [0].split ( '!', 1 )
-                nick = nickident [0]
-                ident = nickident [1]
-                host = host [1]
-                return ( nick, ident, host )
-            except IndexError: return who
+
         data = self.recv()
         segments = data.split()
         if segments [1] == 'JOIN':
-            who_is_it = who ( segments [0] [1:] )
+            who_is_it = self.who ( segments [0] [1:] )
             
-            if who_is_it [0] == self.current_nick and self.join_event_generated_internally == False:
-                data = self.recv()
-                topic = ''
-                names = ()
-                while 1:
-                    if self.find ( data, '332' ):
-                        topic = data.split ( None, 4 ) [4] [1:]
-                    elif self.find ( data, '333' ):
-                        # implement topic, setter and time set collection
-                        pass
-                    elif self.find ( data, '353' ):
-                        names = data.split() [5:]
-                        names [0] = names [0] [1:]
-                    elif self.find ( data, '366' ):
-                        break
-                    data = self.recv() 
-                return 'JOIN', who_is_it, segments [2] [1:], topic, tuple ( names )
-            #if self.hide_called_events == False: self.join_event_generated_internally = False
-            else: return 'JOIN', who_is_it, segments [2] [1:]
+            return 'JOIN', who_is_it, segments [2] [1:]
         elif segments [1] == 'PART':
-            try: return 'PART', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
-            except IndexError: return 'PART', ( who ( segments [0] [1:] ), segments [2], '' )
+            try: return 'PART', ( self.who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            except IndexError: return 'PART', ( self.who ( segments [0] [1:] ), segments [2], '' )
 
         elif segments [1] == 'PRIVMSG':
             
-            privmsg = 'PRIVMSG', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            privmsg = 'PRIVMSG', ( self.who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
             if privmsg [1] [2].find ( '\001' ) == 0:
                 if privmsg [1] [2].find ( 'VERSION' ) != -1:
                     self.notice ( privmsg [1] [0] [0], '\001VERSION The Lurk Internet Relay Chat Library : Alpha 1\001' )
@@ -233,26 +212,26 @@ class irc:
                 return 'CTCP', ( privmsg [1] [0], privmsg [1] [2] )
             else: return privmsg
         elif segments [1] == 'NOTICE':
-            return 'NOTICE', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            return 'NOTICE', ( self.who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
 
         elif segments [1] == 'MODE':
-            try: return 'MODE', ( who ( segments [2] ), ' '.join ( segments [3:] ) )
+            try: return 'MODE', ( self.who ( segments [2] ), ' '.join ( segments [3:] ) )
             except IndexError: return 'MODE', ( segments [2], ' '.join ( segments [3:] ) [1:] )
         
         elif segments [1] == 'KICK':
-            return 'KICK', ( who ( segments [0] [1:] ), segments [2], segments [3], ' '.join ( segments [4:] ) [1:] )
+            return 'KICK', ( self.who ( segments [0] [1:] ), segments [2], segments [3], ' '.join ( segments [4:] ) [1:] )
 
         elif segments [1] == 'INVITE':
-            return 'INVITE', ( who ( segments [0] [1:] ), segments [2], segments [3] [1:] )
+            return 'INVITE', ( self.who ( segments [0] [1:] ), segments [2], segments [3] [1:] )
 
         elif segments [1] == 'NICK':
-            return 'NICK', ( who ( segments [0] [1:] ), ' '.join ( segments [2:] ) )
+            return 'NICK', ( self.who ( segments [0] [1:] ), ' '.join ( segments [2:] ) )
 
         elif segments [1] == 'TOPIC':
-            return 'TOPIC', ( who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            return 'TOPIC', ( self.who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
 
         elif segments [1] == 'QUIT':
-            return 'QUIT', ( who ( segments [0] [1:] ), ' '.join ( segments [2:] [1:] ) )
+            return 'QUIT', ( self.who ( segments [0] [1:] ), ' '.join ( segments [2:] [1:] ) )
         
         elif segments [1] == '396':
             return 'VHOST', segments [3]
@@ -294,10 +273,7 @@ class irc:
         
         else: return 'UNKNOWN', data
 
-    def auto ( self, function, args = (), delay = 0.2 ):
-        
-        auto_timer = self.threading.Timer ( delay, function, args )
-        auto_timer.start()
+
         
     def mainloop ( self ):
         while 1:
