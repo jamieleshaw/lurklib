@@ -274,7 +274,7 @@ class irc:
 
         
     def mainloop ( self ):
-        if 'NODATA' in self.hooks.keys(): self.s.setblocking ( 0 )
+        if 'AUTO' in self.hooks.keys(): self.s.setblocking ( 0 )
         while 1:
             try:
                 event = self.stream()
@@ -285,8 +285,9 @@ class irc:
                 else: raise self.UnhandledEvent ('Unhandled Event')
             except socket.error:
                 self.s.setblocking ( 1 )
-                if 'NODATA' in self.hooks.keys():
-                    self.hooks [ 'NODATA' ]()
+                if 'AUTO' in self.hooks.keys():
+                    self.hooks [ 'AUTO' ]()
+                    del self.hooks ['AUTO']
 
     def set_hook ( self, trigger, method ):
         self.hooks [ trigger ] = method
