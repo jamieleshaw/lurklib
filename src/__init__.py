@@ -1,7 +1,7 @@
-import socket, sys, ssl
+import socket, sys, ssl, time
 sys.path.append ( './lurklib' )
+__version__ = 'Alpha 1.5'
 # Import IRC Sub-Modules
-
 import connection
 import channel
 import uqueries
@@ -18,7 +18,7 @@ class irc:
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
 
-    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, ssl_on = False, encoding = 'utf-8', clrf = '\r\n', hooks = {}, hide_called_events = True ):
+    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, ssl_on = False, encoding = 'UTF-8', clrf = '\r\n', hooks = {}, hide_called_events = True, ctcps = None ):
         '''
         Initial Class Variables.
         '''
@@ -35,12 +35,22 @@ class irc:
         self.server = ''
         self.ssl_on = ssl_on
         self.ssl = ssl
-        self.buffer = [ ]
+        self.buffer = []
         self.s = socket.socket()
         self.fallback_encoding = encoding
         self.encoding = encoding
         self.motd = []
         self.info = {}
+        self.channels = []
+        self.time = time
+        if ctcps == None:
+            self.ctcps = { \
+             'VERSION' : 'The Lurk Internet Relay Chat Library : ' + __version__,
+             'SOURCE' : 'http://codeshock.org/',
+             'PING' : 1,
+             'TIME' : self.time.asctime,
+             }
+        else: self.ctcps = ctcps
 
         
         self.IRCError = Exception
@@ -79,6 +89,8 @@ class irc:
         self.KEYSET = self.IRCError
         self.PASSWDMISMATCH = self.IRCError
         self.NOCHANMODES = self.IRCError
+        self.AlreadyInChannel = Exception
+        self.NotInChannel = Exception
         self.UnhandledEvent = Exception
 
 
@@ -178,7 +190,7 @@ class irc:
         return msg
     def resetbuffer ( self ):
         self.index, self.buffer = 0, []
-    def who ( self, who ):
+    def who_is_it ( self, who ):
         try:
             host = who.split ( '@', 1 )
             nickident = host [0].split ( '!', 1 )
@@ -191,45 +203,89 @@ class irc:
 
         data = self.recv()
         segments = data.split()
+
         if segments [1] == 'JOIN':
-            who_is_it = self.who ( segments [0] [1:] )
-            
-            return 'JOIN', who_is_it, segments [2] [1:]
+            who = self.who_is_it ( segments [0] [1:] )
+            channel = segments [2] [1:]
+            if channel not in self.channels:
+                
+                topic = ''
+                names = ()
+                set_by = ''
+                time_set = ''
+                data = self.recv()
+                while 1:
+                        ncode = data.split() [1]
+        
+                        if self.find ( data, '332' ):
+                                topic = data.split ( None, 4 ) [4] [1:]
+                        elif self.find ( data, '333' ):
+                            segments = data.split()
+                            time_set = self.time.ctime ( int ( segments [5] ) )
+                            set_by = self.who_is_it ( segments [4] )
+                            
+                        elif self.find ( data, '353' ):
+                                names = data.split() [5:]
+                                names [0] = names [0] [1:]
+                                names = tuple ( names )
+                        elif self.find ( data, 'JOIN' ):
+                            self.channels.append ( data.split() [2] [1:] )
+                            if self.hide_called_events == False: self.buffer.append ( data )
+                        elif ncode in self.err_replies.keys(): self.exception ( ncode )
+                        elif ncode == '366': break
+                        else: self.buffer.append ( data )
+                        data = self.recv()
+                return ( topic, names, set_by, time_set )
+                
+            return 'JOIN', who, channel
         elif segments [1] == 'PART':
-            try: return 'PART', ( self.who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
-            except IndexError: return 'PART', ( self.who ( segments [0] [1:] ), segments [2], '' )
+            try: return 'PART', ( self.who_is_it ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            except IndexError: return 'PART', ( self.who_is_it ( segments [0] [1:] ), segments [2], '' )
 
         elif segments [1] == 'PRIVMSG':
+            who = self.who_is_it ( segments [0] [1:] )
+            msg = ' '.join ( segments [3:] ) [1:]
+            rvalue = 'PRIVMSG', ( who, segments [2], msg )
             
-            privmsg = 'PRIVMSG', ( self.who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
-            if privmsg [1] [2].find ( '\001' ) == 0:
-                if privmsg [1] [2].find ( 'VERSION' ) != -1:
-                    self.notice ( privmsg [1] [0] [0], '\001VERSION The Lurk Internet Relay Chat Library : Alpha 1\001' )
-                elif privmsg [1] [2].find ( 'SOURCE' ) != -1:
-                    self.notice ( privmsg [1] [0] [0], '\001SOURCE irc.codeshock.org/6697:SSL -> #lurklib\001' )
-                return 'CTCP', ( privmsg [1] [0], privmsg [1] [2] )
-            else: return privmsg
+            if msg.find ( '\001' ) == 0:
+                rctcp = self.ctcp_decode ( msg ).upper()
+                segments = rctcp.split()
+                for ctcp in self.ctcps.keys():
+                    if ctcp == segments [0] and self.ctcps [ ctcp ] != None:
+                        if hasattr ( self.ctcps [ ctcp ], '__call__'):
+                            response = str ( self.ctcps [ ctcp ] () )
+                        else:
+                            try: response = ctcp + ' ' + segments [ int ( self.ctcps [ ctcp ] ) ]
+                            except ValueError: response = self.ctcps [ ctcp ]
+                        self.notice ( who [0], self.ctcp_encode ( response ) )
+                        break
+                return 'CTCP', ( rvalue [1] [:2], rctcp )
+            else: return rvalue
         elif segments [1] == 'NOTICE':
-            return 'NOTICE', ( self.who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            return 'NOTICE', ( self.who_is_it ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
 
         elif segments [1] == 'MODE':
-            try: return 'MODE', ( self.who ( segments [2] ), ' '.join ( segments [3:] ) )
+            try: return 'MODE', ( self.who_is_it ( segments [2] ), ' '.join ( segments [3:] ) )
             except IndexError: return 'MODE', ( segments [2], ' '.join ( segments [3:] ) [1:] )
         
         elif segments [1] == 'KICK':
-            return 'KICK', ( self.who ( segments [0] [1:] ), segments [2], segments [3], ' '.join ( segments [4:] ) [1:] )
+            if self.current_nick == segments [3]: del self.channels [ segments [2] ]
+            return 'KICK', ( self.who_is_it ( segments [0] [1:] ), segments [2], segments [3], ' '.join ( segments [4:] ) [1:] )
 
         elif segments [1] == 'INVITE':
-            return 'INVITE', ( self.who ( segments [0] [1:] ), segments [2], segments [3] [1:] )
+            return 'INVITE', ( self.who_is_it ( segments [0] [1:] ), segments [2], segments [3] [1:] )
 
         elif segments [1] == 'NICK':
-            return 'NICK', ( self.who ( segments [0] [1:] ), ' '.join ( segments [2:] ) )
+            who = self.who_is_it ( segments [0] [1:] )
+            new_nick = ' '.join ( segments [2:] )
+            if self.current_nick == who [0]: self.current_nick = new_nick
+            return 'NICK', ( who, new_nick )
 
         elif segments [1] == 'TOPIC':
-            return 'TOPIC', ( self.who ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            return 'TOPIC', ( self.who_is_it ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
 
         elif segments [1] == 'QUIT':
-            return 'QUIT', ( self.who ( segments [0] [1:] ), ' '.join ( segments [2:] [1:] ) )
+            return 'QUIT', ( self.who_is_it ( segments [0] [1:] ), ' '.join ( segments [2:] [1:] ) )
         
         elif segments [1] == '396':
             return 'VHOST', segments [3]
@@ -275,22 +331,33 @@ class irc:
         
     def mainloop ( self ):
         if 'AUTO' in self.hooks.keys(): self.s.setblocking ( 0 )
+        def handler():
+            event = self.stream()
+            if event [0] in self.hooks.keys():
+                self.hooks [ event [0] ] ( event = event [1] )
+            elif 'UNHANDLED' in self.hooks.keys():
+                self.hooks [ 'UNHANDLED' ] ( event )
+            else: raise self.UnhandledEvent ('Unhandled Event')
+        def auto():
+            self.s.setblocking ( 1 )
+            if 'AUTO' in self.hooks.keys():
+                self.hooks [ 'AUTO' ]()
+                del self.hooks ['AUTO']
         while 1:
-            try:
-                event = self.stream()
-                if event [0] in self.hooks.keys():
-                    self.hooks [ event [0] ] ( event = event [1] )
-                elif 'UNHANDLED' in self.hooks.keys():
-                    self.hooks [ 'UNHANDLED' ] ( event )
-                else: raise self.UnhandledEvent ('Unhandled Event')
+            try: handler()
             except socket.error:
-                self.s.setblocking ( 1 )
-                if 'AUTO' in self.hooks.keys():
-                    self.hooks [ 'AUTO' ]()
-                    del self.hooks ['AUTO']
-
+                self.time.sleep ( 1 )
+                try: handler()
+                except socket.error: auto()
     def set_hook ( self, trigger, method ):
         self.hooks [ trigger ] = method
     
     def remove_hook ( self, trigger ):
         del self.hooks [ trigger ]
+    
+    # CTCP methods
+    
+    def ctcp_encode ( self, msg ):
+        return '\001' + msg + '\001'
+    def ctcp_decode ( self, msg ):
+        return msg.replace ( '\001', '' )

@@ -1,5 +1,2 @@
 Write elaborate doc strings for lurklib's methods & write then all in the same formatting.
 Complete squeries.py & optional.py.
-Implement topic time set collection.
-Implement CTCP handler/lib etc.
-Implement SAJOIN detection

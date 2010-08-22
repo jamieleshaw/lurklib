@@ -2,12 +2,18 @@ def join ( self, channel, key = None ):
        
         topic = ''
         names = ()
-
+        set_by = ''
+        time_set = ''
+        
+        for x in self.channels:
+            if x.lower() == channel:
+                raise self.AlreadyInChannel ( 'Already in ' + channel + '.' )
+        
         if key != None:
             self.rsend ( 'JOIN ' + channel + ' ' + key )
         else:
             self.rsend ( 'JOIN ' + channel )
-            
+        
         data = self.recv()
         
         while 1:
@@ -16,21 +22,23 @@ def join ( self, channel, key = None ):
                 if self.find ( data, '332' ):
                         topic = data.split ( None, 4 ) [4] [1:]
                 elif self.find ( data, '333' ):
-                    # implement time topic was set
-                    set_by = self.who ( data.split () [4] )
-
+                    segments = data.split()
+                    time_set = self.time.ctime ( int ( segments [5] ) )
+                    set_by = self.who_is_it ( segments [4] )
+                    
                 elif self.find ( data, '353' ):
                         names = data.split() [5:]
                         names [0] = names [0] [1:]
                         names = tuple ( names )
-                elif self.find ( data, 'JOIN' ) and self.hide_called_events:
-                    pass
+                elif self.find ( data, 'JOIN' ):
+                    self.channels.append ( data.split() [2] [1:] )
+                    if self.hide_called_events == False: self.buffer.append ( data )
                 elif ncode in self.err_replies.keys(): self.exception ( ncode )
                 elif ncode == '366': break
                 else: self.buffer.append ( data )
                 data = self.recv()
 
-        return ( topic, names, set_by )
+        return ( topic, names, set_by, time_set )
 
 def part ( self, channel, reason = None ):
 
@@ -38,16 +46,20 @@ def part ( self, channel, reason = None ):
                 self.rsend ( 'PART ' + channel )
         else:
                 self.rsend ( 'PART ' + channel + ' :' + reason )
-        while 1:
-                data = self.recv()
-                ncode = data.split() [1]
 
-                if ncode in self.err_replies.keys():
-                        self.exception ( ncode )
-                elif self.find ( data, 'PART' ) and self.hide_called_events:
-                        pass
-                else: self.buffer.append ( data )
-                break
+        data = self.recv()
+        ncode = data.split() [1]
+        
+        channels = []
+        for x in self.channels: channels.append ( x.lower() )
+        if channel.lower() not in channels:
+                raise self.NotInChannel ( 'Not in ' + channel + '.' )
+        if ncode in self.err_replies.keys():
+                self.exception ( ncode )
+        elif self.find ( data, 'PART' ):
+            del self.channels [ data.split() [2] [1:] ]
+            if self.hide_called_events == False: self.buffer.append ( data )
+        else: self.buffer.append ( data )
 
 def cmode ( self, channel, modes = '' ):
 
@@ -185,14 +197,18 @@ def invite ( self, channel, nick ):
                         break
 def kick ( self, channel, nick, reason = '' ):
         self.rsend ( 'KICK ' + channel + ' ' + nick + ' :' + reason )
-        while 1:
-                data = self.recv()
-                ncode = data.split() [1]
+        
+        channels = []
+        for x in self.channels: channels.append ( x.lower() )
+        if channel.lower() not in channels:
+                raise self.NotInChannel ( 'Not in ' + channel + '.' )
+        
+        data = self.recv()
+        ncode = data.split() [1]
 
-                if ncode in self.err_replies.keys():
-                
-                        self.exception ( ncode )
-                elif self.find ( data, 'KICK' ) and self.hide_called_events:
-                        pass
-                else: self.buffer.append ( data )
-                break
+        if ncode in self.err_replies.keys():
+        
+                self.exception ( ncode )
+        elif self.find ( data, 'KICK' ) and self.hide_called_events:
+                pass
+        else: self.buffer.append ( data )
