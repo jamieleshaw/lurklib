@@ -57,7 +57,7 @@ def part ( self, channel, reason = None ):
         if ncode in self.err_replies.keys():
                 self.exception ( ncode )
         elif self.find ( data, 'PART' ):
-            del self.channels [ data.split() [2] [1:] ]
+            self.channels.remove ( data.split() [2] )
             if self.hide_called_events == False: self.buffer.append ( data )
         else: self.buffer.append ( data )
 

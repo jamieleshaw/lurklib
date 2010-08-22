@@ -269,7 +269,7 @@ class irc:
             except IndexError: return 'MODE', ( segments [2], ' '.join ( segments [3:] ) [1:] )
         
         elif segments [1] == 'KICK':
-            if self.current_nick == segments [3]: del self.channels [ segments [2] ]
+            if self.current_nick == segments [3]: self.channels.remove ( segments [2] )
             return 'KICK', ( self.who_is_it ( segments [0] [1:] ), segments [2], segments [3], ' '.join ( segments [4:] ) [1:] )
 
         elif segments [1] == 'INVITE':
