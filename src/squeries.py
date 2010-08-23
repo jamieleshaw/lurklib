@@ -97,13 +97,17 @@ def links ( self, r_server = None, smask = None ):
     else:
         self.rsend ( 'LINKS ' + r_server + ' ' + smask )   
     
-def time ( self, target = None ):
-    if target == None:
+def s_time ( self, target = None ):
+    if target != None:
         self.rsend ( 'TIME ' + target )
     else:
         self.rsend ( 'TIME' )
+    
+    data = self.recv().split()
+    time = ' '.join ( data [4:] ) [1:]
+    return time
 
-def connect_s ( self, tserver, tport, r_server = None ):
+def s_connect ( self, tserver, tport, r_server = None ):
     if r_server == None:
         self.rsend ( 'CONNECT ' + tserver + ' ' + tport )
     else:
