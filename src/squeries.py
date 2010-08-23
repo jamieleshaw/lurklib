@@ -1,4 +1,3 @@
-# This module is not done yet.
 def get_motd ( self, server = None ):
     if server == None:
         self.rsend ( 'MOTD' )
@@ -19,14 +18,40 @@ def get_motd ( self, server = None ):
             break
     self.motd = tuple ( self.motd )
     return self.motd
-def lusers ( self, mask = None, target = None ):
+def get_lusers ( self, mask = None, target = None ):
     if mask == None:
         self.rsend ( 'LUSERS' )
     elif target == None and mask != None:
         self.rsend ( 'LUSERS ' + mask )
     else:
         self.rsend ( 'LUSERS ' + mask + ' ' + target )
-
+    while 1:
+        data = self.recv()
+        segments = data.split()
+        if segments [1] == '251':
+            self.lusers [ 'USERS' ] = segments [5]
+            self.lusers [ 'INVISIBLE' ] = segments [8]
+            self.lusers [ 'SERVERS' ] = segments [11]
+        
+        elif segments [1] == '252':
+            self.lusers [ 'OPERATORS' ] = segments [3]
+        
+        elif segments [1] == '254':
+            self.lusers [ 'CHANNELS' ] = segments [3]
+        
+        elif segments [1] == '255':
+            self.lusers [ 'CLIENTS' ] = segments [5]
+            self.lusers [ 'LSERVERS' ] = segments [8]
+        
+        elif segments [1] == '265':
+            self.lusers [ 'LOCALUSERS' ] = segments [6]
+            self.lusers [ 'LOCALMAX' ] = segments [8]
+        
+        elif segments [1] == '266':
+            self.lusers [ 'GLOBALUSERS' ] = segments [6]
+            self.lusers [ 'GLOBALMAX' ] = segments [8]
+            break
+    return self.lusers
 
 def version ( self, target = None ):
     if target == None:
