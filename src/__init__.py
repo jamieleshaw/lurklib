@@ -188,19 +188,19 @@ class irc:
 
         self.index += 1
         return msg
-    def safe_to_write ( self ):
+    def readable ( self ):
         self.s.setblocking ( 0 )
         try:
             self.mcon()
-            rvalue = False
+            rvalue = True
         except socket.error:
             self.time.sleep ( 1 )
             try:
                 self.mcon()
-                rvalue = False
+                rvalue = True
             except socket.error:
-                if self.index == len ( self.buffer ): rvalue = True
-                else: rvalue = False
+                if self.index == len ( self.buffer ): rvalue = False
+                else: rvalue = True
         self.s.setblocking ( 1 )
         return rvalue
     
@@ -358,7 +358,7 @@ class irc:
                 self.hooks [ 'UNHANDLED' ] ( event )
             else: raise self.UnhandledEvent ('Unhandled Event') 
         while 1:
-            if self.safe_to_write() and 'AUTO' in self.hooks.keys():
+            if self.readable() == False and 'AUTO' in self.hooks.keys():
                 self.hooks [ 'AUTO' ] ()
                 del self.hooks [ 'AUTO' ]
             handler()

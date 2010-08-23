@@ -59,8 +59,9 @@ def version ( self, target = None ):
     else:
         self.rsend ( 'VERSION ' + target )
 
-    for num in range ( 3 ):
+    while 1:
         data = self.recv()
+        data = data.replace ( ' :are supported by this server', '' )
         segments = data.split()
         if segments [1] == '351':
             self.info [ 'VERSION' ] = ' '.join ( segments [3:] ) [1:]
@@ -76,6 +77,8 @@ def version ( self, target = None ):
                         if name == 'CHARSET': self.encoding = value
                     except IndexError: 
                         self.info [ x [0] ] = True
+        if self.readable() == False:
+            break
     return self.info
 def stats ( self, query = None, target = None ):
     if query == None:
