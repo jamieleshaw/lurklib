@@ -1,10 +1,24 @@
 # This module is not done yet.
-def motd ( self, server = None ):
+def get_motd ( self, server = None ):
     if server == None:
         self.rsend ( 'MOTD' )
     else:
         self.rsend ( 'MOTD ' + server )
-
+        
+    self.motd = []
+    while 1:
+        data = self.recv()
+        ncode = data.split() [1]
+        if ncode == '375':
+            pass
+        elif ncode == '372':
+            self.motd.append ( data.split ( None, 3 ) [3] [1:] )
+        elif ncode == '376':
+            break
+        elif ncode == '422':
+            break
+    self.motd = tuple ( self.motd )
+    return self.motd
 def lusers ( self, mask = None, target = None ):
     if mask == None:
         self.rsend ( 'LUSERS' )
@@ -36,8 +50,8 @@ def links ( self, r_server = None, smask = None ):
     elif smask == None and r_server != None:
         self.rsend ( 'LINKS ' + r_server )
     else:
-        self.rsend ( 'LINKS ' + r_server + ' ' + smask )
-
+        self.rsend ( 'LINKS ' + r_server + ' ' + smask )   
+    
 def time ( self, target = None ):
     if target == None:
         self.rsend ( 'TIME ' + target )

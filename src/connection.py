@@ -83,9 +83,8 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                         break
                 elif self.find ( data, 'NOTICE' ):
                         data = ( 'NOTICE', ' '.join ( data.split() [3:] ) [1:] )
-                else:
-                    self.index -= 1
-                    break
+                else: pass
+                
                 self.con_msg.append ( data )
 
         self.motd = tuple ( self.motd )
@@ -96,7 +95,7 @@ def passwd ( self, passw ):
         passd() sends a PASS <password>, message to the server, it has one required argument the password.
         Returns True on success, False on fail.
         '''
-        self.rsend ( 'PASS ' + passw )
+        self.rsend ( 'PASS :' + passw )
         
         def passwdp():
             data = self.recv()
@@ -110,7 +109,7 @@ def nick ( self, nick ):
         nick() is either used to set your nick upon connection to the IRC server, or used to change your nick in the current connection.
         Returns True on success, False on fail.
         '''
-        self.rsend ( 'NICK ' + nick )
+        self.rsend ( 'NICK :' + nick )
         self.current_nick = nick
         def nickp():
             data = self.recv()
