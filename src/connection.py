@@ -42,7 +42,7 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                         self.cmodes = info [6]
                         data = ' '.join ( data.split() [3:] )
                 elif ncode == '005':
-                    info = data.split()
+                    info = data.split() [3:]
                     for x in info:
                             try:
                                 x = x.split ( '=' )

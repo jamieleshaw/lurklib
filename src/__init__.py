@@ -188,6 +188,22 @@ class irc:
 
         self.index += 1
         return msg
+    def safe_to_write ( self ):
+        self.s.setblocking ( 0 )
+        try:
+            self.mcon()
+            rvalue = False
+        except socket.error:
+            self.time.sleep ( 1 )
+            try:
+                self.mcon()
+                rvalue = False
+            except socket.error:
+                if self.index == len ( self.buffer ): rvalue = True
+                else: rvalue = False
+        self.s.setblocking ( 1 )
+        return rvalue
+    
     def resetbuffer ( self ):
         self.index, self.buffer = 0, []
     def who_is_it ( self, who ):
@@ -262,7 +278,11 @@ class irc:
                 return 'CTCP', ( rvalue [1] [:2], rctcp )
             else: return rvalue
         elif segments [1] == 'NOTICE':
-            return 'NOTICE', ( self.who_is_it ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
+            msg = ' '.join ( segments [3:] ) [1:]
+            if msg.find ( '\001' ) == 0:
+                msg = self.ctcp_decode( msg )
+                return 'CTCP_REPLY', ( self.who_is_it ( segments [0] [1:] ), segments [2], msg )
+            return 'NOTICE', ( self.who_is_it ( segments [0] [1:] ), segments [2], msg )
 
         elif segments [1] == 'MODE':
             try: return 'MODE', ( self.who_is_it ( segments [2] ), ' '.join ( segments [3:] ) )
@@ -330,25 +350,19 @@ class irc:
 
         
     def mainloop ( self ):
-        if 'AUTO' in self.hooks.keys(): self.s.setblocking ( 0 )
         def handler():
             event = self.stream()
             if event [0] in self.hooks.keys():
                 self.hooks [ event [0] ] ( event = event [1] )
             elif 'UNHANDLED' in self.hooks.keys():
                 self.hooks [ 'UNHANDLED' ] ( event )
-            else: raise self.UnhandledEvent ('Unhandled Event')
-        def auto():
-            self.s.setblocking ( 1 )
-            if 'AUTO' in self.hooks.keys():
-                self.hooks [ 'AUTO' ]()
-                del self.hooks ['AUTO']
+            else: raise self.UnhandledEvent ('Unhandled Event') 
         while 1:
-            try: handler()
-            except socket.error:
-                self.time.sleep ( 1 )
-                try: handler()
-                except socket.error: auto()
+            if self.safe_to_write() and 'AUTO' in self.hooks.keys():
+                self.hooks [ 'AUTO' ] ()
+                del self.hooks [ 'AUTO' ]
+            handler()
+            
     def set_hook ( self, trigger, method ):
         self.hooks [ trigger ] = method
     

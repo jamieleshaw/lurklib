@@ -59,7 +59,24 @@ def version ( self, target = None ):
     else:
         self.rsend ( 'VERSION ' + target )
 
-
+    for num in range ( 3 ):
+        data = self.recv()
+        segments = data.split()
+        if segments [1] == '351':
+            self.info [ 'VERSION' ] = ' '.join ( segments [3:] ) [1:]
+        elif segments == '005':
+            segments = segments [3:]
+            for x in segments:
+                    try:
+                        x = x.split ( '=' )
+                        name = x [0]
+                        value = x [1]
+                        self.info [ name ] = value
+                
+                        if name == 'CHARSET': self.encoding = value
+                    except IndexError: 
+                        self.info [ x [0] ] = True
+    return self.info
 def stats ( self, query = None, target = None ):
     if query == None:
         self.rsend ( 'STATS' )

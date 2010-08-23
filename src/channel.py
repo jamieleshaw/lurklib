@@ -38,7 +38,7 @@ def join ( self, channel, key = None ):
                 else: self.buffer.append ( data )
                 data = self.recv()
 
-        return ( topic, names, set_by, time_set )
+        return ( names, topic, set_by, time_set )
 
 def part ( self, channel, reason = None ):
 
