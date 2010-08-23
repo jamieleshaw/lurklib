@@ -68,17 +68,14 @@ def cmode ( self, channel, modes = '' ):
                 return self.recv().split() [4]
         else:   self.rsend ( 'MODE ' + channel + ' ' + modes )
         
-        while 1:
-                data = self.recv()
-                ncode = data.split() [1]
+        data = self.recv()
+        ncode = data.split() [1]
 
-                if ncode in self.err_replies.keys():
-                        if ncode in self.err_replies.keys():
-                                self.exception ( ncode )
-                        elif self.find ( data, 'MODE' ) and self.hide_called_events:
-                                pass
-                        else: self.buffer.append ( data )
-                        break
+        if ncode in self.err_replies.keys():
+                self.exception ( ncode )
+        elif self.find ( data, 'MODE' ) and self.hide_called_events:
+                pass
+        else: self.buffer.append ( data )
 def banlist ( self, channel ):
         self.rsend ( 'MODE ' + channel + ' +b' )
         bans = []
@@ -127,8 +124,10 @@ def topic ( self, channel, rtopic = None ):
             self.rsend ( 'TOPIC ' + channel + ' :' + rtopic )
         else:
             self.rsend ( 'TOPIC ' + channel )
-        topic = None
-        while topic == None:
+        topic = ''
+        set_by = ''
+        time_set = ''
+        while self.readable() == True:
                 data = self.recv()
                 ncode = data.split() [1]
                 if ncode in self.err_replies.keys():
@@ -139,11 +138,12 @@ def topic ( self, channel, rtopic = None ):
                 elif self.find ( data, 'TOPIC' ) and self.hide_called_events:
                         pass
                 elif self.find ( data, '333' ):
-                        # implement topic, tupleter and time tuple collection
-                        pass
+                    segments = data.split()
+                    time_set = self.time.ctime ( int ( segments [5] ) )
+                    set_by = self.who_is_it ( segments [4] )
                 elif data.find ( '331' ) != -1: topic = ''
                 else: self.buffer.append ( data )
-        return topic
+        return topic, set_by, time_set
 def names ( self, channel ):
         self.rsend ( 'NAMES ' + channel )
         names = ()
