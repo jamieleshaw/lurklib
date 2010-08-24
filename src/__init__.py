@@ -338,10 +338,7 @@ class irc:
             self.lusers [ 'GLOBALUSERS' ] = segments [6]
             self.lusers [ 'GLOBALMAX' ] = segments [8]
             return ( 'LUSERS', self.lusers )
-        
-        elif segments [1] == '301':
-            return ( 'AWAY', data.split ( None, 3 ) [3] [1:] )
-        
+
         elif segments [1] in self.err_replies.keys():
             self.exception ( segments [1] )
         
