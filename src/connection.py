@@ -1,6 +1,6 @@
 def connect ( self, server, port, ssl_on = False ):
         '''
-        connect() starts the socket connection with the server, use init() instead.
+        connect() opens a socket connection with a server.
         '''
         if ssl_on == True:
             self.s = self.ssl.wrap_socket ( self.s )
@@ -9,7 +9,7 @@ def connect ( self, server, port, ssl_on = False ):
 
 def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, ssl_on = False ):
         '''
-        init() starts the socket connection with the server, and sets your nick/ident/real name, optionally a password may be specified for the PASS command.
+        init() starts the socket connection with the server, and sets your nick/ident/real name, optionally a password may be specified for the PASS command, as-well as processing numerics etc.
         '''
         if ssl_on:
             if port == None:
@@ -93,7 +93,6 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
 def passwd ( self, passw ):
         '''
         passd() sends a PASS <password>, message to the server, it has one required argument the password.
-        Returns True on success, False on fail.
         '''
         self.rsend ( 'PASS :' + passw )
         
@@ -107,7 +106,6 @@ def passwd ( self, passw ):
 def nick ( self, nick ):
         '''
         nick() is either used to set your nick upon connection to the IRC server, or used to change your nick in the current connection.
-        Returns True on success, False on fail.
         '''
         self.rsend ( 'NICK :' + nick )
         self.current_nick = nick
@@ -122,7 +120,6 @@ def nick ( self, nick ):
 def ident ( self, ident, real_name ):
         '''
         ident() is used at startup to send your ident and real name.
-        Returns True on success, False on fail.
         '''
 
         self.rsend ( 'USER ' + ident + ' 0 * :' + real_name )
@@ -134,43 +131,57 @@ def ident ( self, ident, real_name ):
             else: self.buffer.append ( data )
 
 def oper ( self, name, password ):
-        self.rsend ( 'OPER ' + name + ' ' + password )
-        snomasks = ''
-        new_umodes = ''
-        if self.readable():
-                data = self.recv()
-                ncode = data.split() [1]
+    '''
+    oper() accepts two arguments, oper name & password
+    '''
+    
+    self.rsend ( 'OPER ' + name + ' ' + password )
+    snomasks = ''
+    new_umodes = ''
+    if self.readable():
+            data = self.recv()
+            ncode = data.split() [1]
 
-                if ncode in self.err_replies.keys():
-                        self.exception ( ncode )
-                elif self.find ( data, 'MODE' ):
-                        new_umodes = data.split() [-1] [1:]
-                elif ncode == '381':
-                        return ( new_umodes, snomasks )
-                elif ncode == '008':
-                        snomasks = data.split ( '(' ) [1].split ( ')' ) [0]
-                else: self.buffer.append ( data )
+            if ncode in self.err_replies.keys():
+                    self.exception ( ncode )
+            elif self.find ( data, 'MODE' ):
+                    new_umodes = data.split() [-1] [1:]
+            elif ncode == '381':
+                    return ( new_umodes, snomasks )
+            elif ncode == '008':
+                    snomasks = data.split ( '(' ) [1].split ( ')' ) [0]
+            else: self.buffer.append ( data )
 def umode ( self, nick, modes = '' ):
-        self.rsend ( 'MODE ' + nick + ' ' + modes )
-        while self.readable():
-                data = self.recv()
+    '''
+    umode() accepts a nick and optionally modes to set.
+    If no modes are specified, it returns your current umodes.
+    '''
+    if modes == '':
+        self.rsend ( 'MODE ' + nick )
+        modes = []
+        while self.readable(): modes.append ( self.recv().split() [4:] )
+        return modes
+        
+    else:   self.rsend ( 'MODE ' + nick + ' ' + modes )
+    while self.readable():
+            data = self.recv()
 
-                ncode = data.split() [1]
+            ncode = data.split() [1]
 
-                if ncode in self.err_replies.keys():
-                        self.exception ( ncode )
-                elif ncode == '221':
-                        return data.split() [3] [1:]
-                elif self.find ( data, 'MODE' ) and self.hide_called_events:
-                        pass
-                else: self.buffer.append ( data )
+            if ncode in self.err_replies.keys():
+                    self.exception ( ncode )
+            elif ncode == '221':
+                    return data.split() [3] [1:]
+            elif self.find ( data, 'MODE' ) and self.hide_called_events:
+                    pass
+            else: self.buffer.append ( data )
 def service ( self ):
         # Not yet done..obviously
         pass
 
 def quit ( self, reason = None ):
         '''
-        quit() sends the QUIT command to the server, optionally a quit message may be specified, use disconnect() instead.
+        quit() sends the QUIT command to the server, optionally a quit message may be specified, use end() instead.
         '''
         if reason == None:
             self.rsend ( 'QUIT' )
@@ -179,20 +190,23 @@ def quit ( self, reason = None ):
 
 def end ( self, reason = None ):
         '''
-        disconnect(), sends the quit message to the server, optionally a quit message may be specified, it also closes the socket connection.
+        end(), sends the quit message to the server, optionally a quit message may be specified, it also closes the socket connection.
         '''
         self.quit ( reason )
         self.s.close()
 
 def squit ( self, server, msg ):
-        self.rsend ( 'SQUIT ' + server + ' :' + msg )
-        while self.readable():
-                data = self.recv()
-                ncode = data.split() [1]
+    '''
+    squit() squits the specified server.
+    '''
+    self.rsend ( 'SQUIT ' + server + ' :' + msg )
+    while self.readable():
+            data = self.recv()
+            ncode = data.split() [1]
 
-                if ncode in self.err_replies.keys():
-                        self.exception ( ncode )
-                    
-                elif self.find ( data, 'SQUIT' ) and self.hide_called_events:
-                        pass
-                else: self.buffer.append ( data )
+            if ncode in self.err_replies.keys():
+                    self.exception ( ncode )
+                
+            elif self.find ( data, 'SQUIT' ) and self.hide_called_events:
+                    pass
+            else: self.buffer.append ( data )

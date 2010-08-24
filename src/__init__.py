@@ -10,7 +10,6 @@ import sending
 
 class irc:
 
-    # Put them in this namespace...I'm sure there is a cleaner way of doing this, but I've haven't found it yet...
     for x in dir ( connection ): exec ( x + ' = connection.' + x )
     for x in dir ( channel ): exec ( x + ' = channel.' + x )
     for x in dir ( uqueries ): exec ( x + ' = uqueries.' + x )
@@ -306,9 +305,6 @@ class irc:
 
         elif segments [1] == 'QUIT':
             return 'QUIT', ( self.who_is_it ( segments [0] [1:] ), ' '.join ( segments [2:] [1:] ) )
-        
-        elif segments [1] == '396':
-            return 'VHOST', segments [3]
        
         elif segments [1] == '251':
             self.lusers [ 'USERS' ] = segments [5]

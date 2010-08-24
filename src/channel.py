@@ -67,7 +67,7 @@ def cmode ( self, channel, modes = '' ):
 
         if modes == '':
                 self.rsend ( 'MODE ' + channel )
-                return self.recv().split() [4]
+                if self.readable(): return self.recv().split() [4]
         else:   self.rsend ( 'MODE ' + channel + ' ' + modes )
         
         if self.readable():
