@@ -9,18 +9,18 @@ def who ( self, channel ):
     '''
     self.rsend ( 'WHO ' + channel )
     who_lst = {}
-    data = self.recv()
-    while 1:
-            ncode = data.split() [1]
+    
+    while self.readable():
+        data = self.recv()
+        ncode = data.split() [1]
 
-            if self.find ( data, '352' ):
-                raw_who = data.split ( None, 10 )
-                who_lst [ raw_who [7] ] = ( raw_who [4], raw_who [10], raw_who [5] )
-            elif ncode in self.err_replies.keys():
-                self.exception ( ncode )
-            elif ncode == '315': return who_lst
-            else: self.buffer.append ( data )
-            data = self.recv()
+        if ncode == '352':
+            raw_who = data.split ( None, 10 )
+            who_lst [ raw_who [7] ] = ( raw_who [4], raw_who [10], raw_who [5] )
+        elif ncode in self.err_replies.keys():
+            self.exception ( ncode )
+        elif ncode == '315': return who_lst
+        else: self.buffer.append ( data )
 
 def whois ( self, nick ):
     '''
@@ -39,27 +39,28 @@ def whois ( self, nick ):
     
     self.rsend ( 'WHOIS ' + nick )
     whois_r = {}
-    data = self.recv()
-    while 1:
+
+    while self.readable():
+        data = self.recv()
         info = data.split ( None, 7 )
         ncode = info [1]
-        if data.find ( '311' ) != -1:
+        if ncode == '311':
             whois_r = \
                     {
                         'IDENT' : info [4],
                         'HOST' : info [5],
                         'NAME' : info [7] [1:]
                     }
-        elif data.find ( '312' ) != -1:
+        elif ncode == '312':
             whois_r [ 'SERVER' ] = info [4]
             whois_r [ 'SERVER_INFO' ] = ' '.join ( info [5:] ) [1:]
-        elif data.find ( '319' ) != -1:
+        elif ncode == '319':
             whois_r [ 'CHANNELS' ] = tuple ( ' '.join ( info [4:] )[1:].split() )
-        elif data.find ( '317' ) != -1:
+        elif ncode == '317':
             whois_r [ 'IDLE' ] = info [5]
-        elif data.find ( '301' ) != -1:
+        elif ncode == '301':
             whois_r [ 'AWAY' ] = info [4] [1:]
-        elif data.find ( '313' ) != -1:
+        elif ncode == '313':
             whois_r [ 'OP' ] = ' '.join ( info [4:] ) [1:]
         elif ncode in self.err_replies.keys(): self.exception ( ncode )
         elif ncode == '318': break
@@ -68,7 +69,7 @@ def whois ( self, nick ):
                 whois_r [ 'ETC' ].append ( data.split ( ':', 2 ) [2] )
             else:
                 whois_r [ 'ETC' ] = [ data.split ( ':', 2 ) [2] ]
-        data = self.recv()
+
     return whois_r
 def whowas ( self, nick ): 
     '''
@@ -82,11 +83,11 @@ def whowas ( self, nick ):
     self.rsend ( 'WHOWAS ' + nick )
     
     rwhowas = []
-    while 1:
+    while self.readable():
             data = self.recv()
             ncode = data.split() [1]
 
-            if self.find ( data, '314' ):
+            if ncode == '314':
                 raw_whowas = data.split()
                 rwhowas = ( raw_whowas [3], raw_whowas [4], raw_whowas [5], raw_whowas [7] [1:] )
             elif ncode in self.err_replies.keys():

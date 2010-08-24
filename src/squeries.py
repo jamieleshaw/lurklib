@@ -5,7 +5,7 @@ def get_motd ( self, server = None ):
         self.rsend ( 'MOTD ' + server )
         
     self.motd = []
-    while 1:
+    while self.readable():
         data = self.recv()
         ncode = data.split() [1]
         if ncode == '375':
@@ -25,7 +25,7 @@ def get_lusers ( self, mask = None, target = None ):
         self.rsend ( 'LUSERS ' + mask )
     else:
         self.rsend ( 'LUSERS ' + mask + ' ' + target )
-    while 1:
+    while self.readable():
         data = self.recv()
         segments = data.split()
         if segments [1] == '251':
@@ -59,7 +59,7 @@ def version ( self, target = None ):
     else:
         self.rsend ( 'VERSION ' + target )
 
-    while 1:
+    while self.readable():
         data = self.recv()
         data = data.replace ( ' :are supported by this server', '' )
         segments = data.split()
@@ -77,8 +77,7 @@ def version ( self, target = None ):
                         if name == 'CHARSET': self.encoding = value
                     except IndexError: 
                         self.info [ x [0] ] = True
-        if self.readable() == False:
-            break
+
     return self.info
 def stats ( self, query = None, target = None ):
     if query == None:

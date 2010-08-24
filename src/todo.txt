@@ -1,3 +1,3 @@
 Write elaborate doc strings for lurklib's methods & write then all in the same formatting.
 Complete squeries.py & optional.py.
-Implement error detection in sending.py
+Look into a cleaner way of implementing the namespace hack in __init.py

@@ -97,13 +97,13 @@ def passwd ( self, passw ):
         '''
         self.rsend ( 'PASS :' + passw )
         
-        def passwdp():
+        if self.readable():
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
                     self.exception ( ncode )
             else: self.buffer.append ( data )
-        passwdp(); passwdp()
+
 def nick ( self, nick ):
         '''
         nick() is either used to set your nick upon connection to the IRC server, or used to change your nick in the current connection.
@@ -111,14 +111,14 @@ def nick ( self, nick ):
         '''
         self.rsend ( 'NICK :' + nick )
         self.current_nick = nick
-        def nickp():
+        if self.readable():
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
                     self.exception ( ncode )
             elif data.split() [1] == 'NICK' and self.hide_called_events: pass
             else: self.buffer.append ( data )
-        nickp(); nickp();
+
 def ident ( self, ident, real_name ):
         '''
         ident() is used at startup to send your ident and real name.
@@ -126,18 +126,18 @@ def ident ( self, ident, real_name ):
         '''
 
         self.rsend ( 'USER ' + ident + ' 0 * :' + real_name )
-        def identp():
+        if self.readable():
             data = self.recv()
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
                     self.exception ( ncode )
             else: self.buffer.append ( data )
-        identp(); identp()
+
 def oper ( self, name, password ):
         self.rsend ( 'OPER ' + name + ' ' + password )
         snomasks = ''
         new_umodes = ''
-        while 1:
+        if self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
 
@@ -152,7 +152,7 @@ def oper ( self, name, password ):
                 else: self.buffer.append ( data )
 def umode ( self, nick, modes = '' ):
         self.rsend ( 'MODE ' + nick + ' ' + modes )
-        while 1:
+        while self.readable():
                 data = self.recv()
 
                 ncode = data.split() [1]
@@ -186,7 +186,7 @@ def end ( self, reason = None ):
 
 def squit ( self, server, msg ):
         self.rsend ( 'SQUIT ' + server + ' :' + msg )
-        while 1:
+        while self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
 
