@@ -14,21 +14,18 @@ def join ( self, channel, key = None ):
         else:
             self.rsend ( 'JOIN ' + channel )
         
-        
-        
         while self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
 
-                if self.find ( data, '332' ):
-                    
+                if ncode ==  '332':
                     topic = data.split ( None, 4 ) [4] [1:]
-                elif self.find ( data, '333' ):
+                elif ncode == '333':
                     segments = data.split()
                     time_set = self.time.ctime ( int ( segments [5] ) )
                     set_by = self.who_is_it ( segments [4] )
                     
-                elif self.find ( data, '353' ):
+                elif ncode ==  '353':
                     names = data.split() [5:]
                     names [0] = names [0] [1:]
                     names = tuple ( names )

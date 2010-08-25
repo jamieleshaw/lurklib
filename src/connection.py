@@ -20,27 +20,28 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                 port = 6667
             
             self.connect ( server, port )
+        self.time.sleep ( 0.2 )
         if passwd != None:
                 self.passwd ( passwd )
         self.nick ( nick )
         self.ident ( ident, real_name )
-
+        
         while 1:
                 data = self.recv()
                 ncode = data.split() [1]
                 if ncode == '001':
-                        data = ' '.join ( data.split() [3:] ) [1:]
+                    data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '002':
-                        data = ' '.join ( data.split() [3:] ) [1:]
+                    data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '003':
-                        data = ' '.join ( data.split() [3:] ) [1:]
+                    data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '004':
-                        info = data.split()
-                        self.server = info [3]
-                        self.ircd = info [4]
-                        self.umodes = info [5]
-                        self.cmodes = info [6]
-                        data = ' '.join ( data.split() [3:] )
+                    info = data.split()
+                    self.server = info [3]
+                    self.ircd = info [4]
+                    self.umodes = info [5]
+                    self.cmodes = info [6]
+                    data = ' '.join ( data.split() [3:] )
                 elif ncode == '005':
                     info = data.split() [3:]
                     for x in info:
@@ -55,36 +56,36 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                                 self.info [ x [0] ] = True
                     data = ' '.join ( data.split() [3:] )
                 elif ncode == '251':
-                        data = ' '.join ( data.split() [3:] ) [1:]
+                    data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '252':
-                        data = ' '.join ( data.split() [3:] )
+                    data = ' '.join ( data.split() [3:] )
                 elif ncode == '254':
                     data = ' '.join ( data.split() [3:] )
                 elif ncode == '255':
-                        data = ' '.join ( data.split() [3:] ) [1:]
+                    data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '265':
-                        data = ' '.join ( data.split() [3:] ) [1:]
+                    data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '266':
-                        data = ' '.join ( data.split() [3:] ) [1:]
+                    data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '375':
-                        data = ' '.join ( data.split() [3:] ) [1:]
+                    data = ' '.join ( data.split() [3:] ) [1:]
                 elif ncode == '042':
-                        data = ' '.join ( data.split() [3:] )
+                    data = ' '.join ( data.split() [3:] )
                 elif ncode == '372':
-                        self.motd.append ( data.split ( None, 3 ) [3] [1:] )
-                        data = data.split ( ' ', 3 ) [3] [1:]
+                    self.motd.append ( data.split ( None, 3 ) [3] [1:] )
+                    data = data.split ( ' ', 3 ) [3] [1:]
                 elif ncode == '376':
-                        data = ' '.join ( data.split() [3:] ) [1:]
-                        self.con_msg.append ( data )
-                        break
+                    data = ' '.join ( data.split() [3:] ) [1:]
+                    self.con_msg.append ( data )
+                    break
                 elif ncode == '422':
-                        data = ' '.join ( data.split() [3:] ) [1:]
-                        self.con_msg.append ( data )
-                        break
+                    data = ' '.join ( data.split() [3:] ) [1:]
+                    self.con_msg.append ( data )
+                    break
                 elif self.find ( data, 'NOTICE' ):
-                        data = ( 'NOTICE', ' '.join ( data.split() [3:] ) [1:] )
-                else: pass
-                
+                    self.server = data.split() [0] [1:]
+                    data = ( 'NOTICE', ' '.join ( data.split() [3:] ) [1:] )
+                else: self.buffer.append ( data )
                 self.con_msg.append ( data )
 
         self.motd = tuple ( self.motd )
@@ -92,7 +93,7 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
 
 def passwd ( self, passw ):
         '''
-        passd() sends a PASS <password>, message to the server, it has one required argument the password.
+        passwd() sends a PASS <password>, message to the server, it has one required argument the password.
         '''
         self.rsend ( 'PASS :' + passw )
         
@@ -101,7 +102,7 @@ def passwd ( self, passw ):
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
                     self.exception ( ncode )
-            else: self.buffer.append ( data )
+            else: self.index -= 1
 
 def nick ( self, nick ):
         '''
@@ -115,8 +116,7 @@ def nick ( self, nick ):
             if ncode in self.err_replies.keys():
                     self.exception ( ncode )
             elif data.split() [1] == 'NICK' and self.hide_called_events: pass
-            else: self.buffer.append ( data )
-
+            else: self.index -= 1
 def ident ( self, ident, real_name ):
         '''
         ident() is used at startup to send your ident and real name.
@@ -128,7 +128,7 @@ def ident ( self, ident, real_name ):
             ncode = data.split() [1]
             if ncode in self.err_replies.keys():
                     self.exception ( ncode )
-            else: self.buffer.append ( data )
+            else: self.index -= 1
 
 def oper ( self, name, password ):
     '''
@@ -193,6 +193,8 @@ def end ( self, reason = None ):
         end(), sends the quit message to the server, optionally a quit message may be specified, it also closes the socket connection.
         '''
         self.quit ( reason )
+        self.keep_going = False
+        self.time.sleep ( 1 )
         self.s.close()
 
 def squit ( self, server, msg ):

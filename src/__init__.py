@@ -29,6 +29,8 @@ class irc:
         self.ircd = ''
         self.lusers = {}
         self.clrf = clrf
+        self.server = ''
+        self.latency = 0.5
         self.umodes = ''
         self.cmodes = ''
         self.server = ''
@@ -42,6 +44,8 @@ class irc:
         self.info = {}
         self.channels = []
         self.time = time
+        self.ctime = self.time.time()
+        self.keep_going = True
         if ctcps == None:
             self.ctcps = { \
              'VERSION' : 'The Lurk Internet Relay Chat Library : ' + __version__,
@@ -158,26 +162,28 @@ class irc:
     def mcon ( self ):
         sdata = ' '
         while sdata [-1] != self.clrf [-1]:
-                    if sdata == ' ': sdata = ''
-                    if self.ssl_on:
-                        try: sdata = sdata + self.s.read ( 4096 ).decode ( self.encoding )
-                        except LookupError: sdata = sdata + self.s.read ( 4096 ).decode ( self.fallback_encoding )
-                    else:
-                        try: sdata = sdata + self.s.recv ( 4096 ).decode ( self.encoding )
-                        except LookupError: sdata = sdata + self.s.recv ( 4096 ).decode ( self.fallback_encoding )
+            if sdata == ' ': sdata = ''
+            if self.ssl_on:
+                try: sdata = sdata + self.s.read ( 4096 ).decode ( self.encoding )
+                except LookupError: sdata = sdata + self.s.read ( 4096 ).decode ( self.fallback_encoding )
+            else:
+                try: sdata = sdata + self.s.recv ( 4096 ).decode ( self.encoding )
+                except LookupError: sdata = sdata + self.s.recv ( 4096 ).decode ( self.fallback_encoding )
                     
         lines = sdata.split ( self.clrf )
         for x in lines:
             if x.find ( 'PING :' ) == 0:
                 self.rsend ( x.replace ( 'PING', 'PONG' ) )
             if x != '': self.buffer.append ( x )
+
     def recv ( self ):
         if self.index == len ( self.buffer ): self.mcon()
         if self.index >= 199:
             self.resetbuffer()
             self.mcon()
         msg = self.buffer [ self.index ]
-        while self.find ( msg, 'PING :' ):
+
+        while self.find ( msg, 'PING :' ) :
             self.index += 1
             try:
                 msg = self.buffer [ self.index ]
@@ -187,13 +193,14 @@ class irc:
 
         self.index += 1
         return msg
+
     def readable ( self ):
         self.s.setblocking ( 0 )
         try:
             self.mcon()
             rvalue = True
         except socket.error:
-            self.time.sleep ( 1 )
+            self.time.sleep ( self.latency )
             try:
                 self.mcon()
                 rvalue = True
@@ -217,6 +224,7 @@ class irc:
     def stream ( self ):
 
         data = self.recv()
+
         segments = data.split()
 
         if segments [1] == 'JOIN':
@@ -229,7 +237,7 @@ class irc:
                 set_by = ''
                 time_set = ''
                 data = self.recv()
-                while 1:
+                while self.readable():
                         ncode = data.split() [1]
         
                         if self.find ( data, '332' ):
@@ -315,7 +323,9 @@ class irc:
         elif segments [1] == '252':
             self.lusers [ 'OPERATORS' ] = segments [3]
             return self.stream()
-        
+        elif segments [1] == '253':
+            self.lusers [ 'UNKNOWN' ] = segments [3]
+            return self.stream()
         elif segments [1] == '254':
             self.lusers [ 'CHANNELS' ] = segments [3]
             return self.stream()
@@ -338,23 +348,44 @@ class irc:
         elif segments [1] in self.err_replies.keys():
             self.exception ( segments [1] )
         
+        elif self.find ( data, 'PONG' ):
+            
+            self.mainloop()
         else: return 'UNKNOWN', data
 
-
+    def set_latency ( self ):
+        self.s.setblocking ( 1 )
+        self.rsend ( 'PING %s' % self.server )
+        self.ctime = self.time.time()
+        data = self.recv()
+        if self.find ( data, 'PONG'):
+            self.latency = self.time.time() - self.ctime
+            self.ctime = self.time.time()
+        else: self.buffer.append ( data )
         
     def mainloop ( self ):
         def handler():
             event = self.stream()
+            self.s.setblocking ( 1 )
             if event [0] in self.hooks.keys():
                 self.hooks [ event [0] ] ( event = event [1] )
             elif 'UNHANDLED' in self.hooks.keys():
                 self.hooks [ 'UNHANDLED' ] ( event )
-            else: raise self.UnhandledEvent ('Unhandled Event') 
-        while 1:
-            if self.readable() == False and 'AUTO' in self.hooks.keys():
+            else: raise self.UnhandledEvent ('Unhandled Event')
+
+        while self.keep_going:
+            if 'AUTO' in self.hooks.keys() and self.readable() == False:
+                self.set_latency()
                 self.hooks [ 'AUTO' ] ()
                 del self.hooks [ 'AUTO' ]
-            handler()
+            else: self.s.setblocking ( 0 )
+            
+            try: handler()
+            except socket.error:
+                self.time.sleep ( self.latency )
+                try: handler()
+                except socket.error:
+                    self.set_latency()
             
     def set_hook ( self, trigger, method ):
         self.hooks [ trigger ] = method
