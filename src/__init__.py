@@ -44,7 +44,6 @@ class irc:
         self.info = {}
         self.channels = []
         self.time = time
-        self.ctime = self.time.time()
         self.keep_going = True
         if ctcps == None:
             self.ctcps = { \
@@ -195,19 +194,18 @@ class irc:
         return msg
 
     def readable ( self ):
-        self.s.setblocking ( 0 )
+        self.s.settimeout ( self.latency )
         try:
             self.mcon()
             rvalue = True
         except socket.error:
-            self.time.sleep ( self.latency )
             try:
                 self.mcon()
                 rvalue = True
             except socket.error:
                 if self.index == len ( self.buffer ): rvalue = False
                 else: rvalue = True
-        self.s.setblocking ( 1 )
+        self.s.settimeout ( None )
         return rvalue
     
     def resetbuffer ( self ):
@@ -353,20 +351,21 @@ class irc:
             self.mainloop()
         else: return 'UNKNOWN', data
 
-    def set_latency ( self ):
-        self.s.setblocking ( 1 )
+    def calc_latency ( self ):
+        self.s.settimeout ( None )
+        ctime = self.time.time()
         self.rsend ( 'PING %s' % self.server )
-        self.ctime = self.time.time()
+        
         data = self.recv()
         if self.find ( data, 'PONG'):
-            self.latency = self.time.time() - self.ctime
-            self.ctime = self.time.time()
+            self.latency = self.time.time() - ctime
         else: self.buffer.append ( data )
+        if self.latency < 0.001: self.latency += 0.01
         
     def mainloop ( self ):
         def handler():
             event = self.stream()
-            self.s.setblocking ( 1 )
+            self.s.settimeout ( None )
             if event [0] in self.hooks.keys():
                 self.hooks [ event [0] ] ( event = event [1] )
             elif 'UNHANDLED' in self.hooks.keys():
@@ -375,17 +374,16 @@ class irc:
 
         while self.keep_going:
             if 'AUTO' in self.hooks.keys() and self.readable() == False:
-                self.set_latency()
+                self.calc_latency()
                 self.hooks [ 'AUTO' ] ()
                 del self.hooks [ 'AUTO' ]
-            else: self.s.setblocking ( 0 )
+            else: self.s.settimeout ( self.latency )
             
             try: handler()
             except socket.error:
-                self.time.sleep ( self.latency )
                 try: handler()
                 except socket.error:
-                    self.set_latency()
+                    self.calc_latency()
             
     def set_hook ( self, trigger, method ):
         self.hooks [ trigger ] = method
