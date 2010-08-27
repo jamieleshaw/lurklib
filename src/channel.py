@@ -22,7 +22,7 @@ def join ( self, channel, key = None ):
                     topic = data.split ( None, 4 ) [4] [1:]
                 elif ncode == '333':
                     segments = data.split()
-                    time_set = self.time.ctime ( int ( segments [5] ) )
+                    time_set = self.time.localtime ( int ( segments [5] ) )
                     set_by = self.who_is_it ( segments [4] )
                     
                 elif ncode ==  '353':

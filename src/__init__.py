@@ -194,12 +194,13 @@ class irc:
         return msg
 
     def readable ( self ):
-        self.s.settimeout ( self.latency )
+        self.s.settimeout ( 0 )
         try:
             self.mcon()
             rvalue = True
         except socket.error:
             try:
+                self.s.settimeout ( self.latency * 1.39 )
                 self.mcon()
                 rvalue = True
             except socket.error:
@@ -222,7 +223,6 @@ class irc:
     def stream ( self ):
 
         data = self.recv()
-
         segments = data.split()
 
         if segments [1] == 'JOIN':
@@ -234,28 +234,29 @@ class irc:
                 names = ()
                 set_by = ''
                 time_set = ''
-                data = self.recv()
+                
                 while self.readable():
-                        ncode = data.split() [1]
-        
-                        if self.find ( data, '332' ):
-                                topic = data.split ( None, 4 ) [4] [1:]
-                        elif self.find ( data, '333' ):
-                            segments = data.split()
-                            time_set = self.time.ctime ( int ( segments [5] ) )
-                            set_by = self.who_is_it ( segments [4] )
-                            
-                        elif self.find ( data, '353' ):
-                                names = data.split() [5:]
-                                names [0] = names [0] [1:]
-                                names = tuple ( names )
-                        elif self.find ( data, 'JOIN' ):
-                            self.channels.append ( data.split() [2] [1:] )
-                            if self.hide_called_events == False: self.buffer.append ( data )
-                        elif ncode in self.err_replies.keys(): self.exception ( ncode )
-                        elif ncode == '366': break
-                        else: self.buffer.append ( data )
-                        data = self.recv()
+                    data = self.recv()
+                    ncode = data.split() [1]
+    
+                    if self.find ( data, '332' ):
+                            topic = data.split ( None, 4 ) [4] [1:]
+                    elif self.find ( data, '333' ):
+                        segments = data.split()
+                        time_set = self.time.localtime ( int ( segments [5] ) )
+                        set_by = self.who_is_it ( segments [4] )
+                        
+                    elif self.find ( data, '353' ):
+                            names = data.split() [5:]
+                            names [0] = names [0] [1:]
+                            names = tuple ( names )
+                    elif self.find ( data, 'JOIN' ):
+                        self.channels.append ( data.split() [2] [1:] )
+                        if self.hide_called_events == False: self.buffer.append ( data )
+                    elif ncode in self.err_replies.keys(): self.exception ( ncode )
+                    elif ncode == '366': break
+                    else: self.buffer.append ( data )
+                    
                 return ( topic, names, set_by, time_set )
                 
             return 'JOIN', who, channel
@@ -271,6 +272,7 @@ class irc:
             if msg.find ( '\001' ) == 0:
                 rctcp = self.ctcp_decode ( msg ).upper()
                 segments = rctcp.split()
+                if segments [0] == 'ACTION': return 'ACTION', ( rvalue [1] [:2], rctcp )
                 for ctcp in self.ctcps.keys():
                     if ctcp == segments [0] and self.ctcps [ ctcp ] != None:
                         if hasattr ( self.ctcps [ ctcp ], '__call__'):
@@ -377,11 +379,13 @@ class irc:
                 self.calc_latency()
                 self.hooks [ 'AUTO' ] ()
                 del self.hooks [ 'AUTO' ]
-            else: self.s.settimeout ( self.latency )
+            else: self.s.settimeout ( 0 )
             
             try: handler()
             except socket.error:
-                try: handler()
+                try:
+                    handler()
+                    self.s.settimeout ( self.latency )
                 except socket.error:
                     self.calc_latency()
             

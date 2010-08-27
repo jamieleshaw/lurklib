@@ -20,7 +20,14 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                 port = 6667
             
             self.connect ( server, port )
-        self.time.sleep ( 0.2 )
+        
+        while self.readable():
+            data = self.recv()
+            if self.find ( data, 'NOTICE' ):
+                    self.server = data.split() [0] [1:]
+                    data = ( 'NOTICE', ' '.join ( data.split() [3:] ) [1:] )
+            self.con_msg.append ( data )
+        
         if passwd != None:
                 self.passwd ( passwd )
         self.nick ( nick )
