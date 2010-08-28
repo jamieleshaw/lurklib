@@ -7,6 +7,7 @@ import channel
 import uqueries
 import squeries
 import sending
+import optional
 
 class irc:
 
@@ -15,6 +16,7 @@ class irc:
     for x in dir ( uqueries ): exec ( x + ' = uqueries.' + x )
     for x in dir ( squeries ): exec ( x + ' = squeries.' + x )
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
+    for x in dir ( optional ) : exec ( x + ' = optional.' + x )
 
 
     def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, ssl_on = False, encoding = 'UTF-8', clrf = '\r\n', hooks = {}, hide_called_events = True, ctcps = None, UTC = False ):
@@ -27,6 +29,7 @@ class irc:
         self.hide_called_events = hide_called_events
         self.con_msg = []
         self.ircd = ''
+        self.away = False
         self.UTC = UTC
         self.lusers = {}
         self.clrf = clrf
