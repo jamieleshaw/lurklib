@@ -1,140 +1,169 @@
 def join ( self, channel, key = None ):
-       
-        topic = ''
-        names = ()
-        set_by = ''
-        time_set = ''
-        
-        for x in self.channels:
-            if x.lower() == channel:
-                raise self.AlreadyInChannel ( 'Already in ' + channel + '.' )
-        
-        if key != None:
-            self.rsend ( 'JOIN ' + channel + ' ' + key )
-        else:
-            self.rsend ( 'JOIN ' + channel )
-        
-        while self.readable():
-                data = self.recv()
-                ncode = data.split() [1]
+    '''
+    join() returns a a tuple of information about the channel.
+    [0] is a tuple of /NAMES
+    [1] is the topic
+    [2] is a tuple of information about the person who set the topic.
+    [3] is a time object, of when the topic was set
+    '''
+    
+    topic = ''
+    names = ()
+    set_by = ''
+    time_set = ''
+    
+    for x in self.channels:
+        if x.lower() == channel:
+            raise self.AlreadyInChannel ( 'Already in ' + channel + '.' )
+    
+    if key != None:
+        self.rsend ( 'JOIN ' + channel + ' ' + key )
+    else:
+        self.rsend ( 'JOIN ' + channel )
+    
+    while self.readable():
+            data = self.recv()
+            ncode = data.split() [1]
 
-                if ncode ==  '332':
-                    topic = data.split ( None, 4 ) [4] [1:]
-                elif ncode == '333':
-                    segments = data.split()
-                    if self.UTC == False: time_set = self.time.localtime ( int ( segments [5] ) )
-                    else: time_set = self.time.gmtime ( int ( segments [5] ) )
-                    set_by = self.who_is_it ( segments [4] )
-                    
-                elif ncode ==  '353':
-                    names = data.split() [5:]
-                    names [0] = names [0] [1:]
-                    names = tuple ( names )
-                elif self.find ( data, 'JOIN' ):
-                    self.channels.append ( data.split() [2] [1:] )
-                    if self.hide_called_events == False: self.buffer.append ( data )
-                elif ncode in self.err_replies.keys(): self.exception ( ncode )
-                elif ncode == '366': break
-                else: self.buffer.append ( data )
+            if ncode ==  '332':
+                topic = data.split ( None, 4 ) [4] [1:]
+            elif ncode == '333':
+                segments = data.split()
+                if self.UTC == False: time_set = self.time.localtime ( int ( segments [5] ) )
+                else: time_set = self.time.gmtime ( int ( segments [5] ) )
+                set_by = self.who_is_it ( segments [4] )
+                
+            elif ncode ==  '353':
+                names = data.split() [5:]
+                names [0] = names [0] [1:]
+                names = tuple ( names )
+            elif self.find ( data, 'JOIN' ):
+                self.channels.append ( data.split() [2] [1:] )
+                if self.hide_called_events == False: self.buffer.append ( data )
+            elif ncode in self.err_replies.keys(): self.exception ( ncode )
+            elif ncode == '366': break
+            else: self.buffer.append ( data )
 
-        return ( names, topic, set_by, time_set )
+    return ( names, topic, set_by, time_set )
 
 def part ( self, channel, reason = None ):
 
-        if reason == None:
-                self.rsend ( 'PART ' + channel )
-        else:
-                self.rsend ( 'PART ' + channel + ' :' + reason )
-        
-        channels = []
-        for x in self.channels: channels.append ( x.lower() )
-        if channel.lower() not in channels:
-                raise self.NotInChannel ( 'Not in ' + channel + '.' )
-        
-        if self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-            if ncode in self.err_replies.keys():
-                self.exception ( ncode )
-            elif self.find ( data, 'PART' ):
-                self.channels.remove ( data.split() [2] )
-                if self.hide_called_events == False: self.buffer.append ( data )
-            else: self.buffer.append ( data )
+    if reason == None:
+            self.rsend ( 'PART ' + channel )
+    else:
+            self.rsend ( 'PART ' + channel + ' :' + reason )
+    
+    channels = []
+    for x in self.channels: channels.append ( x.lower() )
+    if channel.lower() not in channels:
+            raise self.NotInChannel ( 'Not in ' + channel + '.' )
+    
+    if self.readable():
+        data = self.recv()
+        ncode = data.split() [1]
+        if ncode in self.err_replies.keys():
+            self.exception ( ncode )
+        elif self.find ( data, 'PART' ):
+            self.channels.remove ( data.split() [2] )
+            if self.hide_called_events == False: self.buffer.append ( data )
+        else: self.buffer.append ( data )
 
 def cmode ( self, channel, modes = '' ):
 
-        if modes == '':
-                self.rsend ( 'MODE ' + channel )
-                if self.readable(): return self.recv().split() [4]
-        else:   self.rsend ( 'MODE ' + channel + ' ' + modes )
+    if modes == '':
+            self.rsend ( 'MODE ' + channel )
+            if self.readable(): return self.recv().split() [4]
+    else:   self.rsend ( 'MODE ' + channel + ' ' + modes )
+    
+    if self.readable():
+        data = self.recv()
+        ncode = data.split() [1]
+
+        if ncode in self.err_replies.keys():
+            self.exception ( ncode )
+        elif self.find ( data, 'MODE' ) and self.hide_called_events:
+            pass
+        else: self.buffer.append ( data )
+            
+def banlist ( self, channel ):
+    '''
+    returns a tuple of the banlist
+    '''
+    self.rsend ( 'MODE ' + channel + ' +b' )
+    bans = []
+
+    while self.readable():
         
+        data = self.recv()
+        ncode = data.split() [1]
+
+        if ncode in self.err_replies.keys():
+            self.exception ( ncode )
+        elif ncode == '367':
+            bans.append ( data.split() [4] )
+        elif ncode == '368': break
+        else: self.buffer.append ( data )
+    return tuple ( bans )
+def exceptlist ( self, channel ):
+    '''
+    returns a tuple of the exceptlist
+    '''
+    self.rsend ( 'MODE ' + channel + ' +e' )
+    excepts = []
+
+    while self.readable():
+        data = self.recv()
+        ncode = data.split() [1]
+
+        if ncode in self.err_replies.keys():
+            self.exception ( ncode )
+        elif ncode == '348':
+            excepts.append ( data.split() [4] )
+        elif ncode == '349': break
+        else: self.buffer.append ( data )
+
+    return tuple ( excepts )
+def invitelist ( self, channel ):
+    '''
+    returns a tuple of the invitelist
+    '''
+    self.rsend ( 'MODE ' + channel + ' +i' )
+    invites = []
+
+    while self.readable():
+        data = self.recv()
+        ncode = data.split() [1]
+
+        if ncode in self.err_replies.keys():
+            self.exception ( ncode )
+        elif ncode == '346':
+            invites.append ( data.split() [4] )
+        elif ncode == '347': break
+        else: self.buffer.append ( data )
+
+    return tuple ( invites )
+def topic ( self, channel, topic = None ):
+    '''
+    Either changes the topic or gets the topic, with no topic param, it returns a tuple of topic information
+    [0] is the topic
+    [1] person who set it
+    [2] time set
+    '''
+    topic = ''
+    set_by = ''
+    time_set = ''
+    if topic != None:
+        self.rsend ( 'TOPIC ' + channel + ' :' + topic )
         if self.readable():
             data = self.recv()
             ncode = data.split() [1]
-    
             if ncode in self.err_replies.keys():
                 self.exception ( ncode )
-            elif self.find ( data, 'MODE' ) and self.hide_called_events:
+            elif self.find ( data, 'TOPIC' ) and self.hide_called_events:
                 pass
-            else: self.buffer.append ( data )
-            
-def banlist ( self, channel ):
-        self.rsend ( 'MODE ' + channel + ' +b' )
-        bans = []
-
-        while self.readable():
-            
-            data = self.recv()
-            ncode = data.split() [1]
-
-            if ncode in self.err_replies.keys():
-                self.exception ( ncode )
-            elif ncode == '367':
-                bans.append ( data.split() [4] )
-            elif ncode == '368': break
-            else: self.buffer.append ( data )
-        return tuple ( bans )
-def exceptlist ( self, channel ):
-        self.rsend ( 'MODE ' + channel + ' +e' )
-        excepts = []
-
-        while self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-
-            if ncode in self.err_replies.keys():
-                self.exception ( ncode )
-            elif ncode == '348':
-                excepts.append ( data.split() [4] )
-            elif ncode == '349': break
-            else: self.buffer.append ( data )
-
-        return tuple ( excepts )
-def invitelist ( self, channel ):
-        self.rsend ( 'MODE ' + channel + ' +i' )
-        invites = []
-
-        while self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-
-            if ncode in self.err_replies.keys():
-                self.exception ( ncode )
-            elif ncode == '346':
-                invites.append ( data.split() [4] )
-            elif ncode == '347': break
-            else: self.buffer.append ( data )
-
-        return tuple ( invites )
-def topic ( self, channel, rtopic = None ):
-
-        if rtopic != None:
-            self.rsend ( 'TOPIC ' + channel + ' :' + rtopic )
-        else:
-            self.rsend ( 'TOPIC ' + channel )
-        topic = ''
-        set_by = ''
-        time_set = ''
+        topic = topic
+    else:
+        self.rsend ( 'TOPIC ' + channel )
         while self.readable():
             data = self.recv()
             ncode = data.split() [1]
@@ -147,11 +176,13 @@ def topic ( self, channel, rtopic = None ):
                 pass
             elif ncode == '333':
                 segments = data.split()
-                time_set = self.time.ctime ( int ( segments [5] ) )
+                if self.UTC == False: time_set = self.time.localtime ( int ( segments [5] ) )
+                else: time_set = self.time.gmtime ( int ( segments [5] ) )
                 set_by = self.who_is_it ( segments [4] )
             elif ncode == '331': topic = ''
             else: self.buffer.append ( data )
-        return topic, set_by, time_set
+
+    return topic, set_by, time_set
 def names ( self, channel ):
         self.rsend ( 'NAMES ' + channel )
         names = ()

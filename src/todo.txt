@@ -1,1 +1,0 @@
-Write elaborate doc strings for lurklib's methods & write then all in the same formatting.
