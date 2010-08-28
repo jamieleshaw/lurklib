@@ -1,13 +1,12 @@
 import socket, sys, ssl, time
-sys.path.append ( './lurklib' )
-__version__ = 'Alpha 1.5'
-# Import IRC Sub-Modules
-import connection
-import channel
-import uqueries
-import squeries
-import sending
-import optional
+__version__ = 'Beta 1 AKA 0.3'
+
+from . import connection
+from . import channel
+from . import uqueries
+from . import squeries
+from . import sending
+from . import optional
 
 class irc:
 
