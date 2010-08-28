@@ -28,7 +28,11 @@ def get_lusers ( self, mask = None, target = None ):
     while self.readable():
         data = self.recv()
         segments = data.split()
-        if segments [1] == '251':
+        
+        if segments [1] == '250':
+            self.lusers [ 'HIGHESTCONNECTIONS' ] = segments [6]
+            self.lusers [ 'TOTALCONNECTIONS' ] = segments [9] [1:]
+        elif segments [1] == '251':
             self.lusers [ 'USERS' ] = segments [5]
             self.lusers [ 'INVISIBLE' ] = segments [8]
             self.lusers [ 'SERVERS' ] = segments [11]
@@ -86,7 +90,13 @@ def stats ( self, query = None, target = None ):
         self.rsend ( 'STATS ' + query )
     else:
         self.rsend ( 'STATS ' + query + ' ' + target )
-
+    rvalue = []
+    while self.readable():
+        data = self.recv()
+        segments = data.split()
+        if segments [1] == '219': break
+        else: rvalue.append ( ' '.join ( segments [4:] ) [1:] )
+    return tuple ( rvalue )
 def links ( self, r_server = None, smask = None ):
 
     if r_server == None:
@@ -95,6 +105,16 @@ def links ( self, r_server = None, smask = None ):
         self.rsend ( 'LINKS ' + r_server )
     else:
         self.rsend ( 'LINKS ' + r_server + ' ' + smask )   
+    links = {}
+    while self.readable():
+        data = self.recv()
+        segments = data.split()
+        if segments [1] == '364':
+            server = segments [3]
+            desc = ' '.join ( segments [5:] ) [2:]
+            links [ server ] = desc
+        elif segments [1] == '365': break
+    return links
     
 def s_time ( self, target = None ):
     if target != None:
@@ -102,8 +122,8 @@ def s_time ( self, target = None ):
     else:
         self.rsend ( 'TIME' )
     
-    data = self.recv().split()
-    time = ' '.join ( data [4:] ) [1:]
+    segments = self.recv().split()
+    time = ' '.join ( segments [4:] ) [1:]
     return time
 
 def s_connect ( self, tserver, tport, r_server = None ):
@@ -111,22 +131,43 @@ def s_connect ( self, tserver, tport, r_server = None ):
         self.rsend ( 'CONNECT ' + tserver + ' ' + tport )
     else:
         self.rsend ( 'CONNECT ' + tserver + ' ' + tport + r_server )
-
+    if self.readable():
+        ncode = self.recv().split() [1]
+        if ncode in self.err_replies.keys(): self.exception ( ncode )
+        
 def trace ( self, target ):
     self.rsend ( 'TRACE ' + target )
-
+    rvalue = []
+    while self.readable():
+        data = self.recv()
+        segments = data.split()
+        if segments [1] == '262': break
+        else: rvalue.append ( ' '.join ( segments [4:] ) [1:] )
+    return tuple ( rvalue )
 def admin ( self, target = None ):
     if target == None:
         self.rsend ( 'ADMIN' )
     else:
         self.rsend ( 'ADMIN ' + target )
-
-def info ( self, target = None ):
+    rvalue = []
+    while self.readable():
+        segments = self.recv().split()
+        admin_ncodes = ( '256', '257', '258', '259' )
+        if segments [1]  in admin_ncodes:
+            rvalue.append ( ' '.join ( segments [3:] ) [1:] )
+    return tuple ( rvalue )
+def s_info ( self, target = None ):
     if target == None:
         self.rsend ( 'INFO' )
     else:
         self.rsend ( 'INFO ' + target )
-
+    sinfo = []
+    while self.readable():
+        segments = self.recv().split()
+        if segments [1] == '371':
+            sinfo.append ( ' '.join ( segments [3:] ) [1:] )
+        elif segments [1] == '374': break
+    return tuple ( sinfo )
 def servlist ( self, mask = None, typa = None ):
     if mask == None:
         self.rsend ( 'SERVLIST' )
@@ -134,9 +175,28 @@ def servlist ( self, mask = None, typa = None ):
         self.rsend ( 'SERVLIST ' + mask )
     else:
         self.rsend ( 'SERVLIST ' + mask + ' ' + typa )
+    
+    servs = []
+    while self.readable():
+        segments = self.recv().split()
+        if segments [1] == '234':
+            servs.append ( ' '.join ( segments [3:] ) [1:] )
+        elif segments [1] == '235': break
+    return tuple ( servs )
 
 def squery ( self, sname, msg ):
     self.rsend ( 'SQUERY ' + sname + ' :' + msg )
-
+    
+    if self.readable():
+        data = self.recv()
+        ncode = data.split() [1]
+        if ncode in self.err_replies.keys():
+            self.exception ( ncode )
 def kill ( self, nick, msg ):
     self.rsend ( 'KILL ' + nick + ' :' + msg )
+    
+    if self.readable():
+        data = self.recv()
+        ncode = data.split() [1]
+        if ncode in self.err_replies.keys():
+            self.exception ( ncode )

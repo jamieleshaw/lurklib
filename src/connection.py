@@ -183,7 +183,6 @@ def umode ( self, nick, modes = '' ):
                     pass
             else: self.buffer.append ( data )
 def service ( self ):
-        # Not yet done..obviously
         pass
 
 def quit ( self, reason = None ):
@@ -201,8 +200,6 @@ def end ( self, reason = None ):
         '''
         self.quit ( reason )
         self.keep_going = False
-        self.time.sleep ( 1 )
-        self.s.close()
 
 def squit ( self, server, msg ):
     '''

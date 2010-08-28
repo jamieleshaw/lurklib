@@ -17,7 +17,7 @@ class irc:
     for x in dir ( sending ) : exec ( x + ' = sending.' + x )
 
 
-    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, ssl_on = False, encoding = 'UTF-8', clrf = '\r\n', hooks = {}, hide_called_events = True, ctcps = None ):
+    def __init__ ( self, server = None, port = None, nick = 'lurklib', ident = 'lurklib', real_name = 'The Lurk Internet Relay Chat Library', passwd = None, ssl_on = False, encoding = 'UTF-8', clrf = '\r\n', hooks = {}, hide_called_events = True, ctcps = None, UTC = False ):
         '''
         Initial Class Variables.
         '''
@@ -27,6 +27,7 @@ class irc:
         self.hide_called_events = hide_called_events
         self.con_msg = []
         self.ircd = ''
+        self.UTC = UTC
         self.lusers = {}
         self.clrf = clrf
         self.server = ''
@@ -86,6 +87,7 @@ class irc:
         self.BANNEDFROMCHAN = self.IRCError
         self.BADCHANNELKEY = self.IRCError
         self.NOSUCHCHANNEL = self.IRCError
+        self.CANTKILLSERVER = self.IRCError
         self.NONICKNAMEGIVEN = self.IRCError
         self.ERRONEUSNICKNAME = self.IRCError
         self.KEYSET = self.IRCError
@@ -131,7 +133,8 @@ class irc:
                     '464' : 'PASSWDMISMATCH',
                     '501' : 'UMODEUNKNOWNFLAG',
                     '502' : 'USERSDONTMATCH',
-                    '481' : 'NOPRIVILEGES' }
+                    '481' : 'NOPRIVILEGES',
+                    '483' : 'CANTKILLSERVER' }
         
         
         if server != None:
@@ -152,12 +155,12 @@ class irc:
         '''
         rsend() provides, a raw interface to the socket allowing the sending of raw data.
         '''
-        msg = msg + self.clrf
+        msg = msg.replace ( '\r', '\\r' ).replace ( '\n', '\\n' ) + self.clrf
         try: data = bytes ( msg, self.encoding )
         except LookupError: data = bytes ( msg, self.fallback_encoding )
         if self.ssl_on: self.s.write ( data )
         else: self.s.send ( data )
-        return msg
+
     def mcon ( self ):
         sdata = ' '
         while sdata [-1] != self.clrf [-1]:
@@ -200,12 +203,22 @@ class irc:
             rvalue = True
         except socket.error:
             try:
-                self.s.settimeout ( self.latency * 1.39 )
+                timeout = self.latency
+                if timeout < 0.01:
+                    timeout += 0.1
+                self.s.settimeout ( timeout )
                 self.mcon()
                 rvalue = True
             except socket.error:
-                if self.index == len ( self.buffer ): rvalue = False
-                else: rvalue = True
+                try:
+                    if timeout < 0.2:
+                        timeout += 0.59
+                    self.s.settimeout ( timeout )
+                    self.mcon()
+                    rvalue = True
+                except socket.error:
+                    if self.index == len ( self.buffer ): rvalue = False
+                    else: rvalue = True
         self.s.settimeout ( None )
         return rvalue
     
@@ -243,7 +256,8 @@ class irc:
                             topic = data.split ( None, 4 ) [4] [1:]
                     elif self.find ( data, '333' ):
                         segments = data.split()
-                        time_set = self.time.localtime ( int ( segments [5] ) )
+                        if self.UTC == False: time_set = self.time.localtime ( int ( segments [5] ) )
+                        else: time_set = self.time.gmtime ( int ( segments [5] ) )
                         set_by = self.who_is_it ( segments [4] )
                         
                     elif self.find ( data, '353' ):
@@ -257,12 +271,17 @@ class irc:
                     elif ncode == '366': break
                     else: self.buffer.append ( data )
                     
-                return ( topic, names, set_by, time_set )
+                return ( 'SAJOIN', topic, names, set_by, time_set )
                 
             return 'JOIN', who, channel
         elif segments [1] == 'PART':
-            try: return 'PART', ( self.who_is_it ( segments [0] [1:] ), segments [2], ' '.join ( segments [3:] ) [1:] )
-            except IndexError: return 'PART', ( self.who_is_it ( segments [0] [1:] ), segments [2], '' )
+            who = self.who_is_it ( segments [0] [1:] )
+            channel = segments [2]
+            type = 'PART'
+            if who [0] == self.current_nick and channel not in self.channels:
+                type = 'SAPART'
+            try: return type, ( who, channel, ' '.join ( segments [3:] ) [1:] )
+            except IndexError: return type, ( self.who_is_it ( segments [0] [1:] ), channel, '' )
 
         elif segments [1] == 'PRIVMSG':
             who = self.who_is_it ( segments [0] [1:] )
@@ -314,31 +333,36 @@ class irc:
         elif segments [1] == 'QUIT':
             return 'QUIT', ( self.who_is_it ( segments [0] [1:] ), ' '.join ( segments [2:] [1:] ) )
        
+        elif segments [1] == '250':
+            self.lusers [ 'HIGHESTCONNECTIONS' ] = segments [6]
+            self.lusers [ 'TOTALCONNECTIONS' ] = segments [9] [1:]
+            return ( 'LUSERS', self.lusers )
+       
         elif segments [1] == '251':
             self.lusers [ 'USERS' ] = segments [5]
             self.lusers [ 'INVISIBLE' ] = segments [8]
             self.lusers [ 'SERVERS' ] = segments [11]
-            return self.stream()
+            return ( 'LUSERS', self.lusers )
         
         elif segments [1] == '252':
             self.lusers [ 'OPERATORS' ] = segments [3]
-            return self.stream()
+            return ( 'LUSERS', self.lusers )
         elif segments [1] == '253':
             self.lusers [ 'UNKNOWN' ] = segments [3]
-            return self.stream()
+            return ( 'LUSERS', self.lusers )
         elif segments [1] == '254':
             self.lusers [ 'CHANNELS' ] = segments [3]
-            return self.stream()
+            return ( 'LUSERS', self.lusers )
         
         elif segments [1] == '255':
             self.lusers [ 'CLIENTS' ] = segments [5]
             self.lusers [ 'LSERVERS' ] = segments [8]
-            return self.stream()
+            return ( 'LUSERS', self.lusers )
         
         elif segments [1] == '265':
             self.lusers [ 'LOCALUSERS' ] = segments [6]
             self.lusers [ 'LOCALMAX' ] = segments [8]
-            return self.stream()
+            return ( 'LUSERS', self.lusers )
         
         elif segments [1] == '266':
             self.lusers [ 'GLOBALUSERS' ] = segments [6]
@@ -348,9 +372,7 @@ class irc:
         elif segments [1] in self.err_replies.keys():
             self.exception ( segments [1] )
         
-        elif self.find ( data, 'PONG' ):
-            
-            self.mainloop()
+        elif segments [0] == 'ERROR': return 'ERROR', ' '.join ( segments [1:] ) [1:]
         else: return 'UNKNOWN', data
 
     def calc_latency ( self ):
@@ -359,22 +381,29 @@ class irc:
         self.rsend ( 'PING %s' % self.server )
         
         data = self.recv()
-        if self.find ( data, 'PONG'):
+        if self.find ( data, 'PONG' ):
             self.latency = self.time.time() - ctime
-        else: self.buffer.append ( data )
-        if self.latency < 0.001: self.latency += 0.01
+        else: self.index -= 1
         
     def mainloop ( self ):
         def handler():
             event = self.stream()
             self.s.settimeout ( None )
-            if event [0] in self.hooks.keys():
-                self.hooks [ event [0] ] ( event = event [1] )
-            elif 'UNHANDLED' in self.hooks.keys():
-                self.hooks [ 'UNHANDLED' ] ( event )
-            else: raise self.UnhandledEvent ('Unhandled Event')
-
-        while self.keep_going:
+            try:
+                if event [0] in self.hooks.keys():
+                    self.hooks [ event [0] ] ( event = event [1] )
+                elif 'UNHANDLED' in self.hooks.keys():
+                    self.hooks [ 'UNHANDLED' ] ( event )
+                else: raise self.UnhandledEvent ('Unhandled Event')
+            except KeyError:
+                if 'UNHANDLED' in self.hooks.keys():
+                    self.hooks [ 'UNHANDLED' ] ( event )
+                else: raise self.UnhandledEvent ('Unhandled Event')
+                
+        while 1:
+            if self.keep_going == False:
+                self.s.close()
+                break
             if 'AUTO' in self.hooks.keys() and self.readable() == False:
                 self.calc_latency()
                 self.hooks [ 'AUTO' ] ()
