@@ -1,6 +1,6 @@
 import socket, time, sys
 try: import ssl
-except ImportError: sys = None
+except ImportError: ssl = None
 __version__ = 'Beta 1 AKA 0.3'
 
 from . import connection
