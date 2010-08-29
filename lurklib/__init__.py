@@ -407,16 +407,13 @@ class irc:
                     self.hooks [ 'UNHANDLED' ] ( event )
                 else: raise self.UnhandledEvent ('Unhandled Event')
                 
-        while 1:
-            if self.keep_going == False:
-                self.s.close()
-                break
+        while self.keep_going:
             if 'AUTO' in self.hooks.keys() and self.readable() == False:
                 self.calc_latency()
                 self.hooks [ 'AUTO' ] ()
                 del self.hooks [ 'AUTO' ]
             else: self.s.settimeout ( 0 )
-            
+            if self.keep_going == False: break
             try: handler()
             except socket.error:
                 try:

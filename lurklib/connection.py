@@ -200,7 +200,8 @@ def end ( self, reason = None ):
         '''
         self.quit ( reason )
         self.keep_going = False
-
+        self.s.close()
+        
 def squit ( self, server, msg ):
     '''
     squit() squits the specified server.
