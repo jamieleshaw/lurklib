@@ -1,4 +1,4 @@
-import socket, sys, ssl, time
+import socket, ssl, time
 __version__ = 'Beta 1 AKA 0.3'
 
 from . import connection
@@ -273,17 +273,14 @@ class irc:
                     elif ncode == '366': break
                     else: self.buffer.append ( data )
                     
-                return ( 'SAJOIN', topic, names, set_by, time_set )
+                return ( 'JOIN', topic, names, set_by, time_set )
                 
             return 'JOIN', who, channel
         elif segments [1] == 'PART':
             who = self.who_is_it ( segments [0] [1:] )
             channel = segments [2]
-            type = 'PART'
-            if who [0] == self.current_nick and channel not in self.channels:
-                type = 'SAPART'
-            try: return type, ( who, channel, ' '.join ( segments [3:] ) [1:] )
-            except IndexError: return type, ( self.who_is_it ( segments [0] [1:] ), channel, '' )
+            try: return 'PART', ( who, channel, ' '.join ( segments [3:] ) [1:] )
+            except IndexError: return 'PART', ( self.who_is_it ( segments [0] [1:] ), channel, '' )
 
         elif segments [1] == 'PRIVMSG':
             who = self.who_is_it ( segments [0] [1:] )
