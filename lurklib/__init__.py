@@ -1,4 +1,6 @@
-import socket, ssl, time
+import socket, time, sys
+try: import ssl
+except ImportError: sys = None
 __version__ = 'Beta 1 AKA 0.3'
 
 from . import connection
@@ -37,7 +39,9 @@ class irc:
         self.umodes = ''
         self.cmodes = ''
         self.server = ''
-        self.ssl_on = ssl_on
+        if sys.version_info [0] == 2 and sys.version_info [1] < 6:
+            self.ssl_on = False
+        else: self.ssl_on = ssl_on
         self.ssl = ssl
         self.buffer = []
         self.s = socket.socket()
@@ -158,8 +162,10 @@ class irc:
         rsend() provides, a raw interface to the socket allowing the sending of raw data.
         '''
         msg = msg.replace ( '\r', '\\r' ).replace ( '\n', '\\n' ) + self.clrf
-        try: data = bytes ( msg, self.encoding )
-        except LookupError: data = bytes ( msg, self.fallback_encoding )
+        if sys.version_info [0] > 2:
+            try: data = bytes ( msg, self.encoding )
+            except LookupError: data = bytes ( msg, self.fallback_encoding )
+        else: data = msg
         if self.ssl_on: self.s.write ( data )
         else: self.s.send ( data )
 
@@ -171,7 +177,9 @@ class irc:
                 try: sdata = sdata + self.s.read ( 4096 ).decode ( self.encoding )
                 except LookupError: sdata = sdata + self.s.read ( 4096 ).decode ( self.fallback_encoding )
             else:
-                try: sdata = sdata + self.s.recv ( 4096 ).decode ( self.encoding )
+                try:
+                    if sys.version_info [0] > 2: sdata = sdata + self.s.recv ( 4096 ).decode ( self.encoding )
+                    else: sdata = sdata + self.s.recv ( 4096 )
                 except LookupError: sdata = sdata + self.s.recv ( 4096 ).decode ( self.fallback_encoding )
                     
         lines = sdata.split ( self.clrf )
