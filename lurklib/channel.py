@@ -13,7 +13,7 @@ def join ( self, channel, key = None ):
     time_set = ''
     
     for x in self.channels:
-        if x.lower() == channel:
+        if self.compare ( x, channel):
             raise self.AlreadyInChannel ( 'Already in ' + channel + '.' )
     
     if key != None:
@@ -53,10 +53,11 @@ def part ( self, channel, reason = None ):
     else:
             self.rsend ( 'PART ' + channel + ' :' + reason )
     
-    channels = []
-    for x in self.channels: channels.append ( x.lower() )
-    if channel.lower() not in channels:
-            raise self.NotInChannel ( 'Not in ' + channel + '.' )
+    matches = 0
+    for x in self.channels:
+        if self.compare ( channel, x ): matches += 1
+    
+    if matches == 0: raise self.NotInChannel ( 'Not in ' + channel + '.' )
     
     if self.readable():
         data = self.recv()

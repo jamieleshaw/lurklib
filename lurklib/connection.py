@@ -170,7 +170,7 @@ def umode ( self, nick, modes = '' ):
         while self.readable(): modes.append ( self.recv().split() [4:] )
         return modes
         
-    else:   self.rsend ( 'MODE ' + nick + ' ' + modes )
+    else: self.rsend ( 'MODE ' + nick + ' ' + modes )
     while self.readable():
             data = self.recv()
 

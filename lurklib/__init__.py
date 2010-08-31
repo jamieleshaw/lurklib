@@ -368,6 +368,7 @@ class irc:
             self.lusers [ 'GLOBALUSERS' ] = segments [6]
             self.lusers [ 'GLOBALMAX' ] = segments [8]
             return ( 'LUSERS', self.lusers )
+        
         elif segments [1] == '421' and segments [3] == 'READABLE_CHECK_LURKLIB': return self.stream()
 
         elif segments [1] in self.err_replies.keys():
@@ -385,6 +386,10 @@ class irc:
             latency = self.time.time() - ctime
         else: self.index -= 1
         return latency
+    def compare ( self, first, second ):
+        if first.lower() == second.lower():
+            return True
+        else: return False
 
     def mainloop ( self ):
         def handler():
