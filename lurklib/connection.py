@@ -20,7 +20,6 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                 port = 6667
             
             self.connect ( server, port )
-        
         while self.readable():
             data = self.recv()
             if self.find ( data, 'NOTICE' ):
@@ -84,10 +83,12 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                 elif ncode == '376':
                     data = ' '.join ( data.split() [3:] ) [1:]
                     self.con_msg.append ( data )
+                    self.connected = True
                     break
                 elif ncode == '422':
                     data = ' '.join ( data.split() [3:] ) [1:]
                     self.con_msg.append ( data )
+                    self.connected = True
                     break
                 elif self.find ( data, 'NOTICE' ):
                     self.server = data.split() [0] [1:]
@@ -200,6 +201,7 @@ def end ( self, reason = None ):
         '''
         self.quit ( reason )
         self.keep_going = False
+        self.s.shutdown ( 2 )
         self.s.close()
         
 def squit ( self, server, msg ):

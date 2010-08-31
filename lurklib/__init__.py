@@ -1,7 +1,7 @@
 import socket, time, sys
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 1 AKA 0.3'
+__version__ = 'Beta 1.5 AKA 0.3.5'
 
 from . import connection
 from . import channel
@@ -34,8 +34,8 @@ class irc:
         self.UTC = UTC
         self.lusers = {}
         self.clrf = clrf
+        self.connected = False
         self.server = ''
-        self.latency = 0.5
         self.umodes = ''
         self.cmodes = ''
         self.server = ''
@@ -174,8 +174,10 @@ class irc:
         while sdata [-1] != self.clrf [-1]:
             if sdata == ' ': sdata = ''
             if self.ssl_on:
-                try: sdata = sdata + self.s.read ( 4096 ).decode ( self.encoding )
-                except LookupError: sdata = sdata + self.s.read ( 4096 ).decode ( self.fallback_encoding )
+                if sys.version_info [0] > 2:
+                    try: sdata = sdata + self.s.read ( 4096 ).decode ( self.encoding )
+                    except LookupError: sdata = sdata + self.s.read ( 4096 ).decode ( self.fallback_encoding )
+                else: sdata = sdata + self.s.read ( 4096 )
             else:
                 try:
                     if sys.version_info [0] > 2: sdata = sdata + self.s.recv ( 4096 ).decode ( self.encoding )
@@ -207,31 +209,22 @@ class irc:
         return msg
 
     def readable ( self ):
-        self.s.settimeout ( 0 )
-        try:
-            self.mcon()
-            rvalue = True
-        except socket.error:
-            try:
-                timeout = self.latency
-                if timeout < 0.01:
-                    timeout += 0.1
-                self.s.settimeout ( timeout )
-                self.mcon()
-                rvalue = True
-            except socket.error:
-                try:
-                    if timeout < 0.2:
-                        timeout += 0.59
-                    self.s.settimeout ( timeout )
-                    self.mcon()
-                    rvalue = True
-                except socket.error:
-                    if self.index == len ( self.buffer ): rvalue = False
-                    else: rvalue = True
-        self.s.settimeout ( None )
-        return rvalue
-    
+        if len ( self.buffer ) > self.index:
+            return True
+        else:
+            if self.connected == False: self.s.settimeout ( 0.01 )
+            self.rsend ( 'READABLE_CHECK_LURKLIB' )
+            try: segments = self.recv().split()
+            except socket.timeout:
+                self.s.settimeout ( None )
+                return False
+            self.s.settimeout ( None )
+            if segments [1] == '421' and segments [3] == 'READABLE_CHECK_LURKLIB':
+                return False
+            else:
+                self.index -= 1
+                return True
+                
     def resetbuffer ( self ):
         self.index, self.buffer = 0, []
     def who_is_it ( self, who ):
@@ -375,6 +368,7 @@ class irc:
             self.lusers [ 'GLOBALUSERS' ] = segments [6]
             self.lusers [ 'GLOBALMAX' ] = segments [8]
             return ( 'LUSERS', self.lusers )
+        elif segments [1] == '421' and segments [3] == 'READABLE_CHECK_LURKLIB': return self.stream()
 
         elif segments [1] in self.err_replies.keys():
             self.exception ( segments [1] )
@@ -382,20 +376,19 @@ class irc:
         elif segments [0] == 'ERROR': return 'ERROR', ' '.join ( segments [1:] ) [1:]
         else: return 'UNKNOWN', data
 
-    def calc_latency ( self ):
-        self.s.settimeout ( None )
+    def latency ( self ):
         ctime = self.time.time()
         self.rsend ( 'PING %s' % self.server )
         
-        data = self.recv()
-        if self.find ( data, 'PONG' ):
-            self.latency = self.time.time() - ctime
+        data = self.recv().split() [1]
+        if data == 'PONG':
+            latency = self.time.time() - ctime
         else: self.index -= 1
-        
+        return latency
+
     def mainloop ( self ):
         def handler():
             event = self.stream()
-            self.s.settimeout ( None )
             try:
                 if event [0] in self.hooks.keys():
                     self.hooks [ event [0] ] ( event = event [1] )
@@ -409,18 +402,10 @@ class irc:
                 
         while self.keep_going:
             if 'AUTO' in self.hooks.keys() and self.readable() == False:
-                self.calc_latency()
                 self.hooks [ 'AUTO' ] ()
                 del self.hooks [ 'AUTO' ]
-            else: self.s.settimeout ( 0 )
             if self.keep_going == False: break
-            try: handler()
-            except socket.error:
-                try:
-                    handler()
-                    self.s.settimeout ( self.latency )
-                except socket.error:
-                    self.calc_latency()
+            handler()
             
     def set_hook ( self, trigger, method ):
         self.hooks [ trigger ] = method

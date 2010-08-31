@@ -11,6 +11,7 @@ def on_privmsg ( event ):
         print ( '%s said hello!' % event [0] [0] )
     elif event [2].lower() == '!quit':
         irc.end ( 'Bye!' )
+
 def on_unhandled ( event ):
     ''' This method will be called, when their isn't a method specified for said event. '''
     print ( event )
