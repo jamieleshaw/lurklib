@@ -2,11 +2,11 @@ from distutils.core import setup
 setup ( \
         name = 'lurklib',
         packages = ['lurklib'],
-        version = '0.3.4',
+        version = '0.3.5',
         author = 'LK-',
         author_email = 'lk.codeshock@gmail.com',
         description = 'The Lurk Internet Relay Chat Library',
-        url = 'http://codeshock.org/',
+        url = 'http://github.com/LK-/lurklib/',
         long_description = 
         '''
         The Lurk Internet Relay Chat Library is a library that provides an excellent level of, abstraction and serialization from the underlying IRC protocol.
