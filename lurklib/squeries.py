@@ -197,7 +197,7 @@ def servlist ( self, mask = None, typa = None ):
     return tuple ( servs )
 
 def squery ( self, sname, msg ):
-    ''' Runs an squery ''
+    ''' Runs an squery '''
     self.rsend ( 'SQUERY ' + sname + ' :' + msg )
     
     if self.readable():

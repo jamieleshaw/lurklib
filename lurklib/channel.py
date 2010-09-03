@@ -186,74 +186,75 @@ def topic (self, channel, topic=None):
     return topic, set_by, time_set
 def names (self, channel):
     ''' Runs a /NAMES '''
-        self.rsend ('NAMES ' + channel)
-        names = ()
+    self.rsend ('NAMES ' + channel)
+    names = ()
 
-        while self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
+    while self.readable():
+        data = self.recv()
+        ncode = data.split() [1]
 
-            if ncode == '353':
-                names = data.split() [5:]
-                names [0] = names [0] [1:]
-            elif ncode in self.err_replies.keys():
-                self.exception (ncode)
-            elif ncode == '366': break
-            else: self.buffer.append (data)
+        if ncode == '353':
+            names = data.split() [5:]
+            names [0] = names [0] [1:]
+        elif ncode in self.err_replies.keys():
+            self.exception (ncode)
+        elif ncode == '366': break
+        else: self.buffer.append (data)
 
-        return tuple (names)
+    return tuple (names)
 def slist (self):
     ''' Runs a LIST '''
-        self.rsend ('LIST')
-        list_info = { }
+    self.rsend ('LIST')
+    list_info = { }
 
-        while self.readable():
+    while self.readable():
+        data = self.recv()
+        ncode = data.split() [1]
+
+        if ncode == '322':
+            raw_lst = data.split (None, 5)
+            list_info [ raw_lst [3] ] = (raw_lst [4], raw_lst [5] [1:])
+        elif ncode == '321':
+            pass
+        elif ncode in self.err_replies.keys():
+            self.exception (ncode)
+        elif ncode == '323': break
+        else: self.buffer.append (data)
+    return list_info
+def invite (self, channel, nick):
+    ''' Invites a nick '''
+    self.rsend ('INVITE ' + nick + ' ' + channel)
+
+    while self.readable():
             data = self.recv()
             ncode = data.split() [1]
 
-            if ncode == '322':
-                raw_lst = data.split (None, 5)
-                list_info [ raw_lst [3] ] = (raw_lst [4], raw_lst [5] [1:])
-            elif ncode == '321':
-                pass
-            elif ncode in self.err_replies.keys():
+            if ncode in self.err_replies.keys():
                 self.exception (ncode)
-            elif ncode == '323': break
+            elif ncode == '341':
+                pass
+            elif ncode == '301':
+                return 'AWAY'
+            elif self.find (data, 'INVITE') and self.hide_called_events:
+                pass
             else: self.buffer.append (data)
-        return list_info
-def invite (self, channel, nick):
-    ''' Invites a nick '''
-        self.rsend ('INVITE ' + nick + ' ' + channel)
 
-        while self.readable():
-                data = self.recv()
-                ncode = data.split() [1]
-
-                if ncode in self.err_replies.keys():
-                    self.exception (ncode)
-                elif ncode == '341':
-                    pass
-                elif ncode == '301':
-                    return 'AWAY'
-                elif self.find (data, 'INVITE') and self.hide_called_events:
-                    pass
-                else: self.buffer.append (data)
 
 def kick (self, channel, nick, reason=''):
     ''' Kicks a nick '''
-        self.rsend ('KICK ' + channel + ' ' + nick + ' :' + reason)
-        
-        channels = []
-        for x in self.channels: channels.append (x.lower())
-        if channel.lower() not in channels:
-                raise self.NotInChannel ('Not in ' + channel + '.')
-        
-        if self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
+    self.rsend ('KICK ' + channel + ' ' + nick + ' :' + reason)
     
-            if ncode in self.err_replies.keys():
-                    self.exception (ncode)
-            elif self.find (data, 'KICK') and self.hide_called_events:
-                    pass
-            else: self.buffer.append (data)
+    channels = []
+    for x in self.channels: channels.append (x.lower())
+    if channel.lower() not in channels:
+            raise self.NotInChannel ('Not in ' + channel + '.')
+    
+    if self.readable():
+        data = self.recv()
+        ncode = data.split() [1]
+
+        if ncode in self.err_replies.keys():
+                self.exception (ncode)
+        elif self.find (data, 'KICK') and self.hide_called_events:
+                pass
+        else: self.buffer.append (data)

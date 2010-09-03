@@ -433,4 +433,3 @@ class irc:
     def ctcp_decode (self, msg):
         ''' Decodes a CTCP message '''
         return msg.replace ('\001', '')
-
