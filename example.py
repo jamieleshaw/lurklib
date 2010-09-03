@@ -3,7 +3,6 @@ import lurklib
 def on_auto():
     ''' Join #bots and print it's information out. '''
     print ( irc.join ( '#bots' ) )
-
 def on_privmsg ( event ):
     ''' An event argument must be accepted by all hooked method, except the AUTO hook. '''
     if event [2].lower() == 'hello':
