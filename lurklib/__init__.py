@@ -2,7 +2,7 @@ import socket, time, sys, select, inspect
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 2 AKA 0.4.1.1'
+__version__ = 'Beta 2 AKA 0.4.2'
 
 
 class irc:
@@ -15,7 +15,7 @@ class irc:
     for x in dir (optional) : exec (x + ' = optional.' + x)
 
 
-    def __init__ (self, server=None, port=None, nick='lurklib', ident='lurklib', real_name='The Lurk Internet Relay Chat Library', passwd=None, ssl_on=False, encoding='UTF-8', clrf='\r\n', hooks={}, hide_called_events=True, ctcps=None, UTC=False):
+    def __init__ (self, server=None, port=None, nick='lurklib', user='lurklib', real_name='The Lurk Internet Relay Chat Library', passwd=None, ssl_on=False, encoding='UTF-8', clrf='\r\n', hooks={}, hide_called_events=True, ctcps=None, UTC=False):
         '''
         Initial Class Variables.
         '''
@@ -138,7 +138,7 @@ class irc:
         
         
         if server != None:
-            self.init (server, port, nick, ident, real_name, passwd, ssl_on)
+            self.init (server, port, nick, user, real_name, passwd, ssl_on)
             
     def find (self, haystack, needle):
         '''

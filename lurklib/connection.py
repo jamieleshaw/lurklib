@@ -7,9 +7,9 @@ def connect (self, server, port, ssl_on=False):
     self.s.connect ((server, port))
     self.ssl_on = ssl_on
 
-def init (self, server, port=None, nick='lurklib', ident='lurklib', real_name='The Lurk Internet Relay Chat Library', passwd=None, ssl_on=False):
+def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='The Lurk Internet Relay Chat Library', passwd=None, ssl_on=False):
     '''
-    init() starts the socket connection with the server, and sets your nick/ident/real name, optionally a password may be specified for the PASS command, as-well as processing numerics etc.
+    init() starts the socket connection with the server, and sets your nick/user/real name, optionally a password may be specified for the PASS command, as-well as processing numerics etc.
     '''
     if ssl_on:
         if port == None:
@@ -30,7 +30,7 @@ def init (self, server, port=None, nick='lurklib', ident='lurklib', real_name='T
     if passwd != None:
             self.passwd (passwd)
     self.nick (nick)
-    self.ident (ident, real_name)
+    self.ident (user, real_name)
     
     while 1:
             data = self.recv()
@@ -125,12 +125,12 @@ def nick (self, nick):
                 self.exception (ncode)
         elif data.split() [1] == 'NICK' and self.hide_called_events: pass
         else: self.index -= 1
-def ident (self, ident, real_name):
+def ident (self, user, real_name):
     '''
-    ident() is used at startup to send your ident and real name.
+    ident() is used at startup to send your user and real name.
     '''
 
-    self.rsend ('USER ' + ident + ' 0 * :' + real_name)
+    self.rsend ('USER ' + user + ' 0 * :' + real_name)
     if self.readable():
         data = self.recv()
         ncode = data.split() [1]
