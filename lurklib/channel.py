@@ -258,3 +258,4 @@ def kick (self, channel, nick, reason=''):
         elif self.find (data, 'KICK') and self.hide_called_events:
                 pass
         else: self.buffer.append (data)
+

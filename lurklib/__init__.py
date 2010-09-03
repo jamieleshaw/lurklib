@@ -2,7 +2,7 @@ import socket, time, sys, select, inspect
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 2 AKA 0.4'
+__version__ = 'Beta 2 AKA 0.4.1'
 
 
 class irc:
@@ -313,7 +313,7 @@ class irc:
             return 'NOTICE', (self.who_is_it (segments [0] [1:]), segments [2], msg)
 
         elif segments [1] == 'MODE':
-            mode = ' '.join (segments [3:]).replace ( ':', '')
+            mode = ' '.join (segments [3:]).replace (':', '')
             try: return 'MODE', (self.who_is_it (segments [2]), mode)
             except IndexError: return 'MODE', (segments [2], mode [1:])
         
@@ -433,3 +433,4 @@ class irc:
     def ctcp_decode (self, msg):
         ''' Decodes a CTCP message '''
         return msg.replace ('\001', '')
+
