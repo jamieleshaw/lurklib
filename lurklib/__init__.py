@@ -184,7 +184,7 @@ class irc:
                 self.rsend (x.replace ('PING', 'PONG'))
             if x != '': self.buffer.append (x)
 
-    def recv (self):
+    def recv (self, hide_pong=True):
         ''' Buffering system recv() method '''
         if self.index >= len (self.buffer): self.mcon()
         if self.index >= 199:
@@ -192,7 +192,7 @@ class irc:
             self.mcon()
         msg = self.buffer [ self.index ]
         caller = inspect.stack() [1] [3]
-        if caller != 'latency':
+        if caller != 'latency' and hide_pong == True:
             while msg.split() [1] == 'PONG' :
                 self.index += 1
                 try:
