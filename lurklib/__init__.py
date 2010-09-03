@@ -150,11 +150,10 @@ class irc:
         elif qstatus != -1:
             return True
     def exception (self, ncode):
+        ''' Raise an exception as per ncode '''
         exec ('raise self.' + self.err_replies [ ncode ] + ' ( "IRCError: ' + self.err_replies [ ncode ] + '" )')
     def rsend (self, msg):
-        '''
-        rsend() provides, a raw interface to the socket allowing the sending of raw data.
-        '''
+        ''' Send raw data with the clrf appended to it '''
         msg = msg.replace ('\r', '\\r').replace ('\n', '\\n') + self.clrf
         if sys.version_info [0] > 2:
             try: data = bytes (msg, self.encoding)
@@ -164,6 +163,7 @@ class irc:
         else: self.s.send (data)
 
     def mcon (self):
+        ''' Read a buffer socket data '''
         sdata = ' '
         while sdata [-1] != self.clrf [-1]:
             if sdata == ' ': sdata = ''
@@ -185,13 +185,14 @@ class irc:
             if x != '': self.buffer.append (x)
 
     def recv (self):
+        ''' Buffering system recv() method '''
         if self.index >= len (self.buffer): self.mcon()
         if self.index >= 199:
             self.resetbuffer()
             self.mcon()
         msg = self.buffer [ self.index ]
         caller = inspect.stack() [1] [3]
-        if caller != 'latency' and caller != 'stream':
+        if caller != 'latency':
             while msg.split() [1] == 'PONG' :
                 self.index += 1
                 try:
@@ -211,10 +212,11 @@ class irc:
         return msg
 
     def readable (self, recursioned=False):
+        ''' Checks whether self.recv() will block or not '''
         if len (self.buffer) > self.index:
             return True
         else:
-            selected = select.select ( [ self.s ], [], [], 0.01 )
+            selected = select.select ([ self.s ], [], [], 0.01)
             if selected [0] == []:
                 if self.connected == True and self.latency() == None:
                     return True
@@ -227,6 +229,7 @@ class irc:
     def resetbuffer (self):
         self.index, self.buffer = 0, []
     def who_is_it (self, who):
+        ''' Processes nick!user@host data '''
         try:
             host = who.split ('@', 1)
             nickident = host [0].split ('!', 1)
@@ -236,7 +239,7 @@ class irc:
             return (nick, ident, host)
         except IndexError: return who
     def stream (self):
-
+        '''stream processor '''
         data = self.recv()
         segments = data.split()
 
@@ -273,7 +276,7 @@ class irc:
                     elif ncode == '366': break
                     else: self.buffer.append (data)
                     
-                return ('JOIN', topic, names, set_by, time_set)
+                return ('JOIN', who, channel, topic, names, set_by, time_set)
                 
             return 'JOIN', who, channel
         elif segments [1] == 'PART':
@@ -310,8 +313,9 @@ class irc:
             return 'NOTICE', (self.who_is_it (segments [0] [1:]), segments [2], msg)
 
         elif segments [1] == 'MODE':
-            try: return 'MODE', (self.who_is_it (segments [2]), ' '.join (segments [3:]))
-            except IndexError: return 'MODE', (segments [2], ' '.join (segments [3:]) [1:])
+            mode = ' '.join (segments [3:]).replace ( ':', '')
+            try: return 'MODE', (self.who_is_it (segments [2]), mode)
+            except IndexError: return 'MODE', (segments [2], mode [1:])
         
         elif segments [1] == 'KICK':
             if self.current_nick == segments [3]: self.channels.remove (segments [2])
@@ -375,6 +379,7 @@ class irc:
         else: return 'UNKNOWN', data
 
     def latency (self):
+        ''' Calculates your latency '''
         ctime = self.time.time()
         self.rsend ('PING %s' % self.server)
         
@@ -385,11 +390,13 @@ class irc:
         else: self.index -= 1
     
     def compare (self, first, second):
+        ''' Does a case in-senstive compare of two strings '''
         if first.lower() == second.lower():
             return True
         else: return False
 
     def mainloop (self):
+        ''' lurklib main loop '''
         def handler():
             event = self.stream()
             try:
@@ -411,14 +418,19 @@ class irc:
             handler()
             
     def set_hook (self, trigger, method):
+        ''' Sets a hook '''
         self.hooks [ trigger ] = method
     
     def remove_hook (self, trigger):
+        ''' Removes a hook '''
         del self.hooks [ trigger ]
     
     # CTCP methods
     
     def ctcp_encode (self, msg):
+        ''' Encodes a message in CTCP '''
         return '\001' + msg + '\001'
     def ctcp_decode (self, msg):
+        ''' Decodes a CTCP message '''
         return msg.replace ('\001', '')
+

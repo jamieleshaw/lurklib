@@ -1,4 +1,5 @@
 def get_motd ( self, server = None ):
+    ''' Gets the MOTD '''
     if server == None:
         self.rsend ( 'MOTD' )
     else:
@@ -19,6 +20,7 @@ def get_motd ( self, server = None ):
     self.motd = tuple ( self.motd )
     return self.motd
 def get_lusers ( self, mask = None, target = None ):
+    ''' Gets LUSERS information '''
     if mask == None:
         self.rsend ( 'LUSERS' )
     elif target == None and mask != None:
@@ -58,6 +60,7 @@ def get_lusers ( self, mask = None, target = None ):
     return self.lusers
 
 def version ( self, target = None ):
+    ''' Gets VERSION information '''
     if target == None:
         self.rsend ( 'VERSION' )
     else:
@@ -84,6 +87,7 @@ def version ( self, target = None ):
 
     return self.info
 def stats ( self, query = None, target = None ):
+    ''' Gets stats information '''
     if query == None:
         self.rsend ( 'STATS' )
     elif target == None and query != None:
@@ -95,7 +99,7 @@ def stats ( self, query = None, target = None ):
         data = self.recv()
         segments = data.split()
         if segments [1] == '219': break
-        else: rvalue.append ( ' '.join ( segments [4:] ) [1:] )
+        else: rvalue.append ( ' '.join ( segments [4:] ) )
     return tuple ( rvalue )
 def links ( self, r_server = None, smask = None ):
 
@@ -111,12 +115,13 @@ def links ( self, r_server = None, smask = None ):
         segments = data.split()
         if segments [1] == '364':
             server = segments [3]
-            desc = ' '.join ( segments [5:] ) [2:]
+            desc = ' '.join ( segments [5:] ) [3:]
             links [ server ] = desc
         elif segments [1] == '365': break
     return links
     
 def s_time ( self, target = None ):
+    ''' Gets the server time '''
     if target != None:
         self.rsend ( 'TIME ' + target )
     else:
@@ -127,6 +132,7 @@ def s_time ( self, target = None ):
     return time
 
 def s_connect ( self, tserver, tport, r_server = None ):
+    ''' Connnects a server to another '''
     if r_server == None:
         self.rsend ( 'CONNECT ' + tserver + ' ' + tport )
     else:
@@ -136,6 +142,7 @@ def s_connect ( self, tserver, tport, r_server = None ):
         if ncode in self.err_replies.keys(): self.exception ( ncode )
         
 def trace ( self, target ):
+    ''' Runs a trace on said target '''
     self.rsend ( 'TRACE ' + target )
     rvalue = []
     while self.readable():
@@ -145,6 +152,7 @@ def trace ( self, target ):
         else: rvalue.append ( ' '.join ( segments [4:] ) [1:] )
     return tuple ( rvalue )
 def admin ( self, target = None ):
+    ''' Gets administration information '''
     if target == None:
         self.rsend ( 'ADMIN' )
     else:
@@ -152,11 +160,14 @@ def admin ( self, target = None ):
     rvalue = []
     while self.readable():
         segments = self.recv().split()
-        admin_ncodes = ( '256', '257', '258', '259' )
-        if segments [1]  in admin_ncodes:
+        admin_ncodes = ( '257', '258', '259' )
+        if segments [1] == '256':
+            pass
+        elif segments [1]  in admin_ncodes:
             rvalue.append ( ' '.join ( segments [3:] ) [1:] )
     return tuple ( rvalue )
 def s_info ( self, target = None ):
+    ''' Runs INFO command on server and gets response '''
     if target == None:
         self.rsend ( 'INFO' )
     else:
@@ -169,6 +180,7 @@ def s_info ( self, target = None ):
         elif segments [1] == '374': break
     return tuple ( sinfo )
 def servlist ( self, mask = None, typa = None ):
+    ''' Runs a servlist '''
     if mask == None:
         self.rsend ( 'SERVLIST' )
     elif typa == None and mask != None:
@@ -185,6 +197,7 @@ def servlist ( self, mask = None, typa = None ):
     return tuple ( servs )
 
 def squery ( self, sname, msg ):
+    ''' Runs an squery ''
     self.rsend ( 'SQUERY ' + sname + ' :' + msg )
     
     if self.readable():
@@ -193,6 +206,7 @@ def squery ( self, sname, msg ):
         if ncode in self.err_replies.keys():
             self.exception ( ncode )
 def kill ( self, nick, msg ):
+    ''' Kills said nick '''
     self.rsend ( 'KILL ' + nick + ' :' + msg )
     
     if self.readable():

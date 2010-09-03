@@ -49,7 +49,7 @@ def init ( self, server, port = None, nick = 'lurklib', ident = 'lurklib', real_
                     self.cmodes = info [6]
                     data = ' '.join ( data.split() [3:] )
                 elif ncode == '005':
-                    info = data.split() [3:]
+                    info = data.replace ( ' :are supported by this server', '' ).split() [3:]
                     for x in info:
                             try:
                                 x = x.split ( '=' )
@@ -166,8 +166,9 @@ def umode ( self, nick, modes = '' ):
     '''
     if modes == '':
         self.rsend ( 'MODE ' + nick )
-        modes = []
-        while self.readable(): modes.append ( self.recv().split() [4:] )
+        modes = ''
+        if self.readable():
+            modes = ' '.join ( self.recv().split() [3:] ) [1:]
         return modes
         
     else: self.rsend ( 'MODE ' + nick + ' ' + modes )
