@@ -30,7 +30,7 @@ def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='Th
     if passwd != None:
             self.passwd (passwd)
     self.nick (nick)
-    self.ident (user, real_name)
+    self.user (user, real_name)
     
     while 1:
             data = self.recv()
@@ -125,9 +125,9 @@ def nick (self, nick):
                 self.exception (ncode)
         elif data.split() [1] == 'NICK' and self.hide_called_events: pass
         else: self.index -= 1
-def ident (self, user, real_name):
+def user (self, user, real_name):
     '''
-    ident() is used at startup to send your user and real name.
+    user() is used at startup to send your user and real name.
     '''
 
     self.rsend ('USER ' + user + ' 0 * :' + real_name)
