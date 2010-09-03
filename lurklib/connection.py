@@ -29,7 +29,19 @@ def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='Th
     
     if passwd != None:
             self.passwd (passwd)
-    self.nick (nick)
+
+    nick_cmd_worked = False
+    try:
+        self.nick (nick)
+        nick_cmd_worked = True
+    except TypeError:
+        for nickname in nick:
+            try:
+                self.nick (nickname)
+                nick_cmd_worked = True
+                break
+            except self.NICKNAMEINUSE: pass
+    if nick_cmd_worked == False: self.exception ('433')
     self.user (user, real_name)
     
     while 1:
@@ -118,6 +130,7 @@ def nick (self, nick):
     '''
     self.rsend ('NICK :' + nick)
     self.current_nick = nick
+    
     if self.readable():
         data = self.recv()
         ncode = data.split() [1]

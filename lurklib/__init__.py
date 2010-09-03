@@ -216,7 +216,10 @@ class irc:
         if len (self.buffer) > self.index:
             return True
         else:
-            selected = select.select ([ self.s ], [], [], 0.01)
+            if self.connected == False:
+                timeout = 0.7
+            else: timeout = 0.01
+            selected = select.select ([ self.s ], [], [], timeout)
             if selected [0] == []:
                 if self.connected == True and self.latency() == None:
                     return True
