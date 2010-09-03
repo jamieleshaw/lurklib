@@ -50,7 +50,7 @@ class irc:
         if ctcps == None:
             self.ctcps = { \
              'VERSION' : 'The Lurk Internet Relay Chat Library : ' + __version__,
-             'SOURCE' : 'http://codeshock.org/',
+             'SOURCE' : 'http://github.com/LK-/lurklib/',
              'PING' : 1,
              'TIME' : self.time.asctime,
              }
