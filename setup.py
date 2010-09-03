@@ -2,7 +2,7 @@ from distutils.core import setup
 setup ( \
         name = 'lurklib',
         packages = ['lurklib'],
-        version = '0.3.5',
+        version = '0.4',
         author = 'LK-',
         author_email = 'lk.codeshock@gmail.com',
         description = 'The Lurk Internet Relay Chat Library',

@@ -2,7 +2,7 @@ import socket, time, sys, select, inspect
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 1.5 AKA 0.3.5'
+__version__ = 'Beta 2 AKA 0.4'
 
 
 class irc:
