@@ -211,14 +211,12 @@ class irc:
         self.index += 1
         return msg
 
-    def readable (self, recursioned=False):
+    def readable (self, recursioned=False, timeout=0.7):
         ''' Checks whether self.recv() will block or not '''
         if len (self.buffer) > self.index:
             return True
         else:
-            if self.connected == False:
-                timeout = 0.7
-            else: timeout = 0.01
+            if self.connected: timeout = 0.01
             selected = select.select ([ self.s ], [], [], timeout)
             if selected [0] == []:
                 if self.connected == True and self.latency() == None:

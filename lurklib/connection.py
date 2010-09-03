@@ -44,7 +44,7 @@ def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='Th
     if nick_cmd_worked == False: self.exception ('433')
     self.user (user, real_name)
     
-    while 1:
+    while self.readable(timeout=3):
             data = self.recv()
             ncode = data.split() [1]
             if ncode == '001':
