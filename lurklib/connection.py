@@ -7,7 +7,25 @@ def connect (self, server, port, ssl_on=False):
     self.s.connect ((server, port))
     self.ssl_on = ssl_on
 
-def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='The Lurk Internet Relay Chat Library', passwd=None, ssl_on=False):
+def register (self, nick, user, real_name, password=None):
+    if password != None:
+        self.passwd (password)
+
+    nick_cmd_worked = False
+    try:
+        self.nick (nick)
+        nick_cmd_worked = True
+    except TypeError:
+        for nickname in nick:
+            try:
+                self.nick (nickname)
+                nick_cmd_worked = True
+                break
+            except self.NICKNAMEINUSE: pass
+    if nick_cmd_worked == False: self.exception ('433')
+    self.user (user, real_name)
+
+def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='The Lurk Internet Relay Chat Library', password=None, ssl_on=False):
     '''
     init() starts the socket connection with the server, and sets your nick/user/real name, optionally a password may be specified for the PASS command, as-well as processing numerics etc.
     '''
@@ -27,22 +45,7 @@ def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='Th
                 data = ('NOTICE', ' '.join (data.split() [3:]) [1:])
         self.con_msg.append (data)
     
-    if passwd != None:
-            self.passwd (passwd)
-
-    nick_cmd_worked = False
-    try:
-        self.nick (nick)
-        nick_cmd_worked = True
-    except TypeError:
-        for nickname in nick:
-            try:
-                self.nick (nickname)
-                nick_cmd_worked = True
-                break
-            except self.NICKNAMEINUSE: pass
-    if nick_cmd_worked == False: self.exception ('433')
-    self.user (user, real_name)
+    self.register (nick, user, real_name, password)
     
     while self.readable(timeout=3):
             data = self.recv()
@@ -111,11 +114,11 @@ def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='Th
     self.motd = tuple (self.motd)
     self.con_msg = tuple (self.con_msg)
 
-def passwd (self, passw):
+def password (self, password):
     '''
-    passwd() sends a PASS <password>, message to the server, it has one required argument the password.
+    password() sends a PASS <password>, message to the server, it has one required argument the password.
     '''
-    self.rsend ('PASS :' + passw)
+    self.rsend ('PASS :' + password)
     
     if self.readable():
         data = self.recv()
