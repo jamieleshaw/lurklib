@@ -9,7 +9,7 @@ def connect (self, server, port, ssl_on=False):
 
 def register (self, nick, user, real_name, password=None):
     if password != None:
-        self.passwd (password)
+        self.password (password)
 
     nick_cmd_worked = False
     try:
