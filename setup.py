@@ -4,6 +4,7 @@ setup (\
         packages=['lurklib'],
         version='0.4.3.1',
         author='LK-',
+        license='GPL V3',
         author_email='lk.codeshock@gmail.com',
         description='The Lurk Internet Relay Chat Library',
         url='http://github.com/LK-/lurklib/',
