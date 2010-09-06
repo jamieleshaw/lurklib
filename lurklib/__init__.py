@@ -1,8 +1,8 @@
-import socket, time, sys, select, inspect
+import socket, time, sys, select
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 2 AKA 0.4.4'
+__version__ = 'Beta 2 AKA 0.4.4.1'
 
 
 class irc:
@@ -13,7 +13,7 @@ class irc:
     for x in dir (squeries): exec (x + ' = squeries.' + x)
     for x in dir (sending) : exec (x + ' = sending.' + x)
     for x in dir (optional) : exec (x + ' = optional.' + x)
-
+    del x
 
     def __init__ (self, server=None, port=None, nick='lurklib', user='lurklib', real_name='The Lurk Internet Relay Chat Library', password=None, ssl_on=False, encoding='UTF-8', clrf='\r\n', hooks={}, hide_called_events=True, ctcps=None, UTC=False):
         '''
