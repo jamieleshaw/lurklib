@@ -98,12 +98,10 @@ def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='Th
             elif ncode == '376':
                 data = ' '.join (data.split() [3:]) [1:]
                 self.con_msg.append (data)
-                self.connected = True
                 break
             elif ncode == '422':
                 data = ' '.join (data.split() [3:]) [1:]
                 self.con_msg.append (data)
-                self.connected = True
                 break
             elif self.find (data, 'NOTICE'):
                 self.server = data.split() [0] [1:]
@@ -113,7 +111,8 @@ def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='Th
 
     self.motd = tuple (self.motd)
     self.con_msg = tuple (self.con_msg)
-
+    self.connected = True
+    
 def password (self, password):
     '''
     password() sends a PASS <password>, message to the server, it has one required argument the password.

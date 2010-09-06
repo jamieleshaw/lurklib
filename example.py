@@ -2,7 +2,7 @@ import lurklib
 
 def on_auto():
     ''' Join #bots and print it's information out. '''
-    print (irc.join ('#bots'))
+    for x in range(20): print (irc.join ('#bots%d' %x))
     
 def on_privmsg (event):
     ''' An event argument must be accepted by all hooked method, except the AUTO hook. '''
@@ -23,7 +23,7 @@ hooks = { \
          'UNHANDLED' : on_unhandled
          }
 ''' Connect to IRC, and assign the irc object, to the irc variable. '''
-irc = lurklib.irc (server='irc.codeshock.org', nick='HelloBot', hooks=hooks)
+irc = lurklib.irc (server='localhost', nick='HelloBot', hooks=hooks)
 
 ''' Enter lurklib's mainloop which will keep you connected to IRC, and process events, and call the specified hooks when necessary. '''
 irc.mainloop()
