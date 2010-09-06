@@ -47,7 +47,7 @@ def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='Th
     
     self.register (nick, user, real_name, password)
     
-    while self.readable(timeout=3):
+    while self.readable(timeout=4):
             data = self.recv()
             ncode = data.split() [1]
             if ncode == '001':

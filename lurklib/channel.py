@@ -21,7 +21,7 @@ def join (self, channel, key=None):
     else:
         self.rsend ('JOIN ' + channel)
     
-    while self.readable():
+    while self.readable(4):
             data = self.recv()
             ncode = data.split() [1]
 

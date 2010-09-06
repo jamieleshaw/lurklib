@@ -184,22 +184,13 @@ class irc:
                 self.rsend (x.replace ('PING', 'PONG'))
             if x != '': self.buffer.append (x)
 
-    def recv (self, hide_pong=True):
+    def recv (self):
         ''' Buffering system recv() method '''
         if self.index >= len (self.buffer): self.mcon()
         if self.index >= 199:
             self.resetbuffer()
             self.mcon()
         msg = self.buffer [ self.index ]
-        caller = inspect.stack() [1] [3]
-        if caller != 'latency' and hide_pong == True:
-            while msg.split() [1] == 'PONG' :
-                self.index += 1
-                try:
-                    msg = self.buffer [ self.index ]
-                except IndexError:
-                    self.mcon()
-                    self.index -= 1
         while self.find (msg, 'PING :') :
             self.index += 1
             try:
@@ -211,20 +202,14 @@ class irc:
         self.index += 1
         return msg
 
-    def readable (self, recursioned=False, timeout=0.7):
+    def readable (self, timeout=1):
         ''' Checks whether self.recv() will block or not '''
         if len (self.buffer) > self.index:
             return True
         else:
-            if self.connected: timeout = 0.01
             selected = select.select ([ self.s ], [], [], timeout)
             if selected [0] == []:
-                if self.connected == True and self.latency() == None:
-                    return True
-                else:
-                    
-                    if recursioned == False: return self.readable(True)
-                    else: return False
+                return False
             else:
                 return True
     def resetbuffer (self):
@@ -381,8 +366,8 @@ class irc:
 
     def latency (self):
         ''' Calculates your latency '''
-        ctime = self.time.time()
         self.rsend ('PING %s' % self.server)
+        ctime = self.time.time()
         
         data = self.recv().split() [1]
         if data == 'PONG':
@@ -391,7 +376,7 @@ class irc:
         else: self.index -= 1
     
     def compare (self, first, second):
-        ''' Does a case in-senstive compare of two strings '''
+        ''' Does a case in-sensitive compare of two strings '''
         if first.lower() == second.lower():
             return True
         else: return False
