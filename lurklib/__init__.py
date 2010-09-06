@@ -397,7 +397,7 @@ class irc:
                 else: raise self.UnhandledEvent ('Unhandled Event')
                 
         while self.keep_going:
-            if 'AUTO' in self.hooks.keys() and self.readable() == False:
+            if 'AUTO' in self.hooks.keys() and self.readable(2) == False:
                 self.hooks [ 'AUTO' ] ()
                 del self.hooks [ 'AUTO' ]
             if self.keep_going == False: break
