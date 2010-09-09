@@ -2,7 +2,7 @@ import socket, time, sys, select
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 2 AKA 0.4.4.1'
+__version__ = 'Beta 2 AKA 0.4.4.2'
 
 
 class irc:
@@ -320,7 +320,7 @@ class irc:
             return 'TOPIC', (self.who_is_it (segments [0] [1:]), segments [2], ' '.join (segments [3:]) [1:])
 
         elif segments [1] == 'QUIT':
-            return 'QUIT', (self.who_is_it (segments [0] [1:]), ' '.join (segments [2:] [1:]))
+            return 'QUIT', (self.who_is_it (segments [0] [1:]), ' '.join (segments [2:] )[1:])
        
         elif segments [1] == '250':
             self.lusers [ 'HIGHESTCONNECTIONS' ] = segments [6]
