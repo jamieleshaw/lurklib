@@ -2,7 +2,7 @@ import socket, time, sys, select
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 2 AKA 0.4.4.2'
+__version__ = 'Beta 2 AKA 0.4.4.3'
 
 
 class irc:
@@ -207,8 +207,7 @@ class irc:
         if len (self.buffer) > self.index:
             return True
         else:
-            selected = select.select ([ self.s ], [], [], timeout)
-            if selected [0] == []:
+            if select.select ([ self.s ], [], [], timeout) [0] == []:
                 return False
             else:
                 return True
