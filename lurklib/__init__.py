@@ -223,8 +223,11 @@ class irc:
             host = host [1]
             return (nick, ident, host)
         except IndexError: return who
-    def stream (self):
+    def stream (self, timeout=1000):
         '''stream processor '''
+        if timeout != 1000:
+            if self.readable(timeout) == False:
+                return None
         data = self.recv()
         segments = data.split()
 
