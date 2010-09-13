@@ -2,7 +2,7 @@ import socket, time, sys, select
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 2 AKA 0.4.5'
+__version__ = 'Beta 2 AKA 0.4.6'
 
 
 class irc:
@@ -213,6 +213,8 @@ class irc:
                 return True
     def resetbuffer (self):
         self.index, self.buffer = 0, []
+    def __close__(self):
+        self.end()
     def who_is_it (self, who):
         ''' Processes nick!user@host data '''
         try:
