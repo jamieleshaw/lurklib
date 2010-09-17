@@ -183,7 +183,7 @@ def umode (self, nick, modes=''):
         self.rsend ('MODE ' + nick)
         modes = ''
         if self.readable():
-            modes = ' '.join (self.recv().split() [3:]) [1:]
+            modes = ' '.join (self.recv().split() [3:]).replace('+', '').replace(':', '')
         return modes
         
     else: self.rsend ('MODE ' + nick + ' ' + modes)
