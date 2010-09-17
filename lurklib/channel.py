@@ -73,7 +73,7 @@ def cmode (self, channel, modes=''):
     ''' Sets or gets channel modes '''
     if modes == '':
             self.rsend ('MODE ' + channel)
-            if self.readable(): return self.recv().split() [4].replace('+', '')
+            if self.readable(): return self.recv().split() [4].replace('+', '').replace(':', '')
     else: self.rsend ('MODE ' + channel + ' ' + modes)
     
     if self.readable():
