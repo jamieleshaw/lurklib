@@ -74,17 +74,18 @@ def cmode (self, channel, modes=''):
     if modes == '':
             self.rsend ('MODE ' + channel)
             if self.readable(): return self.recv().split() [4].replace('+', '').replace(':', '')
-    else: self.rsend ('MODE ' + channel + ' ' + modes)
+    else:
+        self.rsend ('MODE ' + channel + ' ' + modes)
     
-    if self.readable():
-        data = self.recv()
-        ncode = data.split() [1]
-
-        if ncode in self.err_replies.keys():
-            self.exception (ncode)
-        elif self.find (data, 'MODE') and self.hide_called_events:
-            pass
-        else: self.buffer.append (data)
+        if self.readable():
+            data = self.recv()
+            ncode = data.split() [1]
+    
+            if ncode in self.err_replies.keys():
+                self.exception (ncode)
+            elif self.find (data, 'MODE') and self.hide_called_events:
+                pass
+            else: self.buffer.append (data)
             
 def banlist (self, channel):
     '''
