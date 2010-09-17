@@ -187,7 +187,7 @@ def umode (self, nick, modes=''):
         return modes
         
     else: self.rsend ('MODE ' + nick + ' ' + modes)
-    while self.readable():
+    if self.readable():
             data = self.recv()
 
             ncode = data.split() [1]
