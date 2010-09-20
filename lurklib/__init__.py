@@ -2,7 +2,7 @@ import socket, time, sys, select
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 2 AKA 0.4.6.1'
+__version__ = 'Beta 2 AKA 0.4.7'
 
 
 class irc:
@@ -93,8 +93,8 @@ class irc:
         self.KEYSET = self.IRCError
         self.PASSWDMISMATCH = self.IRCError
         self.NOCHANMODES = self.IRCError
-        self.AlreadyInChannel = Exception
-        self.NotInChannel = Exception
+        self.AlreadyInChannel = self.IRCError
+        self.NotInChannel = self.IRCError
         self.UnhandledEvent = Exception
 
 
