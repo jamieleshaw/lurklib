@@ -304,8 +304,10 @@ class irc:
 
         elif segments [1] == 'MODE':
             mode = ' '.join (segments [3:]).replace (':', '')
-            try: return 'MODE', (self.who_is_it (segments [2]), mode)
-            except IndexError: return 'MODE', (segments [2], mode [1:])
+            who = self.who_is_it (segments [0][1:])
+            target = segments[2]
+            if target != self.current_nick: return 'MODE', (who, segments [2], mode)
+            else: return 'MODE', (mode [1:])
         
         elif segments [1] == 'KICK':
             if self.current_nick == segments [3]: self.channels.remove (segments [2])
