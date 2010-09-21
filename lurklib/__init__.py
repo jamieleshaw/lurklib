@@ -2,7 +2,7 @@ import socket, time, sys, select
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 2 AKA 0.4.7.2'
+__version__ = 'Beta 2 AKA 0.4.7.3'
 
 
 class irc:
@@ -202,7 +202,7 @@ class irc:
         self.index += 1
         return msg
 
-    def readable (self, timeout=2):
+    def readable (self, timeout=1):
         ''' Checks whether self.recv() will block or not '''
         if len (self.buffer) > self.index:
             return True
