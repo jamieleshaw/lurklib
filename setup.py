@@ -8,6 +8,17 @@ setup (\
         author_email='lk.codeshock@gmail.com',
         description='The Lurk Internet Relay Chat Library',
         url='http://github.com/LK-/lurklib/',
+        keywords = ['irc', 'internet relay chat'],
+        classifiers = [
+                       'Programming Language :: Python',
+                       'Programming Language :: Python :: 2',
+                       'Programming Language :: Python :: 3',
+                       'License :: OSI Approved :: GNU General Public License (GPL)',
+                       'Operating System :: OS Independent',
+                       'Development Status :: 4 - Beta',
+                       'Intended Audience :: Developers',
+                       'Topic :: Software Development :: Libraries :: Python Modules'
+                       ],
         long_description=
         '''
         The Lurk Internet Relay Chat Library is a library that provides an excellent level of, abstraction and serialization from the underlying IRC protocol.
