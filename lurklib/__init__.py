@@ -243,7 +243,7 @@ class irc:
                 set_by = ''
                 time_set = ''
                 
-                while self.readable():
+                while self.readable(4):
                     data = self.recv()
                     ncode = data.split() [1]
     
