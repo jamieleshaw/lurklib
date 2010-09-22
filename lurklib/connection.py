@@ -131,7 +131,6 @@ def nick (self, nick):
     nick() is either used to set your nick upon connection to the IRC server, or used to change your nick in the current connection.
     '''
     self.rsend ('NICK :' + nick)
-    self.current_nick = nick
     
     if self.readable():
         data = self.recv()
@@ -140,6 +139,7 @@ def nick (self, nick):
                 self.exception (ncode)
         elif data.split() [1] == 'NICK' and self.hide_called_events: pass
         else: self.index -= 1
+    self.current_nick = nick
 def user (self, user, real_name):
     '''
     user() is used at startup to send your user and real name.
