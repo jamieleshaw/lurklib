@@ -2,7 +2,7 @@ import socket, time, sys, select
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 2 AKA 0.4.7.6'
+__version__ = 'Beta 2 AKA 0.4.7.7'
 
 
 class irc:
@@ -283,7 +283,7 @@ class irc:
             if msg.find ('\001') == 0:
                 rctcp = self.ctcp_decode (msg).upper()
                 segments = rctcp.split()
-                if segments [0] == 'ACTION': return 'ACTION', (rvalue [1] [:2], rctcp)
+                if segments [0] == 'ACTION': return 'ACTION', (rvalue [1] [:2], ' '.join(rctcp.split()[1:]))
                 for ctcp in self.ctcps.keys():
                     if ctcp == segments [0] and self.ctcps [ ctcp ] != None:
                         if hasattr (self.ctcps [ ctcp ], '__call__'):
