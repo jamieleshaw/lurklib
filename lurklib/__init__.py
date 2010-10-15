@@ -1,8 +1,9 @@
 import socket, time, sys, select
+from threading import RLock
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 2 AKA 0.4.7.7'
+__version__ = 'Beta 3 AKA 0.5'
 
 
 class irc:
@@ -34,8 +35,10 @@ class irc:
         self.umodes = ''
         self.cmodes = ''
         self.server = ''
+        self.lock = RLock()
         if sys.version_info [0] == 2 and sys.version_info [1] < 6:
             self.ssl_on = False
+            from __future__ import with_statement
         else: self.ssl_on = ssl_on
         self.ssl = ssl
         self.buffer = []
@@ -154,68 +157,72 @@ class irc:
         exec ('raise self.' + self.err_replies [ ncode ] + ' ( "IRCError: ' + self.err_replies [ ncode ] + '" )')
     def rsend (self, msg):
         ''' Send raw data with the clrf appended to it '''
-        msg = msg.replace ('\r', '\\r').replace ('\n', '\\n') + self.clrf
-        if sys.version_info [0] > 2:
-            try: data = bytes (msg, self.encoding)
-            except LookupError: data = bytes (msg, self.fallback_encoding)
-        else: data = msg
-        if self.ssl_on: self.s.write (data)
-        else: self.s.send (data)
+        with self.lock:
+            msg = msg.replace ('\r', '\\r').replace ('\n', '\\n') + self.clrf
+            if sys.version_info [0] > 2:
+                try: data = bytes (msg, self.encoding)
+                except LookupError: data = bytes (msg, self.fallback_encoding)
+            else: data = msg
+            if self.ssl_on: self.s.write (data)
+            else: self.s.send (data)
 
     def mcon (self):
         ''' Read a buffer socket data '''
-        sdata = ' '
-        while sdata [-1] != self.clrf [-1]:
-            if sdata == ' ': sdata = ''
-            if self.ssl_on:
-                if sys.version_info [0] > 2:
-                    try: sdata = sdata + self.s.read (4096).decode (self.encoding)
-                    except LookupError: sdata = sdata + self.s.read (4096).decode (self.fallback_encoding)
-                else: sdata = sdata + self.s.read (4096)
-            else:
-                try:
-                    if sys.version_info [0] > 2: sdata = sdata + self.s.recv (4096).decode (self.encoding)
-                    else: sdata = sdata + self.s.recv (4096)
-                except LookupError: sdata = sdata + self.s.recv (4096).decode (self.fallback_encoding)
-                    
-        lines = sdata.split (self.clrf)
-        for x in lines:
-            if x.find ('PING :') == 0:
-                self.rsend (x.replace ('PING', 'PONG'))
-            if x != '': self.buffer.append (x)
+        with self.lock:
+            sdata = ' '
+            while sdata [-1] != self.clrf [-1]:
+                if sdata == ' ': sdata = ''
+                if self.ssl_on:
+                    if sys.version_info [0] > 2:
+                        try: sdata = sdata + self.s.read (4096).decode (self.encoding)
+                        except LookupError: sdata = sdata + self.s.read (4096).decode (self.fallback_encoding)
+                    else: sdata = sdata + self.s.read (4096)
+                else:
+                    try:
+                        if sys.version_info [0] > 2: sdata = sdata + self.s.recv (4096).decode (self.encoding)
+                        else: sdata = sdata + self.s.recv (4096)
+                    except LookupError: sdata = sdata + self.s.recv (4096).decode (self.fallback_encoding)
+                        
+            lines = sdata.split (self.clrf)
+            for x in lines:
+                if x.find ('PING :') == 0:
+                    self.rsend (x.replace ('PING', 'PONG'))
+                if x != '': self.buffer.append (x)
 
     def recv (self):
         ''' Buffering system recv() method '''
-        if self.index >= len (self.buffer): self.mcon()
-        if self.index >= 199:
-            self.resetbuffer()
-            self.mcon()
-        msg = self.buffer [ self.index ]
-        while self.find (msg, 'PING :') :
-            self.index += 1
-            try:
-                msg = self.buffer [ self.index ]
-            except IndexError:
+        with self.lock:
+            if self.index >= len (self.buffer): self.mcon()
+            if self.index >= 199:
+                self.resetbuffer()
                 self.mcon()
-                self.index -= 1
-
-        self.index += 1
-        return msg
+            msg = self.buffer [ self.index ]
+            while self.find (msg, 'PING :') :
+                self.index += 1
+                try:
+                    msg = self.buffer [ self.index ]
+                except IndexError:
+                    self.mcon()
+                    self.index -= 1
+    
+            self.index += 1
+            return msg
 
     def readable (self, timeout=1):
         ''' Checks whether self.recv() will block or not '''
-        if len (self.buffer) > self.index:
-            return True
-        else:
-            if select.select ([ self.s ], [], [], timeout) [0] == []:
-                return False
-            else:
+        with self.lock:
+            if len (self.buffer) > self.index:
                 return True
+            else:
+                if select.select ([ self.s ], [], [], timeout) [0] == []:
+                    return False
+                else:
+                    return True
     def resetbuffer (self):
         self.index, self.buffer = 0, []
     def __close__(self):
         self.end()
-    def who_is_it (self, who):
+    def from_ (self, who):
         ''' Processes nick!user@host data '''
         try:
             host = who.split ('@', 1)
@@ -234,7 +241,7 @@ class irc:
         segments = data.split()
 
         if segments [1] == 'JOIN':
-            who = self.who_is_it (segments [0] [1:])
+            who = self.from_ (segments [0] [1:])
             channel = segments [2] [1:]
             if channel not in self.channels:
                 
@@ -253,7 +260,7 @@ class irc:
                         segments = data.split()
                         if self.UTC == False: time_set = self.time.localtime (int (segments [5]))
                         else: time_set = self.time.gmtime (int (segments [5]))
-                        set_by = self.who_is_it (segments [4])
+                        set_by = self.from_ (segments [4])
                         
                     elif self.find (data, '353'):
                             names = data.split() [5:]
@@ -270,13 +277,13 @@ class irc:
                 
             return 'JOIN', who, channel
         elif segments [1] == 'PART':
-            who = self.who_is_it (segments [0] [1:])
+            who = self.from_ (segments [0] [1:])
             channel = segments [2]
             try: return 'PART', (who, channel, ' '.join (segments [3:]) [1:])
-            except IndexError: return 'PART', (self.who_is_it (segments [0] [1:]), channel, '')
+            except IndexError: return 'PART', (self.from_ (segments [0] [1:]), channel, '')
 
         elif segments [1] == 'PRIVMSG':
-            who = self.who_is_it (segments [0] [1:])
+            who = self.from_ (segments [0] [1:])
             msg = ' '.join (segments [3:]) [1:]
             rvalue = 'PRIVMSG', (who, segments [2], msg)
             
@@ -299,34 +306,34 @@ class irc:
             msg = ' '.join (segments [3:]) [1:]
             if msg.find ('\001') == 0:
                 msg = self.ctcp_decode(msg)
-                return 'CTCP_REPLY', (self.who_is_it (segments [0] [1:]), segments [2], msg)
-            return 'NOTICE', (self.who_is_it (segments [0] [1:]), segments [2], msg)
+                return 'CTCP_REPLY', (self.from_ (segments [0] [1:]), segments [2], msg)
+            return 'NOTICE', (self.from_ (segments [0] [1:]), segments [2], msg)
 
         elif segments [1] == 'MODE':
             mode = ' '.join (segments [3:]).replace (':', '')
-            who = self.who_is_it (segments [0][1:])
+            who = self.from_ (segments [0][1:])
             target = segments[2]
             if target != self.current_nick: return 'MODE', (who, segments [2], mode)
             else: return 'MODE', (mode [1:])
         
         elif segments [1] == 'KICK':
             if self.current_nick == segments [3]: self.channels.remove (segments [2])
-            return 'KICK', (self.who_is_it (segments [0] [1:]), segments [2], segments [3], ' '.join (segments [4:]) [1:])
+            return 'KICK', (self.from_ (segments [0] [1:]), segments [2], segments [3], ' '.join (segments [4:]) [1:])
 
         elif segments [1] == 'INVITE':
-            return 'INVITE', (self.who_is_it (segments [0] [1:]), segments [2], segments [3] [1:])
+            return 'INVITE', (self.from_ (segments [0] [1:]), segments [2], segments [3] [1:])
 
         elif segments [1] == 'NICK':
-            who = self.who_is_it (segments [0] [1:])
+            who = self.from_ (segments [0] [1:])
             new_nick = ' '.join (segments [2:])
             if self.current_nick == who [0]: self.current_nick = new_nick
             return 'NICK', (who, new_nick)
 
         elif segments [1] == 'TOPIC':
-            return 'TOPIC', (self.who_is_it (segments [0] [1:]), segments [2], ' '.join (segments [3:]) [1:])
+            return 'TOPIC', (self.from_ (segments [0] [1:]), segments [2], ' '.join (segments [3:]) [1:])
 
         elif segments [1] == 'QUIT':
-            return 'QUIT', (self.who_is_it (segments [0] [1:]), ' '.join (segments [2:] )[1:])
+            return 'QUIT', (self.from_ (segments [0] [1:]), ' '.join (segments [2:] )[1:])
        
         elif segments [1] == '250':
             self.lusers [ 'HIGHESTCONNECTIONS' ] = segments [6]
