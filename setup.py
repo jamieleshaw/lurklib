@@ -2,7 +2,7 @@ from distutils.core import setup
 setup (\
         name='lurklib',
         packages=['lurklib'],
-        version='0.5',
+        version='0.5.1',
         author='LK-',
         license='GPL V3',
         author_email='lk.codeshock@gmail.com',

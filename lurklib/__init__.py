@@ -1,9 +1,10 @@
+from __future__ import with_statement
 import socket, time, sys, select
 from threading import RLock
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 3 AKA 0.5'
+__version__ = 'Beta 3 AKA 0.5.1'
 
 
 class irc:
@@ -38,7 +39,6 @@ class irc:
         self.lock = RLock()
         if sys.version_info [0] == 2 and sys.version_info [1] < 6:
             self.ssl_on = False
-            from __future__ import with_statement
         else: self.ssl_on = ssl_on
         self.ssl = ssl
         self.buffer = []
