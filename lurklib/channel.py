@@ -45,8 +45,12 @@ def join (self, channel, key=None):
                 else: self.buffer.append (data)
 
         self.channels[channel]['USERS'] = {}
-        for user in names:
-            self.channels[channel]['USERS'][user] = ''
+        for name in names:
+            prefix = ''
+            if name[0] in self.priv_types:
+                prefix = name[0]
+                name = name[1:]
+            self.channels[channel]['USERS'][name] = prefix
     return (tuple(names), topic, set_by, time_set)
 
 def part (self, channel, reason=None):
