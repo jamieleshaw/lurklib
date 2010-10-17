@@ -1,13 +1,13 @@
 from __future__ import with_statement
-import socket, time, sys, select
+import socket, time, sys, select, re
 from threading import RLock
 from . import channel, connection, optional, sending, squeries, uqueries
 try: import ssl
 except ImportError: ssl = None
-__version__ = 'Beta 3 AKA 0.5.1'
+__version__ = 'Beta 3 AKA 0.5.2'
 
 
-class irc:
+class IRC:
 
     for x in dir (connection): exec (x + ' = connection.' + x)
     for x in dir (channel): exec (x + ' = channel.' + x)
@@ -30,6 +30,7 @@ class irc:
         self.away = False
         self.UTC = UTC
         self.lusers = {}
+        self.priv_types = ('~', '&', '@', '%', '+')
         self.clrf = clrf
         self.connected = False
         self.server = ''
@@ -47,7 +48,7 @@ class irc:
         self.encoding = encoding
         self.motd = []
         self.info = {}
-        self.channels = []
+        self.channels = {}
         self.time = time
         self.keep_going = True
         if ctcps == None:
@@ -219,9 +220,11 @@ class irc:
                 else:
                     return True
     def resetbuffer (self):
-        self.index, self.buffer = 0, []
+        with self.lock:
+            self.index, self.buffer = 0, []
     def __close__(self):
-        self.end()
+        with self.lock:
+            self.end()
     def from_ (self, who):
         ''' Processes nick!user@host data '''
         try:
@@ -234,159 +237,177 @@ class irc:
         except IndexError: return who
     def stream (self, timeout=1000):
         '''stream processor '''
-        if timeout != 1000:
-            if self.readable(timeout) == False:
-                return None
-        data = self.recv()
-        segments = data.split()
-
-        if segments [1] == 'JOIN':
-            who = self.from_ (segments [0] [1:])
-            channel = segments [2] [1:]
-            if channel not in self.channels:
-                
-                topic = ''
-                names = ()
-                set_by = ''
-                time_set = ''
-                
-                while self.readable(4):
-                    data = self.recv()
-                    ncode = data.split() [1]
+        with self.lock:
+            if timeout != 1000:
+                if self.readable(timeout) == False:
+                    return None
+            data = self.recv()
+            segments = data.split()
     
-                    if self.find (data, '332'):
-                            topic = data.split (None, 4) [4] [1:]
-                    elif self.find (data, '333'):
-                        segments = data.split()
-                        if self.UTC == False: time_set = self.time.localtime (int (segments [5]))
-                        else: time_set = self.time.gmtime (int (segments [5]))
-                        set_by = self.from_ (segments [4])
-                        
-                    elif self.find (data, '353'):
-                            names = data.split() [5:]
-                            names [0] = names [0] [1:]
-                            names = tuple (names)
-                    elif self.find (data, 'JOIN'):
-                        self.channels.append (data.split() [2] [1:])
-                        if self.hide_called_events == False: self.buffer.append (data)
-                    elif ncode in self.err_replies.keys(): self.exception (ncode)
-                    elif ncode == '366': break
-                    else: self.buffer.append (data)
+            if segments [1] == 'JOIN':
+                who = self.from_ (segments [0] [1:])
+                channel = segments [2] [1:]
+                if channel not in self.channels:
                     
-                return ('JOIN', who, channel, topic, names, set_by, time_set)
+                    topic = ''
+                    names = ()
+                    set_by = ''
+                    time_set = ''
+                    
+                    while self.readable(4):
+                        data = self.recv()
+                        ncode = data.split() [1]
+        
+                        if self.find (data, '332'):
+                                topic = data.split (None, 4) [4] [1:]
+                        elif self.find (data, '333'):
+                            segments = data.split()
+                            if self.UTC == False: time_set = self.time.localtime (int (segments [5]))
+                            else: time_set = self.time.gmtime (int (segments [5]))
+                            set_by = self.from_ (segments [4])
+                            
+                        elif self.find (data, '353'):
+                                names = data.split() [5:]
+                                names [0] = names [0] [1:]
+                                names = tuple (names)
+                        elif self.find (data, 'JOIN'):
+                            self.channels[data.split() [2] [1:]] = {}
+                            if self.hide_called_events == False: self.buffer.append (data)
+                        elif ncode in self.err_replies.keys(): self.exception (ncode)
+                        elif ncode == '366': break
+                        else: self.buffer.append (data)
+                        
+                    return ('JOIN', who, channel, topic, names, set_by, time_set)
+                else:
+                    try:
+                        self.channels[channel]['USERS'][who[0]] = ''
+                    except KeyError:
+                        self.channels[channel]['USERS'] = {who[0]:''}
+                return 'JOIN', who, channel
+            elif segments [1] == 'PART':
+                who = self.from_ (segments [0] [1:])
+                channel = segments [2]
+                del self.channels[channel]['USERS'][who[0]]
+                try: return 'PART', (who, channel, ' '.join (segments [3:]) [1:])
+                except IndexError: return 'PART', (self.from_ (segments [0] [1:]), channel, '')
+    
+            elif segments [1] == 'PRIVMSG':
+                who = self.from_ (segments [0] [1:])
+                msg = ' '.join (segments [3:]) [1:]
+                rvalue = 'PRIVMSG', (who, segments [2], msg)
                 
-            return 'JOIN', who, channel
-        elif segments [1] == 'PART':
-            who = self.from_ (segments [0] [1:])
-            channel = segments [2]
-            try: return 'PART', (who, channel, ' '.join (segments [3:]) [1:])
-            except IndexError: return 'PART', (self.from_ (segments [0] [1:]), channel, '')
-
-        elif segments [1] == 'PRIVMSG':
-            who = self.from_ (segments [0] [1:])
-            msg = ' '.join (segments [3:]) [1:]
-            rvalue = 'PRIVMSG', (who, segments [2], msg)
+                if msg.find ('\001') == 0:
+                    rctcp = self.ctcp_decode (msg).upper()
+                    segments = rctcp.split()
+                    if segments [0] == 'ACTION': return 'ACTION', (rvalue [1] [:2], ' '.join(rctcp.split()[1:]))
+                    for ctcp in self.ctcps.keys():
+                        if ctcp == segments [0] and self.ctcps [ ctcp ] != None:
+                            if hasattr (self.ctcps [ ctcp ], '__call__'):
+                                response = str (self.ctcps [ ctcp ] ())
+                            else:
+                                try: response = ctcp + ' ' + segments [ int (self.ctcps [ ctcp ]) ]
+                                except ValueError: response = self.ctcps [ ctcp ]
+                            self.notice (who [0], self.ctcp_encode (response))
+                            break
+                    return 'CTCP', (rvalue [1] [:2], rctcp)
+                else: return rvalue
+            elif segments [1] == 'NOTICE':
+                msg = ' '.join (segments [3:]) [1:]
+                if msg.find ('\001') == 0:
+                    msg = self.ctcp_decode(msg)
+                    return 'CTCP_REPLY', (self.from_ (segments [0] [1:]), segments [2], msg)
+                return 'NOTICE', (self.from_ (segments [0] [1:]), segments [2], msg)
+    
+            elif segments [1] == 'MODE':
+                mode = ' '.join (segments [3:]).replace (':', '')
+                who = self.from_ (segments [0][1:])
+                target = segments[2]
+                if target != self.current_nick:
+                    if 
+                    modes, targets = mode.split(None, 2)
+                    targets = targets.split()
+                    return 'MODE', (who, segments [2], mode)
+                else: return 'MODE', (mode.replace(':', ''))
             
-            if msg.find ('\001') == 0:
-                rctcp = self.ctcp_decode (msg).upper()
-                segments = rctcp.split()
-                if segments [0] == 'ACTION': return 'ACTION', (rvalue [1] [:2], ' '.join(rctcp.split()[1:]))
-                for ctcp in self.ctcps.keys():
-                    if ctcp == segments [0] and self.ctcps [ ctcp ] != None:
-                        if hasattr (self.ctcps [ ctcp ], '__call__'):
-                            response = str (self.ctcps [ ctcp ] ())
-                        else:
-                            try: response = ctcp + ' ' + segments [ int (self.ctcps [ ctcp ]) ]
-                            except ValueError: response = self.ctcps [ ctcp ]
-                        self.notice (who [0], self.ctcp_encode (response))
-                        break
-                return 'CTCP', (rvalue [1] [:2], rctcp)
-            else: return rvalue
-        elif segments [1] == 'NOTICE':
-            msg = ' '.join (segments [3:]) [1:]
-            if msg.find ('\001') == 0:
-                msg = self.ctcp_decode(msg)
-                return 'CTCP_REPLY', (self.from_ (segments [0] [1:]), segments [2], msg)
-            return 'NOTICE', (self.from_ (segments [0] [1:]), segments [2], msg)
-
-        elif segments [1] == 'MODE':
-            mode = ' '.join (segments [3:]).replace (':', '')
-            who = self.from_ (segments [0][1:])
-            target = segments[2]
-            if target != self.current_nick: return 'MODE', (who, segments [2], mode)
-            else: return 'MODE', (mode [1:])
-        
-        elif segments [1] == 'KICK':
-            if self.current_nick == segments [3]: self.channels.remove (segments [2])
-            return 'KICK', (self.from_ (segments [0] [1:]), segments [2], segments [3], ' '.join (segments [4:]) [1:])
-
-        elif segments [1] == 'INVITE':
-            return 'INVITE', (self.from_ (segments [0] [1:]), segments [2], segments [3] [1:])
-
-        elif segments [1] == 'NICK':
-            who = self.from_ (segments [0] [1:])
-            new_nick = ' '.join (segments [2:])
-            if self.current_nick == who [0]: self.current_nick = new_nick
-            return 'NICK', (who, new_nick)
-
-        elif segments [1] == 'TOPIC':
-            return 'TOPIC', (self.from_ (segments [0] [1:]), segments [2], ' '.join (segments [3:]) [1:])
-
-        elif segments [1] == 'QUIT':
-            return 'QUIT', (self.from_ (segments [0] [1:]), ' '.join (segments [2:] )[1:])
-       
-        elif segments [1] == '250':
-            self.lusers [ 'HIGHESTCONNECTIONS' ] = segments [6]
-            self.lusers [ 'TOTALCONNECTIONS' ] = segments [9] [1:]
-            return ('LUSERS', self.lusers)
-       
-        elif segments [1] == '251':
-            self.lusers [ 'USERS' ] = segments [5]
-            self.lusers [ 'INVISIBLE' ] = segments [8]
-            self.lusers [ 'SERVERS' ] = segments [11]
-            return ('LUSERS', self.lusers)
-        
-        elif segments [1] == '252':
-            self.lusers [ 'OPERATORS' ] = segments [3]
-            return ('LUSERS', self.lusers)
-        elif segments [1] == '253':
-            self.lusers [ 'UNKNOWN' ] = segments [3]
-            return ('LUSERS', self.lusers)
-        elif segments [1] == '254':
-            self.lusers [ 'CHANNELS' ] = segments [3]
-            return ('LUSERS', self.lusers)
-        
-        elif segments [1] == '255':
-            self.lusers [ 'CLIENTS' ] = segments [5]
-            self.lusers [ 'LSERVERS' ] = segments [8]
-            return ('LUSERS', self.lusers)
-        
-        elif segments [1] == '265':
-            self.lusers [ 'LOCALUSERS' ] = segments [6]
-            self.lusers [ 'LOCALMAX' ] = segments [8]
-            return ('LUSERS', self.lusers)
-        
-        elif segments [1] == '266':
-            self.lusers [ 'GLOBALUSERS' ] = segments [6]
-            self.lusers [ 'GLOBALMAX' ] = segments [8]
-            return ('LUSERS', self.lusers)
-
-        elif segments [1] in self.err_replies.keys():
-            self.exception (segments [1])
-        
-        elif segments [0] == 'ERROR': return 'ERROR', ' '.join (segments [1:]) [1:]
-        else: return 'UNKNOWN', data
+            elif segments [1] == 'KICK':
+                who = self.from_(segments [0] [1:])
+                if self.current_nick == segments[3]: del self.channels['USERS'][segments[2]]
+                del self.channels[channel][segments[3]]
+                return 'KICK', (who, segments [2], segments [3], ' '.join (segments [4:]) [1:])
+    
+            elif segments [1] == 'INVITE':
+                return 'INVITE', (self.from_ (segments [0] [1:]), segments [2], segments [3] [1:])
+    
+            elif segments [1] == 'NICK':
+                who = self.from_ (segments[0][1:])
+                new_nick = ' '.join (segments[2:])
+                if self.current_nick == who[0]:
+                    self.current_nick = new_nick
+                for channel in self.channels:
+                    priv_level = self.channels[channel]['USERS'][who[0]]
+                    del self.channels[channel]['USERS'][who[0]]
+                    self.channels[channel]['USERS'][new_nick] = priv_level
+                return 'NICK', (who, new_nick)
+    
+            elif segments [1] == 'TOPIC':
+                return 'TOPIC', (self.from_ (segments [0] [1:]), segments [2], ' '.join (segments [3:]) [1:])
+    
+            elif segments [1] == 'QUIT':
+                return 'QUIT', (self.from_ (segments [0] [1:]), ' '.join (segments [2:] )[1:])
+           
+            elif segments [1] == '250':
+                self.lusers [ 'HIGHESTCONNECTIONS' ] = segments [6]
+                self.lusers [ 'TOTALCONNECTIONS' ] = segments [9] [1:]
+                return ('LUSERS', self.lusers)
+           
+            elif segments [1] == '251':
+                self.lusers [ 'USERS' ] = segments [5]
+                self.lusers [ 'INVISIBLE' ] = segments [8]
+                self.lusers [ 'SERVERS' ] = segments [11]
+                return ('LUSERS', self.lusers)
+            
+            elif segments [1] == '252':
+                self.lusers [ 'OPERATORS' ] = segments [3]
+                return ('LUSERS', self.lusers)
+            elif segments [1] == '253':
+                self.lusers [ 'UNKNOWN' ] = segments [3]
+                return ('LUSERS', self.lusers)
+            elif segments [1] == '254':
+                self.lusers [ 'CHANNELS' ] = segments [3]
+                return ('LUSERS', self.lusers)
+            
+            elif segments [1] == '255':
+                self.lusers [ 'CLIENTS' ] = segments [5]
+                self.lusers [ 'LSERVERS' ] = segments [8]
+                return ('LUSERS', self.lusers)
+            
+            elif segments [1] == '265':
+                self.lusers [ 'LOCALUSERS' ] = segments [6]
+                self.lusers [ 'LOCALMAX' ] = segments [8]
+                return ('LUSERS', self.lusers)
+            
+            elif segments [1] == '266':
+                self.lusers [ 'GLOBALUSERS' ] = segments [6]
+                self.lusers [ 'GLOBALMAX' ] = segments [8]
+                return ('LUSERS', self.lusers)
+    
+            elif segments [1] in self.err_replies.keys():
+                self.exception (segments [1])
+            
+            elif segments [0] == 'ERROR': return 'ERROR', ' '.join (segments [1:]) [1:]
+            else: return 'UNKNOWN', data
 
     def latency (self):
         ''' Calculates your latency '''
-        self.rsend ('PING %s' % self.server)
-        ctime = self.time.time()
-        
-        data = self.recv().split() [1]
-        if data == 'PONG':
-            latency = self.time.time() - ctime
-            return latency
-        else: self.index -= 1
+        with self.lock:
+            self.rsend ('PING %s' % self.server)
+            ctime = self.time.time()
+            
+            data = self.recv().split() [1]
+            if data == 'PONG':
+                latency = self.time.time() - ctime
+                return latency
+            else: self.index -= 1
     
     def compare (self, first, second):
         ''' Does a case in-sensitive compare of two strings '''
@@ -396,33 +417,36 @@ class irc:
 
     def mainloop (self):
         ''' lurklib main loop '''
-        def handler():
-            event = self.stream()
-            try:
-                if event [0] in self.hooks.keys():
-                    self.hooks [ event [0] ] (event=event [1])
-                elif 'UNHANDLED' in self.hooks.keys():
-                    self.hooks [ 'UNHANDLED' ] (event)
-                else: raise self.UnhandledEvent ('Unhandled Event')
-            except KeyError:
-                if 'UNHANDLED' in self.hooks.keys():
-                    self.hooks [ 'UNHANDLED' ] (event)
-                else: raise self.UnhandledEvent ('Unhandled Event')
-                
-        while self.keep_going:
-            if 'AUTO' in self.hooks.keys() and self.readable(2) == False:
-                self.hooks [ 'AUTO' ] ()
-                del self.hooks [ 'AUTO' ]
-            if self.keep_going == False: break
-            handler()
+        with self.lock:
+            def handler():
+                event = self.stream()
+                try:
+                    if event [0] in self.hooks.keys():
+                        self.hooks [ event [0] ] (event=event [1])
+                    elif 'UNHANDLED' in self.hooks.keys():
+                        self.hooks [ 'UNHANDLED' ] (event)
+                    else: raise self.UnhandledEvent ('Unhandled Event')
+                except KeyError:
+                    if 'UNHANDLED' in self.hooks.keys():
+                        self.hooks [ 'UNHANDLED' ] (event)
+                    else: raise self.UnhandledEvent ('Unhandled Event')
+                    
+            while self.keep_going:
+                if 'AUTO' in self.hooks.keys() and self.readable(2) == False:
+                    self.hooks [ 'AUTO' ] ()
+                    del self.hooks [ 'AUTO' ]
+                if self.keep_going == False: break
+                handler()
             
     def set_hook (self, trigger, method):
         ''' Sets a hook '''
-        self.hooks [ trigger ] = method
+        with self.lock:
+            self.hooks [ trigger ] = method
     
     def remove_hook (self, trigger):
         ''' Removes a hook '''
-        del self.hooks [ trigger ]
+        with self.lock:
+            del self.hooks [ trigger ]
     
     # CTCP methods
     
