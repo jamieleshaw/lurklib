@@ -267,16 +267,22 @@ class IRC:
                             set_by = self.from_ (segments [4])
                             
                         elif self.find (data, '353'):
-                                names = data.split() [5:]
-                                names [0] = names [0] [1:]
-                                names = tuple (names)
+                            new_names = data.split() [5:].replace(':', '')
+                            try: names.append = new_names
+                            except NameError: names = new_names
                         elif self.find (data, 'JOIN'):
                             self.channels[data.split() [2] [1:]] = {}
                             if self.hide_called_events == False: self.buffer.append (data)
                         elif ncode in self.err_replies.keys(): self.exception (ncode)
                         elif ncode == '366': break
                         else: self.buffer.append (data)
-                        
+                        self.channels[channel]['USERS'] = {}
+                        for name in names:
+                            prefix = ''
+                            if name[0] in self.priv_types:
+                                prefix = name[0]
+                                name = name[1:]
+                            self.channels[channel]['USERS'][name] = prefix
                     return ('JOIN', who, channel, topic, names, set_by, time_set)
                 else:
                     try:
