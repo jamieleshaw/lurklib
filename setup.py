@@ -1,6 +1,6 @@
 from distutils.core import setup
 setup( \
-        name='Lurklib',
+        name='lurklib',
         packages=['lurklib'],
         version='0.6',
         author='Jamie Shaw (LK-)',
