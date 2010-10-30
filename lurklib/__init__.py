@@ -22,7 +22,7 @@ from . import connection, optional, sending, squeries, uqueries
 import sys
 import select
 
-__version__ = '0.6'
+__version__ = '0.6.0.1'
 
 
 class IRC(variables._Variables, exceptions._Exceptions,
