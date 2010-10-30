@@ -1,252 +1,301 @@
-def connect (self, server, port, ssl_on=False):
-    '''
-    connect() opens a socket connection with a server.
-    '''
-    with self.lock:
-        if ssl_on == True:
-            self.s = self.ssl.wrap_socket (self.s)
-        self.s.connect ((server, port))
-        self.ssl_on = ssl_on
-
-def register (self, nick, user, real_name, password=None):
-    with self.lock:
-        if password != None:
-            self.password (password)
+#    This file is part of the Lurklib Internet Relay Chat Library
+#    Copyright (C) 2010  Jamie Shaw (LK-) <jamieleshaw@gmail.com>
+#    
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#    
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#    
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+""" Connection-related interaction file. """
+class _Connection(object):
+    def _connect (self, server, port, tls=False):
+        """
+        Connects the socket to an IRC server.
+        Required arguments:
+        * server - Server to connect to.
+        * port - Port to use.
+        Optional arguments:
+        * tls=False - Should we use TLS/SSL?
+        """
+        with self.lock:
+            if tls:
+                self.s = self.ssl.wrap_socket (self.s)
+            self.s.connect ((server, port))
+            self.tls = tls
     
-        nick_cmd_worked = False
-        try:
-            self.nick (nick)
-            nick_cmd_worked = True
-        except TypeError:
-            for nickname in nick:
-                try:
-                    self.nick (nickname)
-                    nick_cmd_worked = True
-                    break
-                except self.NICKNAMEINUSE: pass
-        if nick_cmd_worked == False: self.exception ('433')
-        self.user (user, real_name)
-
-def init (self, server, port=None, nick='lurklib', user='lurklib', real_name='The Lurk Internet Relay Chat Library', password=None, ssl_on=False):
-    '''
-    init() starts the socket connection with the server, and sets your nick/user/real name, optionally a password may be specified for the PASS command, as-well as processing numerics etc.
-    '''
-    with self.lock:
-        if ssl_on:
-            if port == None:
-                port = 6697
-            self.connect (server, port, True)
-        else:
-            if port == None:
-                port = 6667
-            
-            self.connect (server, port)
-        while self.readable():
-            data = self.recv()
-            if self.find (data, 'NOTICE'):
-                    self.server = data.split() [0] [1:]
-                    data = ('NOTICE', ' '.join (data.split() [3:]) [1:])
-            self.con_msg.append (data)
+    def _register (self, nick, user, real_name, password=None):
+        """
+        Register the connection with the IRC server.
+        Required arguments:
+        * nick - Nick to use. If a tuple/list is specified it will try to use the first,
+            and if the first is already used it will try to use the second and so on.
+        * user - Username to use.
+        * real_name - Real name to use.
+        Optional arguments:
+        * password=None - IRC server password.
+        """
+        with self.lock:
+            if password != None:
+                self._password (password)
         
-        self.register (nick, user, real_name, password)
-        
-        while self.readable(timeout=4):
-                data = self.recv()
-                ncode = data.split() [1]
-                if ncode == '001':
-                    data = ' '.join (data.split() [3:]) [1:]
-                elif ncode == '002':
-                    data = ' '.join (data.split() [3:]) [1:]
-                elif ncode == '003':
-                    data = ' '.join (data.split() [3:]) [1:]
-                elif ncode == '004':
-                    info = data.split()
-                    self.server = info [3]
-                    self.ircd = info [4]
-                    self.umodes = info [5]
-                    self.cmodes = info [6]
-                    data = ' '.join (data.split() [3:])
-                elif ncode == '005':
-                    info = data.replace (' :are supported by this server', '').split() [3:]
-                    for x in info:
-                            try:
-                                x = x.split ('=')
-                                name = x [0]
-                                value = x [1]
-                                self.info [ name ] = value
-                        
-                                if name == 'CHARSET': self.encoding = value
-                            except IndexError: 
-                                self.info [ x [0] ] = True
-                    data = ' '.join (data.split() [3:])
-                elif ncode == '251':
-                    data = ' '.join (data.split() [3:]) [1:]
-                elif ncode == '252':
-                    data = ' '.join (data.split() [3:])
-                elif ncode == '254':
-                    data = ' '.join (data.split() [3:])
-                elif ncode == '255':
-                    data = ' '.join (data.split() [3:]) [1:]
-                elif ncode == '265':
-                    data = ' '.join (data.split() [3:]) [1:]
-                elif ncode == '266':
-                    data = ' '.join (data.split() [3:]) [1:]
-                elif ncode == '375':
-                    data = ' '.join (data.split() [3:]) [1:]
-                elif ncode == '042':
-                    data = ' '.join (data.split() [3:])
-                elif ncode == '372':
-                    self.motd.append (data.split (None, 3) [3] [1:])
-                    data = data.split (' ', 3) [3] [1:]
-                elif ncode == '376':
-                    data = ' '.join (data.split() [3:]) [1:]
-                    self.con_msg.append (data)
-                    break
-                elif ncode == '422':
-                    data = ' '.join (data.split() [3:]) [1:]
-                    self.con_msg.append (data)
-                    break
-                elif self.find (data, 'NOTICE'):
-                    self.server = data.split() [0] [1:]
-                    data = ('NOTICE', ' '.join (data.split() [3:]) [1:])
-                else: self.buffer.append (data)
+            nick_set_successfully  = False
+            try:
+                self.nick (nick)
+                nick_set_successfully = True
+            except TypeError:
+                for nick_ in nick:
+                    try:
+                        self.nick (nick_)
+                        nick_set_successfully = True
+                        break
+                    except self.NicknameInUse:
+                        pass
+            if nick_set_successfully  == False:
+                self.exception('433')
+            self._user (user, real_name)
+    
+    def _init (self, server, nick, user, real_name, password, port=None, tls=False):
+        """
+        Connect and register with the IRC server and set server-related information variables.
+        Required arguments:
+        * server - Server to connect to.
+        * nick - Nick to use. If a tuple/list is specified it will try to use the first,
+            and if the first is already used it will try to use the second and so on.
+        * user - Username to use.
+        * real_name - Real name to use.
+        * password=None - IRC server password.
+        Optional arguments:
+        * port - Port to use.
+        * tls=False - Should we use TLS/SSL?
+        """
+        with self.lock:
+            if tls:
+                if port == None:
+                    port = 6697
+                self._connect (server, port, True)
+            else:
+                if port == None:
+                    port = 6667
+                
+                self._connect (server, port)
+            while self.readable():
+                data = self.stream()
+                if data[0] == 'NOTICE':
+                        self.server = data[1][0]
                 self.con_msg.append (data)
-    
-        self.motd = tuple (self.motd)
-        self.con_msg = tuple (self.con_msg)
-        self.connected = True
-    
-def password (self, password):
-    '''
-    password() sends a PASS <password>, message to the server, it has one required argument the password.
-    '''
-    with self.lock:
-        self.rsend ('PASS :' + password)
-        
-        if self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-            if ncode in self.err_replies.keys():
-                    self.exception (ncode)
-            else: self.index -= 1
-
-def nick (self, nick):
-    '''
-    nick() is either used to set your nick upon connection to the IRC server, or used to change your nick in the current connection.
-    '''
-    with self.lock:
-        self.rsend ('NICK :' + nick)
-        
-        if self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-            if ncode in self.err_replies.keys():
-                    self.exception (ncode)
-            elif data.split() [1] == 'NICK' and self.hide_called_events: pass
-            else: self.index -= 1
-
-        for channel in self.channels:
-            priv_level = self.channels[channel]['USERS'][self.current_nick]
-            del self.channels[channel]['USERS'][self.current_nick]
-            self.channels[channel]['USERS'][nick] = priv_level
-        self.current_nick = nick
-def user (self, user, real_name):
-    '''
-    user() is used at startup to send your user and real name.
-    '''
-    with self.lock:
-        self.rsend ('USER ' + user + ' 0 * :' + real_name)
-        if self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-            if ncode in self.err_replies.keys():
-                    self.exception (ncode)
-            else: self.index -= 1
-
-def oper (self, name, password):
-    '''
-    oper() accepts two arguments, oper name & password
-    '''
-    with self.lock:
-        self.rsend ('OPER ' + name + ' ' + password)
-        snomasks = ''
-        new_umodes = ''
-        if self.readable():
-                data = self.recv()
-                ncode = data.split() [1]
-    
-                if ncode in self.err_replies.keys():
-                        self.exception (ncode)
-                elif self.find (data, 'MODE'):
-                        new_umodes = data.split() [-1] [1:]
-                elif ncode == '381':
-                        return (new_umodes, snomasks)
-                elif ncode == '008':
-                        snomasks = data.split ('(') [1].split (')') [0]
-                else: self.buffer.append (data)
-def umode (self, nick, modes=''):
-    '''
-    umode() accepts a nick and optionally modes to set.
-    If no modes are specified, it returns your current umodes.
-    '''
-    with self.lock:
-        if modes == '':
-            self.rsend ('MODE ' + nick)
-            modes = ''
-            if self.readable():
-                modes = ' '.join (self.recv().split() [3:]).replace('+', '').replace(':', '')
-            return modes
             
-        else: self.rsend ('MODE ' + nick + ' ' + modes)
-        if self.readable():
-                data = self.recv()
-    
-                ncode = data.split() [1]
-    
-                if ncode in self.err_replies.keys():
-                        self.exception (ncode)
-                elif ncode == '221':
-                        return data.split() [3] [1:]
-                elif self.find (data, 'MODE') and self.hide_called_events:
-                        pass
-                else: self.buffer.append (data)
-def service (self):
-    pass
+            self._register (nick, user, real_name, password)
+            while self.readable(timeout=4):
+                    rdata = self.stream()
+                    if rdata[0] == 'UNKNOWN':
+                        data = rdata[1][3].replace(':', '')
+                        ncode = data[1]
 
-def quit (self, reason=None):
-    '''
-    quit() sends the QUIT command to the server, optionally a quit message may be specified, use end() instead.
-    '''
-    with self.lock:
-        if reason == None:
-            self.rsend ('QUIT')
-        else:
-            self.rsend ('QUIT :' + reason)
-
-def end (self, reason=None):
-    '''
-    end(), sends the quit message to the server, optionally a quit message may be specified, it also closes the socket connection.
-    '''
-    with self.lock:
-        self.quit (reason)
-        self.keep_going = False
-        self.s.shutdown (2)
-        self.s.close()
+                        if ncode == '004':
+                            info = data.split()
+                            self.server = info [0]
+                            self.ircd = info [1]
+                            self.umodes = info [2]
+                            self.cmodes = info [3]
+                        elif ncode == '005':
+                            version = data.replace (' :are supported by this server', '').split()
+                            for info in version:
+                                    try:
+                                        info = info.split ('=')
+                                        name = info[0]
+                                        value = info[1]
+                                        self.version [ name ] = value
+                                
+                                        if name == 'CHARSET':
+                                            self.encoding = value
+                                    except IndexError: 
+                                        self.version[info[0]] = True
+                        elif ncode == '372':
+                            self.motd.append (data)
+                        elif ncode == '376':
+                            self.con_msg.append (data)
+                            break
+                        elif ncode == '422':
+                            self.con_msg.append (data)
+                            break
+                    else:
+                        if rdata[0] == 'NOTICE':
+                            self.server = rdata[1][0]
+                            
+                    self.con_msg.append (rdata[1])
         
-def squit (self, server, msg):
-    '''
-    squit() squits the specified server.
-    '''
-    with self.lock:
-        self.rsend ('SQUIT ' + server + ' :' + msg)
-        while self.readable():
+            self.motd = tuple (self.motd)
+            self.con_msg = tuple (self.con_msg)
+            self.connected = True
+            self.keep_going = True
+        
+    def _password (self, password):
+        """
+        Authenticates with the IRC server.
+        Required arguments:
+        * password - Password to send.
+        """
+        with self.lock:
+            self.send ('PASS :%s' % password)
+            
+            if self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
-    
-                if ncode in self.err_replies.keys():
+                if ncode in self.error_dictionary.keys():
                         self.exception (ncode)
-                    
-                elif self.find (data, 'SQUIT') and self.hide_called_events:
-                        pass
-                else: self.buffer.append (data)
+                else: self.index -= 1
+    
+    def nick (self, nick):
+        """
+        Sets your nick.
+        Required arguments:
+        * nick - New nick.
+        """
+        with self.lock:
+            self.send ('NICK :%s' % nick)
+            
+            if self.readable():
+                data = self.recv()
+                ncode = data.split() [1]
+                if ncode in self.error_dictionary.keys():
+                        self.exception (ncode)
+                elif data.split() [1] == 'NICK' and self.hide_called_events: pass
+                else: self.index -= 1
+    
+            for channel in self.channels:
+                priv_level = self.channels[channel]['USERS'][self.current_nick]
+                del self.channels[channel]['USERS'][self.current_nick]
+                self.channels[channel]['USERS'][nick] = priv_level
+            self.current_nick = nick
 
+    def _user (self, user, real_name):
+        """
+        Sends the USER message.
+        Required arguments:
+        * user - Username to send.
+        * real_name - Real name to send.
+        """
+        with self.lock:
+            self.send ('USER %s 0 * :%s' % (user, real_name))
+            if self.readable():
+                data = self.recv()
+                ncode = data.split() [1]
+                if ncode in self.error_dictionary.keys():
+                        self.exception (ncode)
+                else: self.index -= 1
+    
+    def oper (self, name, password):
+        """
+        Opers up.
+        Required arguments:
+        * name - Oper name.
+        * password - Oper password.
+        """
+        with self.lock:
+            self.send ('OPER %s %s' % (name, password))
+            snomasks = ''
+            new_umodes = ''
+            if self.readable():
+                    data = self.recv()
+                    ncode = data.split() [1]
+        
+                    if ncode in self.error_dictionary.keys():
+                            self.exception (ncode)
+                    elif self.find (data, 'MODE'):
+                            new_umodes = data.split() [-1].replace(':', '')
+                    elif ncode == '381':
+                            return (new_umodes, snomasks)
+                    elif ncode == '008':
+                            snomasks = data.split ('(') [1].split (')') [0]
+                    else:
+                        self.index -= 1
+                    
+    def umode (self, nick, modes=''):
+        """
+        Sets/gets user modes.
+        Required arguments:
+        * nick - Nick to set/get user modes for.
+        Optional arguments:
+        * modes='' - Sets these user modes on a nick.
+        """
+        with self.lock:
+            if modes == '':
+                self.send ('MODE %s' % nick)
+                modes = ''
+                if self.readable():
+                    modes = ' '.join (self.recv().split() [3:]).replace('+', '').replace(':', '')
+                return modes
+                
+            else:
+                self.send ('MODE %s %s' % (nick, modes))
+            
+            if self.readable():
+                    data = self.recv()
+                    ncode = data.split() [1]
+        
+                    if ncode in self.error_dictionary.keys():
+                            self.exception (ncode)
+                    elif ncode == '221':
+                            return data.split() [3].replace(':', '')
+                    elif self.find (data, 'MODE') and self.hide_called_events:
+                            pass
+                    else:
+                        self.index -= 1
+                    
+    def service (self):
+        """ Not implemented. """
+        pass
+    
+    def _quit (self, reason=None):
+        """
+        Sends a QUIT message to the server.
+        Optional arguments:
+        * reason - Reason for quitting.
+        """
+        with self.lock:
+            if reason == None:
+                self.send ('QUIT')
+            else:
+                self.send ('QUIT :%s' % reason)
+    
+    def quit (self, reason=None):
+        """
+        Sends a QUIT message, closes the connection and ends Lurklib's mainloop.
+        Optional arguments:
+        * reason - Reason for quitting.
+        """
+        with self.lock:
+            self.keep_going = False
+            self._quit (reason)
+            self.s.shutdown (2)
+            self.s.close()
+            
+    def squit (self, server, reason=''):
+        """
+        Quits a server.
+        Required arguments:
+        * server - Server to quit.
+        Optional arguments:
+        * reason='' - Reason for the server quitting.
+        """
+        with self.lock:
+            self.send('SQUIT %s :%s' % (server, reason))
+                
+            while self.readable():
+                    data = self.recv()
+                    ncode = data.split() [1]
+        
+                    if ncode in self.error_dictionary.keys():
+                            self.exception (ncode)
+                        
+                    elif self.find (data, 'SQUIT') and self.hide_called_events:
+                            pass
+                    else:
+                        self.index -= 1

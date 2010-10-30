@@ -1,29 +1,57 @@
+#    This file is part of the Lurklib Internet Relay Chat Library
+#    Copyright (C) 2010  Jamie Shaw (LK-)
+#    
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#    
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#    
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+'''
+Lurklib usage example.
+'''
+
 import lurklib
 
 def on_auto():
     ''' Join #bots and print it's information out. '''
-    print(irc.join('#bots'))
+    print(IRC.join('#bots'))
+    print(IRC.who('#bots'))
     
 def on_privmsg (event):
-    ''' An event argument must be accepted by all hooked method, except the AUTO hook. '''
+    '''
+    An event argument must be accepted by all hooked methods -
+    except the AUTO hook.
+    '''
     if event [2].lower() == 'hello':
-        irc.msg (event [1], 'Hello, %s!' % event [0] [0])
+        IRC.msg (event [1], 'Hello, %s!' % event [0] [0])
         print ('%s said hello!' % event [0] [0])
     elif event [2].lower() == '!quit':
-        irc.end ('Bye!')
+        IRC.end ('Bye!')
 
 def on_unhandled (event):
-    ''' This method will be called, when their isn't a method specified for said event. '''
+    '''
+    This method will be called -
+    when their isn't a method specified for said event.
+    '''
     print (event)
 
-''' Specify our hooks, and the method to be called when said hook is triggered. '''
-hooks = { \
+# Specify our hooks, and the method to be called when said hook is triggered.
+HOOKS = { \
          'PRIVMSG' : on_privmsg,
          'AUTO' : on_auto,
          'UNHANDLED' : on_unhandled
          }
-''' Connect to IRC, and assign the irc object, to the irc variable. '''
-irc = lurklib.irc (server='irc.codeshock.org', nick='HelloBot', hooks=hooks)
+# Connect to IRC, and assign the irc object, to the irc variable.
+IRC = lurklib.IRC (server='localhost', nick=('HelloBot', 'HelloBot-'), hooks=HOOKS)
 
-''' Enter lurklib's mainloop which will keep you connected to IRC, and process events, and call the specified hooks when necessary. '''
-irc.mainloop()
+# Enter lurklib's mainloop which will keep you connected to IRC - 
+# and call the specified hooks when necessary.
+IRC.mainloop()

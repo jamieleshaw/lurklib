@@ -1,20 +1,51 @@
-def msg (self, target, message):
-    ''' Sends a PRIVMSG '''
-    with self.lock:
-        self.rsend ('PRIVMSG ' + target + ' :' + message)
-        if self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-            if ncode in self.err_replies.keys():
-                self.exception (ncode)
-            elif ncode == '301': return ('AWAY', data.split (None, 3) [3] [1:])
-def notice (self, target, message):
-    ''' Sends a NOTICE '''
-    with self.lock:
-        self.rsend ('NOTICE ' + target + ' :' + message)
-        if self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-            if ncode in self.err_replies.keys():
-                self.exception (ncode)
-            elif ncode == '301': return ('AWAY', data.split (None, 3) [3] [1:])
+#    This file is part of The Lurk Internet Relay Chat Library.
+#    Copyright (C) 2010  Jamie Shaw (LK-) <jamieleshaw@gmail.com>
+#    
+#    Lurklib is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#    
+#    Lurklib is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#    
+#    You should have received a copy of the GNU General Public License
+#    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
+""" File for sending-related things. """
+class _Sending(object):
+    """ Defines PRIVMSG and NOTICE methods. """
+    def privmsg (self, target, message):
+        """
+        Sends a PRIVMSG to someone.
+        Required arguments:
+        * target - Who to send the message to.
+        * message - Message to send.
+        """
+        with self.lock:
+            self.rsend ('PRIVMSG ' + target + ' :' + message)
+            if self.readable():
+                data = self.recv()
+                ncode = data.split() [1]
+                if ncode in self.error_hashtable.keys():
+                    self.exception (ncode)
+                elif ncode == '301':
+                    return 'AWAY', data.split (None, 3) [3].replace(':', '')
+
+    def notice (self, target, message):
+        """
+        Sends a NOTICE to someone.
+        Required arguments:
+        * target - Who to send the message to.
+        * message - Message to send.
+        """
+        with self.lock:
+            self.rsend ('NOTICE ' + target + ' :' + message)
+            if self.readable():
+                data = self.recv()
+                ncode = data.split() [1]
+                if ncode in self.error_hashtable.keys():
+                    self.exception (ncode)
+                elif ncode == '301':
+                    return 'AWAY', data.split (None, 3) [3].replace(':', '')

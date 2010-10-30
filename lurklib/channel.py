@@ -1,288 +1,486 @@
-def join (self, channel, key=None):
-    '''
-    join() returns a a tuple of information about the channel.
-    [0] is a tuple of /NAMES
-    [1] is the topic
-    [2] is a tuple of information about the person who set the topic.
-    [3] is a time object, of when the topic was set
-    '''
-    with self.lock:
-        topic = ''
-        names = ()
-        set_by = ''
-        time_set = ''
-        for x in self.channels:
-            if self.compare (x, channel):
-                raise self.AlreadyInChannel ('Already in ' + channel + '.')
+#    This file is part of The Lurk Internet Relay Chat Library.
+#    Copyright (C) 2010  Jamie Shaw (LK-) <jamieleshaw@gmail.com>
+#    
+#    Lurklib is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#    
+#    Lurklib is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#    
+#    You should have received a copy of the GNU General Public License
+#    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
+""" Channel-related interaction file. """
+class _Channel(object):
+    """ Channel-related interaction class. """
+    def is_in_channel(self, channel):
+        """
+        Find out if you are in a channel.
+        Required arguments:
+        * channel - Channel to check whether you are in it or not.
+        """
+        for channel_ in self.channels:
+            if self.compare(channel_, channel):
+                return True
+        return False
+    
+    def join (self, channel, key=None):
+        """
+        Joins a channel.
+        Returns a tuple of information regarding the channel.
+        Channel Information:
+        * [0] - A tuple containing /NAMES.
+        * [1] - Channel topic.
+        * [2] - Tuple containing information regarding of whom set the topic.
+        * [3] - Time object about when the topic was set.
+        Required arguments:
+        * channel - The channel to join.
+        Optional arguments:
+        * key - Channel key.
+        """
+
+        with self.lock:
+            topic = ''
+            names = []
+            set_by = ''
+            time_set = ''
+            if self.is_in_channel(channel):
+                raise self.AlreadyInChannel ('LurklibError: AlreadyInChannel')
+            
+            if key != None:
+                self.send('JOIN %s %s' % (channel, key))
+            else:
+                self.send('JOIN %s' % channel)
+            
+            while self.readable(4):
+                    data = self.recv()
+                    ncode = data.split() [1]
         
-        if key != None:
-            self.rsend ('JOIN ' + channel + ' ' + key)
-        else:
-            self.rsend ('JOIN ' + channel)
-        
-        while self.readable(4):
+                    if ncode == '332':
+                        topic = data.split (None, 4) [4].replace (':', '')
+                    elif ncode == '333':
+                        segments = data.split()
+                        if self.UTC == False:
+                            time_set = self.m_time.localtime (int (segments [5]))
+                        else:
+                            time_set = self.m_time.gmtime (int (segments [5]))
+                        set_by = self.from_ (segments [4])
+                        
+                    elif ncode == '353':
+                        new_names = data.split() [5:]
+                        new_names[0] = new_names[0].replace(':', '')
+                        try:
+                            names.extend(new_names)
+                        except NameError:
+                            names = new_names
+                    elif self.find (data, 'JOIN'):
+                        channel = data.split()[2].replace (':', '')
+                        self.channels[channel] = {}
+                        if self.hide_called_events == False:
+                            self.buffer.append (data)
+                    elif ncode in self.error_dictionary.keys():
+                        self.exception (ncode)
+                    elif ncode == '366':
+                        break
+                    else:
+                        self.buffer.append (data)
+    
+            self.channels[channel]['USERS'] = {}
+            for name in names:
+                prefix = ''
+                if name[0] in self.priv_types:
+                    prefix = name[0]
+                    name = name[1:]
+                if prefix == '~':
+                    self.channels[channel]['USERS'][name] = ['~','','','','']
+                elif prefix == '&':
+                    self.channels[channel]['USERS'][name] = ['','&','','','']
+                elif prefix == '@':
+                    self.channels[channel]['USERS'][name] = ['','','@','','']
+                elif prefix == '%':
+                    self.channels[channel]['USERS'][name] = ['','','','%','']
+                elif prefix == '+':
+                    self.channels[channel]['USERS'][name] = ['','','','','+']
+                else:
+                    self.channels[channel]['USERS'][name] = ['','','','','']
+        return (names, topic, set_by, time_set)
+    
+    def part (self, channel, reason=None):
+        """
+        Part a channel.
+        Required arguments:
+        * channel - Channel to part.
+        Optional arguments:
+        * reason - Reason for parting.
+        """
+        with self.lock:
+            if self.is_in_channel(channel) == False:
+                raise self.NotInChannel ('LurklibError: NotInChannel')
+            
+            if reason == None:
+                self.send ('PART %s' % channel)
+            else:
+                self.send ('PART %s :%s' % (channel, reason))
+            
+            if self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
+                if ncode in self.error_dictionary.keys():
+                    self.exception (ncode)
+                elif self.find (data, 'PART'):
+                    del self.channels[data.split() [2]]
+                    if self.hide_called_events == False:
+                        self.buffer.append (data)
+                else:
+                    self.index -= 1
     
-                if ncode == '332':
-                    topic = data.split (None, 4) [4] [1:]
-                elif ncode == '333':
+    def cmode (self, channel, modes=''):
+        """
+        Sets or gets the channel mode.
+        Required arguments:
+        * channel - Channel to set/get modes of.
+        Optional arguments:
+        * modes - Modes to set. If not specified return the modes of the channel.
+        """
+        with self.lock:
+            if self.is_in_channel(channel) == False:
+                raise self.NotInChannel ('LurklibError: NotInChannel')
+            
+            if modes == '':
+                    self.send ('MODE %s' % channel)
+                    if self.readable():
+                        return self.recv().split() [4].replace('+', '').replace(':', '')
+            else:
+                self.send ('MODE %s %s' % (channel, modes))
+            
+                if self.readable():
+                    data = self.recv()
                     segments = data.split()
-                    if self.UTC == False: time_set = self.time.localtime (int (segments [5]))
-                    else: time_set = self.time.gmtime (int (segments [5]))
-                    set_by = self.who_is_it (segments [4])
-                    
-                elif ncode == '353':
-                    new_names = data.split() [5:].replace(':', '')
-                    try: names.append = new_names
-                    except NameError: names = new_names
-                elif self.find (data, 'JOIN'):
-                    channel = data.split()[2][1:]
-                    self.channels[channel] = {}
-                    if self.hide_called_events == False: self.buffer.append (data)
-                elif ncode in self.err_replies.keys(): self.exception (ncode)
-                elif ncode == '366': break
-                else: self.buffer.append (data)
-
-        self.channels[channel]['USERS'] = {}
-        for name in names:
-            prefix = ''
-            if name[0] in self.priv_types:
-                prefix = name[0]
-                name = name[1:]
-            self.channels[channel]['USERS'][name] = prefix
-    return (tuple(names), topic, set_by, time_set)
-
-def part (self, channel, reason=None):
-    ''' Part a channel '''
-    with self.lock:
-        for x in self.channels:
-            if self.compare (channel, x): raise self.NotInChannel ('Not in ' + channel + '.')
-        
-        if reason == None:
-                self.rsend ('PART ' + channel)
-        else:
-                self.rsend ('PART ' + channel + ' :' + reason)
-        
-        if self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-            if ncode in self.err_replies.keys():
-                self.exception (ncode)
-            elif self.find (data, 'PART'):
-                del self.channels[data.split() [2]]
-                if self.hide_called_events == False: self.buffer.append (data)
-            else: self.buffer.append (data)
-
-def cmode (self, channel, modes=''):
-    ''' Sets or gets channel modes '''
-    with self.lock:
-        for x in self.channels:
-            if self.compare (channel, x): raise self.NotInChannel ('Not in ' + channel + '.')
-        if modes == '':
-                self.rsend ('MODE ' + channel)
-                if self.readable(): return self.recv().split() [4].replace('+', '').replace(':', '')
-        else:
-            self.rsend ('MODE ' + channel + ' ' + modes)
-        
-            if self.readable():
-                data = self.recv()
-                ncode = data.split() [1]
-        
-                if ncode in self.err_replies.keys():
-                    self.exception (ncode)
-                elif self.find (data, 'MODE') and self.hide_called_events:
-                    pass
-                else: self.buffer.append (data)
+                    ncode = segments [1]
             
-def banlist (self, channel):
-    '''
-    returns a tuple of the banlist
-    '''
-    with self.lock:
-        self.rsend ('MODE ' + channel + ' +b')
-        bans = []
-    
-        while self.readable():
+                    if ncode in self.error_dictionary.keys():
+                        self.exception (ncode)
+                    elif self.find (data, 'MODE'):
+                        channel = data.split()[2].replace (':', '')
+                        mode = ' '.join (segments [3:]).replace (':', '')
+                        self.parse_cmode_string(mode, channel)
+                        if self.hide_called_events == False:
+                            self.buffer.append (data)
+                    else:
+                        self.index -= 1
+                
+    def banlist (self, channel):
+        """
+        Get the channel banlist.
+        Required arguments:
+        * channel - Channel of which to get the banlist for.
+        """
+        with self.lock:
+            if self.is_in_channel(channel) == False:
+                raise self.NotInChannel ('LurklibError: NotInChannel')
             
-            data = self.recv()
-            ncode = data.split() [1]
-    
-            if ncode in self.err_replies.keys():
-                self.exception (ncode)
-            elif ncode == '367':
-                bans.append (data.split() [4])
-            elif ncode == '368': break
-            else: self.buffer.append (data)
-        return tuple (bans)
-def exceptlist (self, channel):
-    '''
-    returns a tuple of the exceptlist
-    '''
-    with self.lock:
-        self.rsend ('MODE ' + channel + ' +e')
-        excepts = []
-    
-        while self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-    
-            if ncode in self.err_replies.keys():
-                self.exception (ncode)
-            elif ncode == '348':
-                excepts.append (data.split() [4])
-            elif ncode == '349': break
-            else: self.buffer.append (data)
-    
-        return tuple (excepts)
-def invitelist (self, channel):
-    '''
-    returns a tuple of the invitelist
-    '''
-    with self.lock:
-        self.rsend ('MODE ' + channel + ' +i')
-        invites = []
-    
-        while self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-    
-            if ncode in self.err_replies.keys():
-                self.exception (ncode)
-            elif ncode == '346':
-                invites.append (data.split() [4])
-            elif ncode == '347': break
-            else: self.buffer.append (data)
-    
-        return tuple (invites)
-def topic (self, channel, topic=None):
-    '''
-    Either changes the topic or gets the topic, with no topic param, it returns a tuple of topic information
-    [0] is the topic
-    [1] person who set it
-    [2] time set
-    '''
-    with self.lock:
-        topic = ''
-        set_by = ''
-        time_set = ''
-        if topic != None:
-            self.rsend ('TOPIC ' + channel + ' :' + topic)
-            if self.readable():
-                data = self.recv()
-                ncode = data.split() [1]
-                if ncode in self.err_replies.keys():
-                    self.exception (ncode)
-                elif self.find (data, 'TOPIC') and self.hide_called_events:
-                    pass
-            topic = topic
-        else:
-            self.rsend ('TOPIC ' + channel)
+            self.send ('MODE %s b' % channel)
+            bans = []
+        
             while self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
-                if ncode in self.err_replies.keys():
+        
+                if ncode in self.error_dictionary.keys():
                     self.exception (ncode)
-                elif ncode == '332':
-                    topic = data.split (None, 4) [4] [1:]
-                    self.recv()
-                elif self.find (data, 'TOPIC') and self.hide_called_events:
-                    pass
-                elif ncode == '333':
-                    segments = data.split()
-                    if self.UTC == False: time_set = self.time.localtime (int (segments [5]))
-                    else: time_set = self.time.gmtime (int (segments [5]))
-                    set_by = self.who_is_it (segments [4])
-                elif ncode == '331': topic = ''
-                else: self.buffer.append (data)
-    
-        return topic, set_by, time_set
-def names (self, channel):
-    ''' Runs a /NAMES '''
-    with self.lock:
-        self.rsend ('NAMES ' + channel)
-        names = []
-    
-        while self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-    
-            if ncode == '353':
-                new_names = data.split() [5:].replace(':', '')
-                try: names.append = new_names
-                except NameError: names = new_names
-            elif ncode in self.err_replies.keys():
-                self.exception (ncode)
-            elif ncode == '366':
-                channel = data.split()[3]
-                break
-            else: self.buffer.append (data)
-        for name in names:
-            prefix = ''
-            if name[0] in self.priv_types:
-                prefix = name[0]
-                name = name[1:]
-            self.channels[channel]['USERS'][name] = prefix
-        return tuple (names)
-def slist (self):
-    ''' Runs a LIST '''
-    with self.lock:
-        self.rsend ('LIST')
-        list_info = { }
-    
-        while self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-    
-            if ncode == '322':
-                raw_lst = data.split (None, 5)
-                list_info [ raw_lst [3] ] = (raw_lst [4], raw_lst [5] [1:])
-            elif ncode == '321':
-                pass
-            elif ncode in self.err_replies.keys():
-                self.exception (ncode)
-            elif ncode == '323': break
-            else: self.buffer.append (data)
-        return list_info
-def invite (self, channel, nick):
-    ''' Invites a nick '''
-    with self.lock:
-        self.rsend ('INVITE ' + nick + ' ' + channel)
-    
-        while self.readable():
+                elif ncode == '367':
+                    bans.append (data.split() [4])
+                elif ncode == '368':
+                    break
+                else:
+                    self.buffer.append (data)
+            return bans
+
+    def exceptlist (self, channel):
+        """
+        Get the channel exceptlist.
+        Required arguments:
+        * channel - Channel of which to get the exceptlist for.
+        """
+        with self.lock:
+            if self.is_in_channel(channel) == False:
+                raise self.NotInChannel ('LurklibError: NotInChannel')
+            
+            self.send ('MODE %s e' % channel)
+            excepts = []
+        
+            while self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
-    
-                if ncode in self.err_replies.keys():
-                    self.exception (ncode)
-                elif ncode == '341':
-                    pass
-                elif ncode == '301':
-                    return 'AWAY'
-                elif self.find (data, 'INVITE') and self.hide_called_events:
-                    pass
-                else: self.buffer.append (data)
-
-
-def kick (self, channel, nick, reason=''):
-    ''' Kicks a nick '''
-    with self.lock:
-        self.rsend ('KICK ' + channel + ' ' + nick + ' :' + reason)
         
-        for x in self.channels:
-            if self.compare (channel, x): raise self.NotInChannel ('Not in ' + channel + '.')
-        
-        if self.readable():
-            data = self.recv()
-            ncode = data.split() [1]
-    
-            if ncode in self.err_replies.keys():
+                if ncode in self.error_dictionary.keys():
                     self.exception (ncode)
-            elif self.find (data, 'KICK') and self.hide_called_events:
-                channel = data.split()[2]
-                if self.hide_called_events == False: self.buffer.append (data)
-            else: self.buffer.append (data)
+                elif ncode == '348':
+                    excepts.append (data.split() [4])
+                elif ncode == '349':
+                    break
+                else:
+                    self.buffer.append (data)
+        
+            return excepts
+
+    def invitelist (self, channel):
+        """
+        Get the channel invitelist.
+        Required arguments:
+        * channel - Channel of which to get the invitelist for.
+        """
         with self.lock:
+            if self.is_in_channel(channel) == False:
+                raise self.NotInChannel ('LurklibError: NotInChannel')
+            
+            self.send ('MODE %s i' % channel)
+            invites = []
+        
+            while self.readable():
+                data = self.recv()
+                ncode = data.split() [1]
+        
+                if ncode in self.error_dictionary.keys():
+                    self.exception (ncode)
+                elif ncode == '346':
+                    invites.append (data.split() [4])
+                elif ncode == '347':
+                    break
+                else:
+                    self.buffer.append (data)
+        
+            return invites
+
+    def topic (self, channel, topic=None):
+        """
+        Sets/gets the channel topic.
+        Required arguments:
+        * channel - Channel to set/get the topic for.
+        Optional arguments:
+        * topic - Topic to set. If not specified the current channel topic will be returned.
+        """
+        with self.lock:
+            if self.is_in_channel(channel) == False:
+                raise self.NotInChannel ('LurklibError: NotInChannel')
+            
+            topic = ''
+            set_by = ''
+            time_set = ''
+            if topic != None:
+                self.send ('TOPIC %s :%s' % (channel, topic))
+                if self.readable():
+                    data = self.recv()
+                    ncode = data.split() [1]
+                    if ncode in self.error_dictionary.keys():
+                        self.exception (ncode)
+                    elif self.find (data, 'TOPIC') and self.hide_called_events:
+                        channel = data.split()[2].replace(':', '')
+                        self.channels[channel]['TOPIC'] = topic
+                        if self.hide_called_events == False:
+                            self.buffer.append (data)
+                    else:
+                        self.index -= 1
+            else:
+                self.send ('TOPIC ' + channel)
+                while self.readable():
+                    data = self.recv()
+                    ncode = data.split() [1]
+                    if ncode in self.error_dictionary.keys():
+                        self.exception (ncode)
+                    elif ncode == '332':
+                        topic = data.split (None, 4) [4].replace(':', '')
+                        self.recv()
+                    elif self.find (data, 'TOPIC'):
+                        channel = data.split()[2].replace(':', '')
+                        self.channels[channel]['TOPIC'] = topic
+                        if self.hide_called_events == False:
+                            self.buffer.append (data)
+                    elif ncode == '333':
+                        segments = data.split()
+                        if self.UTC == False:
+                            time_set = self.m_time.localtime (int (segments [5]))
+                        else:
+                            time_set = self.m_time.gmtime (int (segments [5]))
+                        set_by = self.from_ (segments [4])
+                    elif ncode == '331':
+                        topic = ''
+                    else:
+                        self.buffer.append (data)
+        
+            return topic, set_by, time_set
+
+    def names (self, channel):
+        """
+        Get a list of users in the channel.
+        Required arguments:
+        * channel - Channel to get list of users for.
+        """
+        with self.lock:
+            if self.is_in_channel(channel) == False:
+                raise self.NotInChannel ('LurklibError: NotInChannel')
+            
+            self.send ('NAMES %s' % channel)
+            names = []
+        
+            while self.readable():
+                data = self.recv()
+                ncode = data.split() [1]
+        
+                if ncode == '353':
+                    new_names = data.split() [5:]
+                    new_names[0] = new_names[0].replace(':', '')
+                    try: names.append = new_names
+                    except NameError: names = new_names
+                elif ncode in self.error_dictionary.keys():
+                    self.exception (ncode)
+                elif ncode == '366':
+                    channel = data.split()[3]
+                    break
+                else:
+                    self.buffer.append (data)
+            for name in names:
+                prefix = ''
+                if name[0] in self.priv_types:
+                    prefix = name[0]
+                    name = name[1:]
+                if prefix == '~':
+                    self.channels[channel]['USERS'][name] = ['~','','','','']
+                elif prefix == '&':
+                    self.channels[channel]['USERS'][name] = ['','&','','','']
+                elif prefix == '@':
+                    self.channels[channel]['USERS'][name] = ['','','@','','']
+                elif prefix == '%':
+                    self.channels[channel]['USERS'][name] = ['','','','%','']
+                elif prefix == '+':
+                    self.channels[channel]['USERS'][name] = ['','','','','+']
+                else:
+                    self.channels[channel]['USERS'][name] = ['','','','','']
+            return names
+
+    def slist (self):
+        """ Gets a list of channels on the server. """
+        with self.lock:
+            self.send ('LIST')
+            list_ = {}
+        
+            while self.readable():
+                data = self.recv()
+                ncode = data.split() [1]
+        
+                if ncode == '322':
+                    raw_lst = data.split (None, 6)
+                    modes = raw_lst [5].replace(':', '').replace('[', '').replace(']', '')
+                    list_[raw_lst [3]] = (raw_lst [4], modes, raw_lst[6])
+                elif ncode == '321':
+                    pass
+                elif ncode in self.error_dictionary.keys():
+                    self.exception (ncode)
+                elif ncode == '323':
+                    break
+                else:
+                    self.buffer.append (data)
+            return list_
+
+    def invite (self, channel, nick):
+        """
+        Invite someone to a channel.
+        Required arguments:
+        * channel - Channel to invite them to.
+        * nick - Nick to invite.
+        """
+        with self.lock:
+            if self.is_in_channel(channel) == False:
+                raise self.NotInChannel ('LurklibError: NotInChannel')
+            
+            self.send ('INVITE %s %s' % (nick, channel))
+        
+            while self.readable():
+                    data = self.recv()
+                    ncode = data.split() [1]
+        
+                    if ncode in self.error_dictionary.keys():
+                        self.exception (ncode)
+                    elif ncode == '341':
+                        pass
+                    elif ncode == '301':
+                        print(data)
+                        return 'AWAY', data.split (None, 3) [3].replace(':', '')
+                    elif self.find (data, 'INVITE') and self.hide_called_events:
+                        pass
+                    else:
+                        self.buffer.append (data)
+    
+    def kick (self, channel, nick, reason=''):
+        """
+        Kick someone from a channel.
+        Required arguments:
+        * channel - Channel to kick them fromn.
+        * nick - Nick to kick.
+        Optional arguments:
+        * reason - Reason for the kick.
+        """
+        with self.lock:
+            if self.is_in_channel(channel) == False:
+                raise self.NotInChannel ('LurklibError: NotInChannel')
+            
+            self.send ('KICK %s %s :%s' % (channel, nick, reason))
+            
+            if self.readable():
+                data = self.recv()
+                ncode = data.split() [1]
+        
+                if ncode in self.error_dictionary.keys():
+                        self.exception (ncode)
+                elif self.find (data, 'KICK'):
+                    channel = data.split()[2]
+                    if self.hide_called_events == False:
+                        self.buffer.append (data)
+                else:
+                    self.index -= 1
             if self.compare(self.current_nick, nick):
                 del self.channels[channel]
-
+    def parse_cmode_string(self, mode_string, channel):
+        """
+        Parse a channel mode string and update the IRC.channels dictionary.
+        Required arguments:
+        * mode_string - Mode string to parse.
+        * channel - Channel of which the modes were set.
+        """
+        with self.lock:
+            modes = mode_string.split()
+            targets = modes[1:]
+            modes = modes[0][1:].split()
+            
+            if mode_string[0] == '+':
+                plus_mode = True
+            else:
+                plus_mode = False
+            for mode in modes:
+                if mode in self.priv_types:
+                    target = targets[modes.index(mode)]
+                    if plus_mode:
+                        if mode == 'q':
+                            self.channels[channel]['USERS'][target][0] = '~'
+                        elif mode == 'a':
+                            self.channels[channel]['USERS'][target][1] = '&'
+                        elif mode == 'o':
+                            self.channels[channel]['USERS'][target][2] = '@'
+                        elif mode == 'h':
+                            self.channels[channel]['USERS'][target][3] = '%'
+                        elif mode == 'v':
+                            self.channels[channel]['USERS'][target][4] = '+'
+                    else:
+                        if mode == 'q':
+                            self.channels[channel]['USERS'][target][0] = ''
+                        elif mode == 'a':
+                            self.channels[channel]['USERS'][target][1] = ''
+                        elif mode == 'o':
+                            self.channels[channel]['USERS'][target][2] = ''
+                        elif mode == 'h':
+                            self.channels[channel]['USERS'][target][3] = ''
+                        elif mode == 'v':
+                            self.channels[channel]['USERS'][target][4] = ''
