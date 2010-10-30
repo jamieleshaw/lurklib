@@ -1,25 +1,28 @@
-#    This file is part of The Lurk Internet Relay Chat Library.
+#    This file is part of Lurklib.
 #    Copyright (C) 2010  Jamie Shaw (LK-)
-#    
+#
 #    Lurklib is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
-#    
+#
 #    Lurklib is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
-#    
+#
 #    You should have received a copy of the GNU General Public License
 #    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
+
 """ Main Lurklib file. """
+
 from __future__ import with_statement
 from . import variables, exceptions, channel
 from . import connection, optional, sending, squeries, uqueries
 import sys
 import select
-__version__ = 'Beta 3 AKA 0.5.2'
+
+__version__ = '0.6'
 
 
 class IRC(variables._Variables, exceptions._Exceptions,
@@ -230,7 +233,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                         ncode = data.split()[1]
 
                         if self.find(data, '332'):
-                            topic = data.split(None, 4)[4].replace(':', '')
+                            topic = data.split(None, 4)[4].replace(':', '', 1)
                         elif self.find(data, '333'):
                             segments = data.split()
                             if self.UTC == False:
@@ -241,7 +244,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                             set_by = self.from_(segments[4])
 
                         elif self.find(data, '353'):
-                            new_names = data.split()[5:].replace(':', '')
+                            new_names = data.split()[5:].replace(':', '', 1)
                             try:
                                 names.append = new_names
                             except NameError:
@@ -268,68 +271,79 @@ class IRC(variables._Variables, exceptions._Exceptions,
                     self.channels[channel]['USERS'][who[0]] = \
                     ['', '', '', '', '']
                 return 'JOIN', who, channel
+
             elif segments[1] == 'PART':
-                who = self.from_(segments[0].replace(':', ''))
+                who = self.from_(segments[0].replace(':', '', 1))
                 channel = segments[2]
                 del self.channels[channel]['USERS'][who[0]]
                 try:
-                    reason = ' '.join(segments[3:]).replace(':', '')
+                    reason = ' '.join(segments[3:]).replace(':', '', 1)
                     return 'PART', who, channel, reason
                 except IndexError:
-                    who = self.from_(segments[0].replace(':', ''))
+                    who = self.from_(segments[0].replace(':', '', 1))
                     return 'PART', who, channel, ''
 
             elif segments[1] == 'PRIVMSG':
-                who = self.from_(segments[0].replace(':', ''))
-                msg = ' '.join(segments[3:]).replace(':', '')
+                who = self.from_(segments[0].replace(':', '', 1))
+                msg = ' '.join(segments[3:]).replace(':', '', 1)
                 rvalue = 'PRIVMSG', (who, segments[2], msg)
 
                 if msg.find('\001') == 0:
                     rctcp = self.ctcp_decode(msg).upper()
                     segments = rctcp.split()
                     if segments[0] == 'ACTION':
-                        return 'ACTION', (rvalue[1][:2], ' '.join(rctcp.split()[1:]))
+                        action = ' '.join(rctcp.split()[1:])
+                        return 'ACTION', (rvalue[1][:2], action)
                     for ctcp in self.ctcps.keys():
                         if ctcp == segments[0] and self.ctcps[ctcp] != None:
-                            if hasattr (self.ctcps[ctcp], '__call__'):
-                                response = str (self.ctcps[ctcp] ())
+                            if hasattr(self.ctcps[ctcp], '__call__'):
+                                response = str(self.ctcps[ctcp]())
                             else:
                                 try:
-                                    response = '%s %s' % (ctcp, segments [int(self.ctcps[ctcp])])
+                                    response = segments[int(self.ctcps[ctcp])]
+                                    response = '%s %s' % (ctcp, response)
                                 except ValueError:
-                                    response = self.ctcp [ctcp]
+                                    response = self.ctcp[ctcp]
                             self.notice(who[0], self.ctcp_encode(response))
                             break
                     return 'CTCP', (rvalue[1][:2], rctcp)
-                else: return rvalue
-            elif segments [1] == 'NOTICE':
-                msg = ' '.join (segments [3:]).replace(':', '')
-                if msg.find ('\001') == 0:
+                else:
+                    return rvalue
+
+            elif segments[1] == 'NOTICE':
+                who = self.from_(segments[0].replace(':', '', 1))
+                msg = ' '.join(segments[3:]).replace(':', '', 1)
+                if msg.find('\001') == 0:
                     msg = self.ctcp_decode(msg)
-                    return 'CTCP_REPLY', (self.from_ (segments [0].replace(':', '')), segments [2], msg)
-                return 'NOTICE', (self.from_ (segments [0] [1:]), segments [2], msg)
-    
-            elif segments [1] == 'MODE':
-                mode = ' '.join (segments [3:]).replace (':', '')
-                who = self.from_ (segments [0][1:])
+                    return 'CTCP_REPLY', (who, segments[2], msg)
+                return 'NOTICE', (who, segments[2], msg)
+
+            elif segments[1] == 'MODE':
+                mode = ' '.join(segments[3:]).replace(':', '', 1)
+                who = self.from_(segments[0][1:])
                 target = segments[2]
                 if target != self.current_nick:
                     self.parse_cmode_string(mode, target)
-                    return 'MODE', (who, segments [2], mode)
-                else: return 'MODE', (mode.replace(':', ''))
-            
-            elif segments [1] == 'KICK':
-                who = self.from_(segments [0].replace(':', ''))
-                if self.current_nick == segments[3]: del self.channels['USERS'][segments[2]]
+                    return 'MODE', (who, segments[2], mode)
+                else:
+                    return 'MODE', (mode.replace(':', '', 1))
+
+            elif segments[1] == 'KICK':
+                who = self.from_(segments[0].replace(':', '', 1))
+                if self.current_nick == segments[3]:
+                    del self.channels['USERS'][segments[2]]
                 del self.channels[channel][segments[3]]
-                return 'KICK', (who, segments [2], segments [3], ' '.join (segments [4:]) [1:])
-    
-            elif segments [1] == 'INVITE':
-                return 'INVITE', (self.from_ (segments [0].replace(':', '')), segments [2], segments [3].replace(':', ''))
-    
-            elif segments [1] == 'NICK':
-                who = self.from_ (segments[0].replace(':', ''))
-                new_nick = ' '.join (segments[2:])
+                reason = ' '.join(segments[4:]).replace(':', '', 1)
+                return 'KICK', (who, segments[2], segments[3], reason)
+
+            elif segments[1] == 'INVITE':
+                who = self.from_(segments[0].replace(':', '', 1))
+                channel = segments[3].replace(':', '', 1)
+                return 'INVITE', (who, segments[2], channel)
+
+            elif segments[1] == 'NICK':
+                who = self.from_(segments[0].replace(':', '', 1))
+                new_nick = ' '.join(segments[2:])
                 if self.current_nick == who[0]:
                     self.current_nick = new_nick
                 for channel in self.channels:
@@ -337,73 +351,78 @@ class IRC(variables._Variables, exceptions._Exceptions,
                     del self.channels[channel]['USERS'][who[0]]
                     self.channels[channel]['USERS'][new_nick] = priv_level
                 return 'NICK', (who, new_nick)
-    
-            elif segments [1] == 'TOPIC':
+
+            elif segments[1] == 'TOPIC':
+                who = self.from_(segments[0].replace(':', '', 1))
                 channel = segments[2]
-                topic = ' '.join (segments [3:]).replace(':', '')
+                topic = ' '.join(segments[3:]).replace(':', '', 1)
                 self.channels[channel]['TOPIC'] = topic
-                return 'TOPIC', (self.from_ (segments [0].replace(':', '')), channel, topic)
-    
-            elif segments [1] == 'QUIT':
-                return 'QUIT', (self.from_ (segments [0].replace(':', '')), ' '.join (segments [2:] ).replace(':', ''))
-           
-            elif segments [1] == '250':
-                self.lusers [ 'HIGHESTCONNECTIONS' ] = segments [6]
-                self.lusers [ 'TOTALCONNECTIONS' ] = segments [9] [1:]
-                return ('LUSERS', self.lusers)
-           
-            elif segments [1] == '251':
-                self.lusers [ 'USERS' ] = segments [5]
-                self.lusers [ 'INVISIBLE' ] = segments [8]
-                self.lusers [ 'SERVERS' ] = segments [11]
-                return ('LUSERS', self.lusers)
-            
-            elif segments [1] == '252':
-                self.lusers [ 'OPERATORS' ] = segments [3]
-                return ('LUSERS', self.lusers)
-            elif segments [1] == '253':
-                self.lusers [ 'UNKNOWN' ] = segments [3]
-                return ('LUSERS', self.lusers)
-            elif segments [1] == '254':
-                self.lusers [ 'CHANNELS' ] = segments [3]
-                return ('LUSERS', self.lusers)
-            
-            elif segments [1] == '255':
-                self.lusers [ 'CLIENTS' ] = segments [5]
-                self.lusers [ 'LSERVERS' ] = segments [8]
-                return ('LUSERS', self.lusers)
-            
-            elif segments [1] == '265':
-                self.lusers [ 'LOCALUSERS' ] = segments [6]
-                self.lusers [ 'LOCALMAX' ] = segments [8]
-                return ('LUSERS', self.lusers)
-            
-            elif segments [1] == '266':
-                self.lusers [ 'GLOBALUSERS' ] = segments [6]
-                self.lusers [ 'GLOBALMAX' ] = segments [8]
-                return ('LUSERS', self.lusers)
-    
-            elif segments [1] in self.error_dictionary.keys():
-                self.exception (segments [1])
-            
-            elif segments [0] == 'ERROR':
-                return 'ERROR', ' '.join (segments [1:]).replace(':', '')
+                return 'TOPIC', (who, channel, topic)
+
+            elif segments[1] == 'QUIT':
+                who = self.from_(segments[0].replace(':', '', 1))
+                return 'QUIT', (who, ' '.join(segments[2:]).replace(':', '', 1))
+
+            elif segments[1] == '250':
+                self.lusers['HIGHESTCONNECTIONS'] = segments[6]
+                self.lusers['TOTALCONNECTIONS'] = segments[9][1:]
+                return 'LUSERS', self.lusers
+
+            elif segments[1] == '251':
+                self.lusers['USERS'] = segments[5]
+                self.lusers['INVISIBLE'] = segments[8]
+                self.lusers['SERVERS'] = segments[11]
+                return 'LUSERS', self.lusers
+
+            elif segments[1] == '252':
+                self.lusers['OPERATORS'] = segments[3]
+                return 'LUSERS', self.lusers
+
+            elif segments[1] == '253':
+                self.lusers['UNKNOWN'] = segments[3]
+                return 'LUSERS', self.lusers
+
+            elif segments[1] == '254':
+                self.lusers['CHANNELS'] = segments[3]
+                return 'LUSERS', self.lusers
+
+            elif segments[1] == '255':
+                self.lusers['CLIENTS'] = segments[5]
+                self.lusers['LSERVERS'] = segments[8]
+                return 'LUSERS', self.lusers
+
+            elif segments[1] == '265':
+                self.lusers['LOCALUSERS'] = segments[6]
+                self.lusers['LOCALMAX'] = segments[8]
+                return 'LUSERS', self.lusers
+
+            elif segments[1] == '266':
+                self.lusers['GLOBALUSERS'] = segments[6]
+                self.lusers['GLOBALMAX'] = segments[8]
+                return 'LUSERS', self.lusers
+
+            elif segments[1] in self.error_dictionary:
+                self.exception(segments[1])
+
+            elif segments[0] == 'ERROR':
+                return 'ERROR', ' '.join(segments[1:]).replace(':', '', 1)
             else:
                 data = data.split(None, 3)
                 return 'UNKNOWN', data
 
-    def latency (self):
+    def latency(self):
         """ Checks the connection latency and returns it. """
         with self.lock:
-            self.send ('PING %s' % self.server)
-            ctime = self.time.time()
-            
-            data = self.recv().split() [1]
+            self.send('PING %s' % self.server)
+            ctime = self.m_time.time()
+
+            data = self.recv().split()[1]
             if data == 'PONG':
-                latency = self.time.time() - ctime
+                latency = self.m_time.time() - ctime
                 return latency
-            else: self.index -= 1
-    
+            else:
+                self.index -= 1
+
     def compare(self, first, second):
         """
         Case in-sensitive comparison of two strings.
@@ -417,32 +436,35 @@ class IRC(variables._Variables, exceptions._Exceptions,
             return False
 
     def mainloop(self):
-        """ Main Lurklib application loop processes IRC events and calls their handler functions. """
+        """ Main Lurklib application loop processes -
+        IRC events and calls their handler functions. """
         with self.lock:
             def handler():
                 event = self.stream(0.01)
                 if event != None:
                     try:
-                        if event [0] in self.hooks.keys():
-                            self.hooks [ event [0] ] (event=event [1])
-                        elif 'UNHANDLED' in self.hooks.keys():
-                            self.hooks [ 'UNHANDLED' ] (event)
+                        if event[0] in self.hooks:
+                            self.hooks[event[0]](event=event[1])
+                        elif 'UNHANDLED' in self.hooks:
+                            self.hooks['UNHANDLED'](event)
                         else:
-                            raise self.UnhandledEvent ('Unhandled Event')
+                            raise self.UnhandledEvent
+                        ('Unhandled Event: %s' % event)
                     except KeyError:
                         if 'UNHANDLED' in self.hooks.keys():
-                            self.hooks [ 'UNHANDLED' ] (event)
+                            self.hooks['UNHANDLED'](event)
                         else:
-                            raise self.UnhandledEvent ('Unhandled Event')
-                    
+                            raise self.UnhandledEvent
+                        ('Unhandled Event: %s' % event)
+
             while self.keep_going:
-                if 'AUTO' in self.hooks.keys() and self.readable(2) == False:
-                    self.hooks [ 'AUTO' ] ()
-                    del self.hooks [ 'AUTO' ]
+                if 'AUTO' in self.hooks and self.readable(2) == False:
+                    self.hooks['AUTO']()
+                    del self.hooks['AUTO']
                 if self.keep_going == False:
                     break
                 handler()
-            
+
     def set_hook(self, trigger, method):
         """
         Sets a Lurklib hook.
@@ -451,8 +473,8 @@ class IRC(variables._Variables, exceptions._Exceptions,
         method - The function that is to be called when said hook is triggered.
         """
         with self.lock:
-            self.hooks [ trigger ] = method
-    
+            self.hooks[trigger] = method
+
     def remove_hook(self, trigger):
         """
         Removes a Lurklib hook.
@@ -460,9 +482,8 @@ class IRC(variables._Variables, exceptions._Exceptions,
         trigger - The event to no longer be handled
         """
         with self.lock:
-            del self.hooks [ trigger ]
+            del self.hooks[trigger]
 
-    
     def ctcp_encode(self, msg):
         """
         CTCP encodes a message.
@@ -470,8 +491,8 @@ class IRC(variables._Variables, exceptions._Exceptions,
         msg - The message to be CTCP encoded.
         Returns the encoded version of the message.
         """
-        return '\001' + msg + '\001'
-    
+        return '\001%s\001' % msg
+
     def ctcp_decode(self, msg):
         """
         Decodes a CTCP message.
@@ -479,4 +500,4 @@ class IRC(variables._Variables, exceptions._Exceptions,
         msg - The message to be decoded.
         Returns the decoded version of the message.
         """
-        return msg.replace ('\001', '')
+        return msg.replace('\001', '')

@@ -1,18 +1,19 @@
-#    This file is part of the Lurklib Internet Relay Chat Library
-#    Copyright (C) 2010  Jamie Shaw (LK-) <jamieleshaw@gmail.com> <jamieleshaw@gmail.com>
-#    
-#    This program is free software: you can redistribute it and/or modify
+#    This file is part of Lurklib.
+#    Copyright (C) 2010  Jamie Shaw (LK-)
+#
+#    Lurklib is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
-#    
-#    This program is distributed in the hope that it will be useful,
+#
+#    Lurklib is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
-#    
+#
 #    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
+
 """ Defines optional IRC-things. """
 class _Optional(object):
     """ Defines option IRC protocol features. """
@@ -105,7 +106,7 @@ class _Optional(object):
             if self.readable():
                 segments = self.recv().split()
                 if segments [1] == '302':
-                    return ' '.join (segments [3:]).replace(':', '')
+                    return ' '.join (segments [3:]).replace(':', '', 1)
                 elif segments [1] in self.error_hashtable:
                     self.exception (segments [1])
                 else:
@@ -122,7 +123,7 @@ class _Optional(object):
             if self.readable():
                 segments = self.recv().split()
                 if segments [1] == '303':
-                    return ' '.join (segments [3:]).replace(':', '')
+                    return ' '.join (segments [3:]).replace(':', '', 1)
                 elif segments [1] in self.error_hashtable:
                     self.exception (segments [1])
                 else:

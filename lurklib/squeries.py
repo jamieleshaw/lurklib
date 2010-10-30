@@ -1,18 +1,19 @@
-#    This file is part of The Lurk Internet Relay Chat Library.
-#    Copyright (C) 2010  Jamie Shaw (LK-) <jamieleshaw@gmail.com>
-#    
+#    This file is part of Lurklib.
+#    Copyright (C) 2010  Jamie Shaw (LK-)
+#
 #    Lurklib is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
-#    
+#
 #    Lurklib is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
-#    
+#
 #    You should have received a copy of the GNU General Public License
 #    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
+
 """ Server related queries. """
 class _ServerQueries(object):
     """ Defines server related queries. """
@@ -35,7 +36,7 @@ class _ServerQueries(object):
                 if ncode == '375':
                     pass
                 elif ncode == '372':
-                    motd.append (data.split (None, 3) [3].replace(':', ''))
+                    motd.append (data.split (None, 3) [3].replace(':', '', 1))
                 elif ncode == '376':
                     break
                 elif ncode == '422':
@@ -106,7 +107,7 @@ class _ServerQueries(object):
                 self.send ('VERSION %s' % target)
         
             while self.readable():
-                data = self.stream()[1][3].replace(':', '')
+                data = self.stream()[1][3].replace(':', '', 1)
                 version = data.replace (' :are supported by this server', '').split()
                 for info in version:
                         try:
@@ -187,7 +188,7 @@ class _ServerQueries(object):
                 self.send ('TIME')
             if self.readable():
                 segments = self.recv().split()
-                time = ' '.join (segments [4:]).replace(':', '')
+                time = ' '.join (segments [4:]).replace(':', '', 1)
             return time
     
     def s_connect (self, server, port, r_server=None):
@@ -225,7 +226,7 @@ class _ServerQueries(object):
                 if segments [1] == '262':
                     break
                 else:
-                    rvalue.append (' '.join (segments [4:]).replace(':', ''))
+                    rvalue.append (' '.join (segments [4:]).replace(':', '', 1))
             return rvalue
     
     def admin (self, server=None):
@@ -294,7 +295,7 @@ class _ServerQueries(object):
                 data = self.recv()
                 segments = data.split()
                 if segments [1] == '234':
-                    servs.append (' '.join (segments [3:]).replace(':', ''))
+                    servs.append (' '.join (segments [3:]).replace(':', '', 1))
                 elif segments [1] == '235':
                     break
                 else:

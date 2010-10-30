@@ -1,18 +1,19 @@
-#    This file is part of the Lurklib Internet Relay Chat Library
-#    Copyright (C) 2010  Jamie Shaw (LK-) <jamieleshaw@gmail.com>
-#    
-#    This program is free software: you can redistribute it and/or modify
+#    This file is part of Lurklib.
+#    Copyright (C) 2010  Jamie Shaw (LK-)
+#
+#    Lurklib is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
-#    
-#    This program is distributed in the hope that it will be useful,
+#
+#    Lurklib is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
-#    
+#
 #    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
+
 """ Connection-related interaction file. """
 class _Connection(object):
     def _connect (self, server, port, tls=False):
@@ -95,7 +96,7 @@ class _Connection(object):
             while self.readable(timeout=4):
                     rdata = self.stream()
                     if rdata[0] == 'UNKNOWN':
-                        data = rdata[1][3].replace(':', '')
+                        data = rdata[1][3].replace(':', '', 1)
                         ncode = data[1]
 
                         if ncode == '004':
@@ -209,7 +210,7 @@ class _Connection(object):
                     if ncode in self.error_dictionary.keys():
                             self.exception (ncode)
                     elif self.find (data, 'MODE'):
-                            new_umodes = data.split() [-1].replace(':', '')
+                            new_umodes = data.split() [-1].replace(':', '', 1)
                     elif ncode == '381':
                             return (new_umodes, snomasks)
                     elif ncode == '008':
@@ -230,7 +231,7 @@ class _Connection(object):
                 self.send ('MODE %s' % nick)
                 modes = ''
                 if self.readable():
-                    modes = ' '.join (self.recv().split() [3:]).replace('+', '').replace(':', '')
+                    modes = ' '.join (self.recv().split() [3:]).replace('+', '').replace(':', '', 1)
                 return modes
                 
             else:
@@ -243,7 +244,7 @@ class _Connection(object):
                     if ncode in self.error_dictionary.keys():
                             self.exception (ncode)
                     elif ncode == '221':
-                            return data.split() [3].replace(':', '')
+                            return data.split() [3].replace(':', '', 1)
                     elif self.find (data, 'MODE') and self.hide_called_events:
                             pass
                     else:
