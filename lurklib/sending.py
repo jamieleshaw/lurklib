@@ -15,6 +15,9 @@
 #    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
 
 """ File for sending-related things. """
+
+from __future__ import with_statement
+
 class _Sending(object):
     """ Defines PRIVMSG and NOTICE methods. """
     def privmsg (self, target, message):
@@ -29,10 +32,12 @@ class _Sending(object):
             if self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
-                if ncode in self.error_hashtable.keys():
+                if ncode in self.error_dictionary.keys():
                     self.exception (ncode)
                 elif ncode == '301':
                     return 'AWAY', data.split (None, 3) [3].replace(':', '', 1)
+                else:
+                    self.index -= 1
 
     def notice (self, target, message):
         """
@@ -46,7 +51,9 @@ class _Sending(object):
             if self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
-                if ncode in self.error_hashtable.keys():
+                if ncode in self.error_dictionary.keys():
                     self.exception (ncode)
                 elif ncode == '301':
                     return 'AWAY', data.split (None, 3) [3].replace(':', '', 1)
+                else:
+                    self.index -= 1

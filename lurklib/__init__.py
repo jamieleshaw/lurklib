@@ -19,8 +19,6 @@
 from __future__ import with_statement
 from . import variables, exceptions, channel
 from . import connection, optional, sending, squeries, uqueries
-import sys
-import select
 
 __version__ = '0.6.0.1'
 
@@ -30,7 +28,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
            sending._Sending, uqueries._UserQueries,
            squeries._ServerQueries, optional._Optional):
     """ Core IRC-interaction class. """
-    def __init__(self, server, hooks, port=None, nick='Lurklib',
+    def __init__(self, server, hooks={}, port=None, nick='Lurklib',
                   user='Lurklib',
                   real_name='The Lurk Internet Relay Chat Library',
                   password=None, tls=False, encoding='UTF-8',
@@ -39,8 +37,8 @@ class IRC(variables._Variables, exceptions._Exceptions,
         Initializes Lurklib and connects to the IRC server.
         Required arguments:
         * server - IRC server to connect to.
-        * hooks - Event handles.
         Optional arguments:
+        * hooks - Event handles.
         * port=None - IRC port to use.
             if tls is selected it defaults to 6697 -
             if not, it defaults to 6667.
@@ -70,14 +68,14 @@ class IRC(variables._Variables, exceptions._Exceptions,
         self.encoding = encoding
         self._clrf = '\r\n'
 
-        if sys.version_info[0] == 2 and sys.version_info[1] < 6:
+        if self.m_sys.version_info[0] == 2 and self.m_sys.version_info[1] < 6:
             self.tls = False
         else:
             self.tls = tls
 
         if ctcps == None:
             self.ctcps = { \
-             'VERSION': 'The Lurk Internet Relay Chat Library : %s' \
+             'VERSION': 'Lurklib : %s' \
               % __version__,
              'SOURCE': 'http://github.com/LK-/Lurklib/',
              'PING': 1,
@@ -107,7 +105,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
         """ Send raw data with the clrf appended to it. """
         with self.lock:
             msg = msg.replace('\r', '\\r').replace('\n', '\\n') + self._clrf
-            if sys.version_info[0] > 2:
+            if self.m_sys.version_info[0] > 2:
                 try:
                     data = bytes(msg, self.encoding)
                 except LookupError:
@@ -115,7 +113,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
             else:
                 try:
                     data = msg.encode(self.encoding)
-                except LookupError:
+                except UnicodeDecodeError:
                     data = msg.encode(self.fallback_encoding)
             self.s.send(data)
 
@@ -127,7 +125,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 if sdata == ' ':
                     sdata = ''
                 try:
-                    if sys.version_info[0] > 2:
+                    if self.m_sys.version_info[0] > 2:
                         sdata = sdata + self.s.recv(4096).decode(self.encoding)
                     else:
                         sdata = sdata + self.s.recv(4096)
@@ -172,7 +170,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
             if len(self.buffer) > self.index:
                 return True
             else:
-                if select.select([self.s], [], [], timeout)[0] == []:
+                if self.m_select.select([self.s], [], [], timeout)[0] == []:
                     return False
                 else:
                     return True
@@ -185,7 +183,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
     def __close__(self):
         """ For use with the Python 'with' statement. """
         with self.lock:
-            self.end()
+            self.quit()
 
     def from_(self, who):
         """
@@ -303,7 +301,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                                     response = segments[int(self.ctcps[ctcp])]
                                     response = '%s %s' % (ctcp, response)
                                 except ValueError:
-                                    response = self.ctcp[ctcp]
+                                    response = self.ctcps[ctcp]
                             self.notice(who[0], self.ctcp_encode(response))
                             break
                     return 'CTCP', (rvalue[1][:2], rctcp)
@@ -434,36 +432,41 @@ class IRC(variables._Variables, exceptions._Exceptions,
             return True
         else:
             return False
-
+    def process_once(self, timeout=0.01):
+        """
+        Handles an event and calls it's handler
+        Optional arguments:
+        * timeout=0.01 - Wait for an event until the timeout is reached, then return None.
+        """
+        event = self.stream(timeout)
+        if event != None:
+            try:
+                if event[0] in self.hooks:
+                    self.hooks[event[0]](event=event[1])
+                elif 'UNHANDLED' in self.hooks:
+                    self.hooks['UNHANDLED'](event)
+                else:
+                    raise self.UnhandledEvent
+                ('Unhandled Event: %s' % event[0])
+            except KeyError:
+                if 'UNHANDLED' in self.hooks.keys():
+                    self.hooks['UNHANDLED'](event)
+                else:
+                    raise self.UnhandledEvent
+                ('Unhandled Event: %s' % event[0])
+                
     def mainloop(self):
-        """ Main Lurklib application loop processes -
-        IRC events and calls their handler functions. """
-        with self.lock:
-            def handler():
-                event = self.stream(0.01)
-                if event != None:
-                    try:
-                        if event[0] in self.hooks:
-                            self.hooks[event[0]](event=event[1])
-                        elif 'UNHANDLED' in self.hooks:
-                            self.hooks['UNHANDLED'](event)
-                        else:
-                            raise self.UnhandledEvent
-                        ('Unhandled Event: %s' % event)
-                    except KeyError:
-                        if 'UNHANDLED' in self.hooks.keys():
-                            self.hooks['UNHANDLED'](event)
-                        else:
-                            raise self.UnhandledEvent
-                        ('Unhandled Event: %s' % event)
-
-            while self.keep_going:
+        """
+        Handles events and calls their handler for infinity.
+        """
+        while self.keep_going:
+            with self.lock:
                 if 'AUTO' in self.hooks and self.readable(2) == False:
                     self.hooks['AUTO']()
                     del self.hooks['AUTO']
                 if self.keep_going == False:
                     break
-                handler()
+                self.process_once()
 
     def set_hook(self, trigger, method):
         """

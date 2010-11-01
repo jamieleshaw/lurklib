@@ -16,6 +16,7 @@
 
 """ Channel-related interaction file. """
 
+from __future__ import with_statement
 
 class _Channel(object):
     """ Channel-related interaction class. """

@@ -15,6 +15,9 @@
 #    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
 
 """ Connection-related interaction file. """
+
+from __future__ import with_statement
+
 class _Connection(object):
     def _connect (self, server, port, tls=False):
         """
@@ -274,8 +277,8 @@ class _Connection(object):
         """
         with self.lock:
             self.keep_going = False
-            self._quit (reason)
-            self.s.shutdown (2)
+            self._quit(reason)
+            self.s.shutdown(self.m_socket.SHUT_RDWR)
             self.s.close()
             
     def squit (self, server, reason=''):

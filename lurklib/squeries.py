@@ -15,6 +15,9 @@
 #    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
 
 """ Server related queries. """
+
+from __future__ import with_statement
+
 class _ServerQueries(object):
     """ Defines server related queries. """
     def get_motd (self, server=None):
@@ -207,7 +210,7 @@ class _ServerQueries(object):
                 self.send ('CONNECT %s %s %s' % (server, port, r_server))
             if self.readable():
                 ncode = self.recv().split() [1]
-                if ncode in self.error_hashtable.keys():
+                if ncode in self.error_dictionary.keys():
                     self.exception (ncode)
                 else:
                     self.index -= 1
@@ -314,7 +317,7 @@ class _ServerQueries(object):
             if self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
-                if ncode in self.error_hashtable.keys():
+                if ncode in self.error_dictionary.keys():
                     self.exception (ncode)
                 else:
                     self.index -= 1
@@ -333,7 +336,7 @@ class _ServerQueries(object):
             if self.readable():
                 data = self.recv()
                 ncode = data.split() [1]
-                if ncode in self.error_hashtable.keys():
+                if ncode in self.error_dictionary.keys():
                     self.exception (ncode)
                 else:
                     self.index -= 1

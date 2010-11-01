@@ -15,7 +15,10 @@
 #    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
 
 """ Declares variables and standard modules needed by Lurklib etc. """
-import socket, time
+import socket
+import time
+import sys
+import select
 from threading import RLock
 try: import ssl
 except ImportError: ssl = None
@@ -24,7 +27,10 @@ class _Variables(object):
     """ Sets the default values for Lurklib's runtime variables. """
     ssl = ssl
     buffer = []
-    s = socket.socket()
+    m_socket = socket
+    m_select = select
+    m_sys = sys
+    s = m_socket.socket()
 
     motd = []
     version = {}

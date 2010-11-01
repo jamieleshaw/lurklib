@@ -15,6 +15,9 @@
 #    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
 
 """ Defines optional IRC-things. """
+
+from __future__ import with_statement
+
 class _Optional(object):
     """ Defines option IRC protocol features. """
     def away (self, msg=''):
@@ -44,7 +47,7 @@ class _Optional(object):
                 segments = self.recv().split()
                 if segments [1] == '382':
                     pass
-                elif segments [1] in self.error_hashtable:
+                elif segments [1] in self.error_dictionary:
                     self.exception (segments [1])
                 else:
                     self.index -= 1
@@ -59,7 +62,7 @@ class _Optional(object):
             self.send ('DIE :%s' % password)
             if self.readable():
                 segments = self.recv().split()
-                if segments [1] == self.error_hashtable:
+                if segments [1] == self.error_dictionary:
                     self.exception (segments [1])
                 else:
                     self.index -= 1
@@ -74,7 +77,7 @@ class _Optional(object):
             self.send ('RESTART :%s' % password)
             if self.readable():
                 segments = self.recv().split()
-                if segments [1] in self.error_hashtable:
+                if segments [1] in self.error_dictionary:
                     self.exception (segments [1])
                 else:
                     self.index -= 1
@@ -107,7 +110,7 @@ class _Optional(object):
                 segments = self.recv().split()
                 if segments [1] == '302':
                     return ' '.join (segments [3:]).replace(':', '', 1)
-                elif segments [1] in self.error_hashtable:
+                elif segments [1] in self.error_dictionary:
                     self.exception (segments [1])
                 else:
                     self.index -= 1
@@ -124,7 +127,7 @@ class _Optional(object):
                 segments = self.recv().split()
                 if segments [1] == '303':
                     return ' '.join (segments [3:]).replace(':', '', 1)
-                elif segments [1] in self.error_hashtable:
+                elif segments [1] in self.error_dictionary:
                     self.exception (segments [1])
                 else:
                     self.index -= 1
