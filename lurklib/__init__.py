@@ -20,7 +20,7 @@ from __future__ import with_statement
 from . import variables, exceptions, channel
 from . import connection, optional, sending, squeries, uqueries
 
-__version__ = '0.6.0.1'
+__version__ = '0.6.0.2'
 
 
 class IRC(variables._Variables, exceptions._Exceptions,
@@ -115,7 +115,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                     data = msg.encode(self.encoding)
                 except UnicodeDecodeError:
                     data = msg.encode(self.fallback_encoding)
-            self.s.send(data)
+            self.socket.send(data)
 
     def mcon(self):
         """ Buffer IRC data and handle PING/PONG. """
@@ -126,11 +126,11 @@ class IRC(variables._Variables, exceptions._Exceptions,
                     sdata = ''
                 try:
                     if self.m_sys.version_info[0] > 2:
-                        sdata = sdata + self.s.recv(4096).decode(self.encoding)
+                        sdata = sdata + self.socket.recv(4096).decode(self.encoding)
                     else:
-                        sdata = sdata + self.s.recv(4096)
+                        sdata = sdata + self.socket.recv(4096)
                 except LookupError:
-                    sdata = sdata + self.s.recv(4096).decode
+                    sdata = sdata + self.socket.recv(4096).decode
                     (self.fallback_encoding)
 
             lines = sdata.split(self._clrf)
@@ -170,7 +170,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
             if len(self.buffer) > self.index:
                 return True
             else:
-                if self.m_select.select([self.s], [], [], timeout)[0] == []:
+                if self.m_select.select([self.socket], [], [], timeout)[0] == []:
                     return False
                 else:
                     return True

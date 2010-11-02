@@ -293,8 +293,8 @@ class _Connection(object):
         with self.lock:
             self.keep_going = False
             self._quit(reason)
-            self.s.shutdown(self.m_socket.SHUT_RDWR)
-            self.s.close()
+            self.socket.shutdown(self.m_socket.SHUT_RDWR)
+            self.socket.close()
 
     def squit(self, server, reason=''):
         """

@@ -33,7 +33,7 @@ def on_privmsg(event):
         IRC.privmsg(event[1], 'Hello, %s!' % event[0][0])
         print('%s said hello!' % event[0][0])
     elif event[2].lower() == '!quit':
-        IRC.end('Bye!')
+        IRC.quit('Bye!')
 
 
 def on_unhandled(event):

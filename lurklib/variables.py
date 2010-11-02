@@ -33,7 +33,7 @@ class _Variables(object):
     m_socket = socket
     m_select = select
     m_sys = sys
-    s = m_socket.socket()
+    socket = m_socket.socket()
 
     motd = []
     version = {}
