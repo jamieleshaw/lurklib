@@ -33,7 +33,7 @@ class _Sending(object):
             if self.readable():
                 data = self.recv()
                 ncode = data.split()[1]
-                if ncode in self.error_dictionary.keys():
+                if ncode in self.error_dictionary:
                     self.exception(ncode)
                 elif ncode == '301':
                     return 'AWAY', data.split(None, 3)[3].replace(':', '', 1)
@@ -52,7 +52,7 @@ class _Sending(object):
             if self.readable():
                 data = self.recv()
                 ncode = data.split()[1]
-                if ncode in self.error_dictionary.keys():
+                if ncode in self.error_dictionary:
                     self.exception(ncode)
                 elif ncode == '301':
                     return 'AWAY', data.split(None, 3)[3].replace(':', '', 1)
