@@ -18,7 +18,7 @@
 import socket
 import time
 import sys
-import select
+from select import select
 from threading import RLock
 try:
     import ssl
@@ -31,7 +31,7 @@ class _Variables(object):
     ssl = ssl
     buffer = []
     m_socket = socket
-    m_select = select
+    select = select
     m_sys = sys
     socket = m_socket.socket()
 

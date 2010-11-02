@@ -32,7 +32,7 @@ class _Channel(object):
                 return True
         return False
 
-    def join(self, channel, key=None):
+    def join(self, channel, key=None, process_only=False):
         """
         Joins a channel.
         Returns a tuple of information regarding the channel.
@@ -44,7 +44,8 @@ class _Channel(object):
         Required arguments:
         * channel - The channel to join.
         Optional arguments:
-        * key - Channel key.
+        * key=None - Channel key.
+        * process_only=False - Only process a join, don't request one.
         """
 
         with self.lock:
@@ -52,46 +53,40 @@ class _Channel(object):
             names = []
             set_by = ''
             time_set = ''
-            if self.is_in_channel(channel):
-                raise self.AlreadyInChannel('LurklibError: AlreadyInChannel')
+            if process_only == False:
+                if self.is_in_channel(channel):
+                    raise \
+                    self.AlreadyInChannel('LurklibError: AlreadyInChannel')
 
-            if key != None:
-                self.send('JOIN %s %s' % (channel, key))
-            else:
-                self.send('JOIN %s' % channel)
+                if key != None:
+                    self.send('JOIN %s %s' % (channel, key))
+                else:
+                    self.send('JOIN %s' % channel)
 
             while self.readable(4):
-                    data = self._recv()
-                    ncode = data.split()[1]
+                msg = self.recv(True)
 
-                    if ncode == '332':
-                        topic = data.split(None, 4)[4].replace(':', '', 1)
-                    elif ncode == '333':
-                        segments = data.split()
-                        if self.UTC == False:
-                            time_set = self.m_time.localtime(int(segments[5]))
-                        else:
-                            time_set = self.m_time.gmtime(int(segments[5]))
-                        set_by = self.from_(segments[4])
-
-                    elif ncode == '353':
-                        new_names = data.split()[5:]
-                        new_names[0] = new_names[0].replace(':', '', 1)
-                        try:
-                            names.extend(new_names)
-                        except NameError:
-                            names = new_names
-                    elif self.find(data, 'JOIN'):
-                        channel = data.split()[2].replace(':', '', 1)
-                        self.channels[channel] = {}
-                        if self.hide_called_events == False:
-                            self.buffer.append(data)
-                    elif ncode in self.error_dictionary:
-                        self.exception(ncode)
-                    elif ncode == '366':
-                        break
+                if msg[1] == '332':
+                    topic = msg[3].split(':', 1)[1]
+                elif msg[1] == '333':
+                    set_by, time_set = msg[3].split(' ', 3)[1:]
+                    if self.UTC == False:
+                        time_set = self.m_time.localtime(int(time_set))
                     else:
-                        self.buffer.append(data)
+                        time_set = self.m_time.gmtime(int(time_set))
+                    set_by = self._from_(set_by)
+
+                elif msg[1] == '353':
+                    names.extend(msg[3].split(':', 1)[1].split())
+                elif msg[1] == 'JOIN':
+                    channel = msg[2]
+                    self.channels[channel] = {}
+                    if self.hide_called_events == False:
+                        self.buffer.append(msg)
+                elif msg[1] == '366':
+                    break
+                else:
+                    self.buffer.append(msg)
 
             self.channels[channel]['USERS'] = {}
             for name in names:
@@ -319,7 +314,7 @@ class _Channel(object):
                             time_set = self.m_time.localtime(int(segments[5]))
                         else:
                             time_set = self.m_time.gmtime(int(segments[5]))
-                        set_by = self.from_(segments[4])
+                        set_by = self._from_(segments[4])
                     elif ncode == '331':
                         topic = ''
                     else:

@@ -124,12 +124,13 @@ class IRC(variables._Variables, exceptions._Exceptions,
             while sdata[-1] != self._clrf[-1]:
                 if sdata == ' ':
                     sdata = ''
-                if self.m_sys.version_info[0] > 2:
+                if self.m_sys.version_info[0] == 3:
                     try:
-                        sdata = sdata + self.socket.recv(4096).decode(self.encoding)
+                        sdata = sdata + \
+                        self.socket.recv(4096).decode(self.encoding)
                     except LookupError:
-                        sdata = sdata + self.socket.recv(4096).decode \
-                            (self.fallback_encoding)
+                        sdata = sdata + \
+                        self.socket.recv(4096).decode(self.fallback_encoding)
                 else:
                     sdata = sdata + self.socket.recv(4096)
 
@@ -162,7 +163,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
 
     def readable(self, timeout=1):
         """
-        Checks whether self._recv() will block or not.
+        Checks whether self.recv() will block or not.
         Optional arguments:
         * timeout=1 - How long to wait before returning False.
         """
@@ -170,7 +171,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
             if len(self.buffer) > self.index:
                 return True
             else:
-                if self.m_select.select([self.socket], [], [], timeout)[0] == []:
+                if self.select([self.socket], [], [], timeout)[0] == []:
                     return False
                 else:
                     return True
@@ -203,26 +204,29 @@ class IRC(variables._Variables, exceptions._Exceptions,
         except IndexError:
             return who
 
-    def recv(self):
+    def recv(self, rm_colon=False):
         """
-        Parses an IRC protocol message.
-        Required arguments:
-        * msg - IRC message.
+        Receives and processes an IRC protocol message.
+        Optional arguments:
+        * rm_colon=False - If True, the colon prefixed to -
+            the event/numeric(command) will be removed.
         """
         msg = self._recv().split(None, 3)
         if msg[1] in self.error_dictionary:
             self.exception(msg[1])
+        if rm_colon and msg[2][0] == ':':
+            msg[2] = msg[2][1:]
         return msg
 
-    def stream(self, timeout=1000):
+    def stream(self, timeout=None):
         """
         High-level IRC buffering system and processor.
         Optional arguments:
-        * timeout=1000 - Time to wait before returning None.
+        * timeout=None - Time to wait before returning None.
             Defaults to waiting forever.
         """
         with self.lock:
-            if timeout != 1000:
+            if timeout != None:
                 if self.readable(timeout) == False:
                     return None
             data = self._recv()
@@ -233,7 +237,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 channel = segments[2][1:]
                 if channel not in self.channels:
                     self.index -= 1
-                    return 'JOIN', self.join(channel)
+                    return 'JOIN', self.join(channel, process_only=True)
                 else:
                     self.channels[channel]['USERS'][who[0]] = \
                     ['', '', '', '', '']
@@ -373,7 +377,8 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 self.quit()
                 return 'ERROR', ' '.join(segments[1:]).replace(':', '', 1)
             else:
-                return 'UNKNOWN', self._parse(data)
+                self.index -= 1
+                return 'UNKNOWN', self.recv()
 
     def compare(self, first, second):
         """
