@@ -29,9 +29,8 @@ class _Connection(object):
         """
         with self.lock:
             if tls:
-                self.socket = self.ssl.wrap_socket(self.socket)
+                self.socket = self.m_tls.wrap_socket(self.socket)
             self.socket.connect((server, port))
-            self.tls = tls
 
     def _register(self, nick, user, real_name, password=None):
         """

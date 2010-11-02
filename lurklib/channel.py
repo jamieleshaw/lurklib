@@ -53,11 +53,10 @@ class _Channel(object):
             users = []
             set_by = ''
             time_set = ''
-            if process_only == False:
-                if self.is_in_channel(channel):
-                    raise \
+            if self.is_in_channel(channel):
+                raise \
                     self.AlreadyInChannel('LurklibError: AlreadyInChannel')
-
+            if process_only == False:
                 if key != None:
                     self.send('JOIN %s %s' % (channel, key))
                 else:
@@ -93,7 +92,7 @@ class _Channel(object):
                 prefix = ''
                 if user[0] in self.priv_types:
                     prefix = user[0]
-                    name = user[1:]
+                    user = user[1:]
                 if prefix == '~':
                     self.channels[channel]['USERS'][user] = \
                     ['~', '', '', '', '']

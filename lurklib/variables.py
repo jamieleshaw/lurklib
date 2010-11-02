@@ -21,18 +21,18 @@ import sys
 from select import select
 from threading import RLock
 try:
-    import ssl
+    import ssl as tls
 except ImportError:
-    ssl = None
+    tls = None
 
 
 class _Variables(object):
     """ Sets the default values for Lurklib's runtime variables. """
-    ssl = ssl
     buffer = []
     m_socket = socket
     select = select
     m_sys = sys
+    m_tls = tls
     socket = m_socket.socket()
 
     motd = []
