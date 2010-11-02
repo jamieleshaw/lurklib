@@ -50,7 +50,7 @@ class _Channel(object):
 
         with self.lock:
             topic = ''
-            names = []
+            users = []
             set_by = ''
             time_set = ''
             if process_only == False:
@@ -77,7 +77,7 @@ class _Channel(object):
                     set_by = self._from_(set_by)
 
                 elif msg[1] == '353':
-                    names.extend(msg[3].split(':', 1)[1].split())
+                    users.extend(msg[3].split(':', 1)[1].split())
                 elif msg[1] == 'JOIN':
                     channel = msg[2]
                     self.channels[channel] = {}
@@ -89,30 +89,30 @@ class _Channel(object):
                     self.buffer.append(msg)
 
             self.channels[channel]['USERS'] = {}
-            for name in names:
+            for user in users:
                 prefix = ''
-                if name[0] in self.priv_types:
-                    prefix = name[0]
-                    name = name[1:]
+                if user[0] in self.priv_types:
+                    prefix = user[0]
+                    name = user[1:]
                 if prefix == '~':
-                    self.channels[channel]['USERS'][name] = \
+                    self.channels[channel]['USERS'][user] = \
                     ['~', '', '', '', '']
                 elif prefix == '&':
-                    self.channels[channel]['USERS'][name] = \
+                    self.channels[channel]['USERS'][user] = \
                     ['', '&', '', '', '']
                 elif prefix == '@':
-                    self.channels[channel]['USERS'][name] = \
+                    self.channels[channel]['USERS'][user] = \
                     ['', '', '@', '', '']
                 elif prefix == '%':
-                    self.channels[channel]['USERS'][name] = \
+                    self.channels[channel]['USERS'][user] = \
                     ['', '', '', '%', '']
                 elif prefix == '+':
-                    self.channels[channel]['USERS'][name] = \
+                    self.channels[channel]['USERS'][user] = \
                     ['', '', '', '', '+']
                 else:
-                    self.channels[channel]['USERS'][name] = \
+                    self.channels[channel]['USERS'][user] = \
                     ['', '', '', '', '']
-        return names, topic, set_by, time_set
+        return users, topic, set_by, time_set
 
     def part(self, channel, reason=None):
         """
