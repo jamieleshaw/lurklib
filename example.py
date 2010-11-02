@@ -16,6 +16,8 @@
 
 """ Lurklib usage example. """
 
+SERVER = 'irc.codeshock.org'
+
 import lurklib
 
 
@@ -50,7 +52,7 @@ HOOKS = { \
          'UNHANDLED': on_unhandled
          }
 # Connect to IRC, and assign the returned IRC object, to the IRC variable.
-IRC = lurklib.IRC(server='localhost', nick=('HelloBot', 'HelloBot-'),
+IRC = lurklib.IRC(server=SERVER, nick=('HelloBot', 'HelloBot-'),
                   hooks=HOOKS)
 
 # Enter lurklib's mainloop which will keep you connected to IRC -
