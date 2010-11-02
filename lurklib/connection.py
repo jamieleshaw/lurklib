@@ -303,3 +303,16 @@ class _Connection(object):
                             pass
                     else:
                         self.index -= 1
+
+    def latency(self):
+        """ Checks the connection latency. """
+        with self.lock:
+            self.send('PING %s' % self.server)
+            ctime = self.m_time.time()
+
+            data = self.recv().split()[1]
+            if data == 'PONG':
+                latency = self.m_time.time() - ctime
+                return latency
+            else:
+                self.index -= 1

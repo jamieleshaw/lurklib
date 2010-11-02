@@ -146,7 +146,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
             if self.index >= len(self.buffer):
                 self.mcon()
             if self.index >= 199:
-                self.resetbuffer()
+                self._resetbuffer()
                 self.mcon()
             msg = self.buffer[self.index]
             while self.find(msg, 'PING :'):
@@ -175,7 +175,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 else:
                     return True
 
-    def resetbuffer(self):
+    def _resetbuffer(self):
         """ Resets the IRC buffer. """
         with self.lock:
             self.index, self.buffer = 0, []
@@ -185,7 +185,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
         with self.lock:
             self.quit()
 
-    def from_(self, who):
+    def _from_(self, who):
         """
         Processes nick!user@host data.
         Returns a tuple containing, the nick, user and host.
@@ -203,6 +203,17 @@ class IRC(variables._Variables, exceptions._Exceptions,
         except IndexError:
             return who
 
+    def _parse(self, msg):
+        """
+        Parses an IRC protocol message.
+        Required arguments:
+        * msg - IRC message.
+        """
+        msg = msg.split(None, 3)
+        if msg[1] in self.error_dictionary:
+            self.exception(msg[1])
+        return msg
+
     def stream(self, timeout=1000):
         """
         High-level IRC buffering system and processor.
@@ -218,7 +229,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
             segments = data.split()
 
             if segments[1] == 'JOIN':
-                who = self.from_(segments[0][1:])
+                who = self._from_(segments[0][1:])
                 channel = segments[2][1:]
                 if channel not in self.channels:
                     topic = ''
@@ -239,7 +250,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                                 (int(segments[5]))
                             else:
                                 time_set = self.m_time.gmtime(int(segments[5]))
-                            set_by = self.from_(segments[4])
+                            set_by = self._from_(segments[4])
 
                         elif self.find(data, '353'):
                             new_names = data.split()[5:].replace(':', '', 1)
@@ -271,18 +282,18 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 return 'JOIN', who, channel
 
             elif segments[1] == 'PART':
-                who = self.from_(segments[0].replace(':', '', 1))
+                who = self._from_(segments[0].replace(':', '', 1))
                 channel = segments[2]
                 del self.channels[channel]['USERS'][who[0]]
                 try:
                     reason = ' '.join(segments[3:]).replace(':', '', 1)
                     return 'PART', who, channel, reason
                 except IndexError:
-                    who = self.from_(segments[0].replace(':', '', 1))
+                    who = self._from_(segments[0].replace(':', '', 1))
                     return 'PART', who, channel, ''
 
             elif segments[1] == 'PRIVMSG':
-                who = self.from_(segments[0].replace(':', '', 1))
+                who = self._from_(segments[0].replace(':', '', 1))
                 msg = ' '.join(segments[3:]).replace(':', '', 1)
                 rvalue = 'PRIVMSG', (who, segments[2], msg)
 
@@ -309,7 +320,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                     return rvalue
 
             elif segments[1] == 'NOTICE':
-                who = self.from_(segments[0].replace(':', '', 1))
+                who = self._from_(segments[0].replace(':', '', 1))
                 msg = ' '.join(segments[3:]).replace(':', '', 1)
                 if msg.find('\001') == 0:
                     msg = self.ctcp_decode(msg)
@@ -318,7 +329,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
 
             elif segments[1] == 'MODE':
                 mode = ' '.join(segments[3:]).replace(':', '', 1)
-                who = self.from_(segments[0][1:])
+                who = self._from_(segments[0][1:])
                 target = segments[2]
                 if target != self.current_nick:
                     self.parse_cmode_string(mode, target)
@@ -327,7 +338,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                     return 'MODE', (mode.replace(':', '', 1))
 
             elif segments[1] == 'KICK':
-                who = self.from_(segments[0].replace(':', '', 1))
+                who = self._from_(segments[0].replace(':', '', 1))
                 if self.current_nick == segments[3]:
                     del self.channels['USERS'][segments[2]]
                 del self.channels[channel][segments[3]]
@@ -335,12 +346,12 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 return 'KICK', (who, segments[2], segments[3], reason)
 
             elif segments[1] == 'INVITE':
-                who = self.from_(segments[0].replace(':', '', 1))
+                who = self._from_(segments[0].replace(':', '', 1))
                 channel = segments[3].replace(':', '', 1)
                 return 'INVITE', (who, segments[2], channel)
 
             elif segments[1] == 'NICK':
-                who = self.from_(segments[0].replace(':', '', 1))
+                who = self._from_(segments[0].replace(':', '', 1))
                 new_nick = ' '.join(segments[2:])
                 if self.current_nick == who[0]:
                     self.current_nick = new_nick
@@ -351,15 +362,16 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 return 'NICK', (who, new_nick)
 
             elif segments[1] == 'TOPIC':
-                who = self.from_(segments[0].replace(':', '', 1))
+                who = self._from_(segments[0].replace(':', '', 1))
                 channel = segments[2]
                 topic = ' '.join(segments[3:]).replace(':', '', 1)
                 self.channels[channel]['TOPIC'] = topic
                 return 'TOPIC', (who, channel, topic)
 
             elif segments[1] == 'QUIT':
-                who = self.from_(segments[0].replace(':', '', 1))
-                return 'QUIT', (who, ' '.join(segments[2:]).replace(':', '', 1))
+                who = self._from_(segments[0].replace(':', '', 1))
+                msg = ' '.join(segments[2:]).replace(':', '', 1)
+                return 'QUIT', (who, msg)
 
             elif segments[1] == '250':
                 self.lusers['HIGHESTCONNECTIONS'] = segments[6]
@@ -399,27 +411,11 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 self.lusers['GLOBALMAX'] = segments[8]
                 return 'LUSERS', self.lusers
 
-            elif segments[1] in self.error_dictionary:
-                self.exception(segments[1])
-
             elif segments[0] == 'ERROR':
+                self.quit()
                 return 'ERROR', ' '.join(segments[1:]).replace(':', '', 1)
             else:
-                data = data.split(None, 3)
-                return 'UNKNOWN', data
-
-    def latency(self):
-        """ Checks the connection latency and returns it. """
-        with self.lock:
-            self.send('PING %s' % self.server)
-            ctime = self.m_time.time()
-
-            data = self.recv().split()[1]
-            if data == 'PONG':
-                latency = self.m_time.time() - ctime
-                return latency
-            else:
-                self.index -= 1
+                return 'UNKNOWN', self._parse(data)
 
     def compare(self, first, second):
         """
@@ -432,11 +428,12 @@ class IRC(variables._Variables, exceptions._Exceptions,
             return True
         else:
             return False
+
     def process_once(self, timeout=0.01):
         """
         Handles an event and calls it's handler
         Optional arguments:
-        * timeout=0.01 - Wait for an event until the timeout is reached, then return None.
+        * timeout=0.01 - Wait for an event until the timeout is reached.
         """
         event = self.stream(timeout)
         if event != None:
@@ -454,7 +451,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 else:
                     raise self.UnhandledEvent
                 ('Unhandled Event: %s' % event[0])
-                
+
     def mainloop(self):
         """
         Handles events and calls their handler for infinity.
