@@ -232,50 +232,8 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 who = self._from_(segments[0][1:])
                 channel = segments[2][1:]
                 if channel not in self.channels:
-                    topic = ''
-                    names = ()
-                    set_by = ''
-                    time_set = ''
-
-                    while self.readable(4):
-                        data = self.recv()
-                        ncode = data.split()[1]
-
-                        if self.find(data, '332'):
-                            topic = data.split(None, 4)[4].replace(':', '', 1)
-                        elif self.find(data, '333'):
-                            segments = data.split()
-                            if self.UTC == False:
-                                time_set = self.m_time.localtime
-                                (int(segments[5]))
-                            else:
-                                time_set = self.m_time.gmtime(int(segments[5]))
-                            set_by = self._from_(segments[4])
-
-                        elif self.find(data, '353'):
-                            new_names = data.split()[5:].replace(':', '', 1)
-                            try:
-                                names.append = new_names
-                            except NameError:
-                                names = new_names
-                        elif self.find(data, 'JOIN'):
-                            self.channels[data.split()[2][1:]] = {}
-                            if self.hide_called_events == False:
-                                self.buffer.append(data)
-                        elif ncode in self.error_dictionary.keys():
-                            self.exception(ncode)
-                        elif ncode == '366':
-                            break
-                        else:
-                            self.buffer.append(data)
-                        self.channels[channel]['USERS'] = {}
-                        for name in names:
-                            prefix = ''
-                            if name[0] in self.priv_types:
-                                prefix = name[0]
-                                name = name[1:]
-                            self.channels[channel]['USERS'][name] = [prefix]
-                    return 'JOIN', who, channel, topic, names, set_by, time_set
+                    self.index -= 1
+                    return 'JOIN', self.join(channel)
                 else:
                     self.channels[channel]['USERS'][who[0]] = \
                     ['', '', '', '', '']
