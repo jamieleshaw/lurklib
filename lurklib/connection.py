@@ -29,8 +29,8 @@ class _Connection(object):
         """
         with self.lock:
             if tls:
-                self.s = self.ssl.wrap_socket(self.s)
-            self.s.connect((server, port))
+                self.socket = self.ssl.wrap_socket(self.socket)
+            self.socket.connect((server, port))
             self.tls = tls
 
     def _register(self, nick, user, real_name, password=None):
@@ -271,17 +271,14 @@ class _Connection(object):
         """ Not implemented. """
         pass
 
-    def _quit(self, reason=None):
+    def _quit(self, reason=''):
         """
         Sends a QUIT message to the server.
         Optional arguments:
-        * reason - Reason for quitting.
+        * reason='' - Reason for quitting.
         """
         with self.lock:
-            if reason == None:
-                self.send('QUIT')
-            else:
-                self.send('QUIT :%s' % reason)
+            self.send('QUIT :%s' % reason)
 
     def quit(self, reason=None):
         """
