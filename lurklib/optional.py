@@ -30,7 +30,7 @@ class _Optional(object):
         with self.lock:
             self.send('AWAY :%s' % msg)
             if self.readable():
-                ncode = self.recv().split()[1]
+                ncode = self._recv().split()[1]
                 if ncode == '306':
                     self.is_away = True
                 elif ncode == '305':
@@ -45,7 +45,7 @@ class _Optional(object):
         with self.lock:
             self.send('REHASH')
             if self.readable():
-                segments = self.recv().split()
+                segments = self._recv().split()
                 if segments[1] == '382':
                     pass
                 elif segments[1] in self.error_dictionary:
@@ -62,7 +62,7 @@ class _Optional(object):
         with self.lock:
             self.send('DIE :%s' % password)
             if self.readable():
-                segments = self.recv().split()
+                segments = self._recv().split()
                 if segments[1] == self.error_dictionary:
                     self.exception(segments[1])
                 else:
@@ -77,7 +77,7 @@ class _Optional(object):
         with self.lock:
             self.send('RESTART :%s' % password)
             if self.readable():
-                segments = self.recv().split()
+                segments = self._recv().split()
                 if segments[1] in self.error_dictionary:
                     self.exception(segments[1])
                 else:
@@ -108,7 +108,7 @@ class _Optional(object):
         with self.lock:
             self.send('USERHOST :%s' % nick)
             if self.readable():
-                segments = self.recv().split()
+                segments = self._recv().split()
                 if segments[1] == '302':
                     return ' '.join(segments[3:]).replace(':', '', 1)
                 elif segments[1] in self.error_dictionary:
@@ -125,7 +125,7 @@ class _Optional(object):
         with self.lock:
             self.send('ISON :%s' % nick)
             if self.readable():
-                segments = self.recv().split()
+                segments = self._recv().split()
                 if segments[1] == '303':
                     return ' '.join(segments[3:]).replace(':', '', 1)
                 elif segments[1] in self.error_dictionary:

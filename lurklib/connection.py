@@ -159,7 +159,7 @@ class _Connection(object):
             self.send('PASS :%s' % password)
 
             if self.readable():
-                data = self.recv()
+                data = self._recv()
                 ncode = data.split()[1]
                 if ncode in self.error_dictionary:
                         self.exception(ncode)
@@ -176,7 +176,7 @@ class _Connection(object):
             self.send('NICK :%s' % nick)
 
             if self.readable():
-                data = self.recv()
+                data = self._recv()
                 ncode = data.split()[1]
                 if ncode in self.error_dictionary:
                         self.exception(ncode)
@@ -201,7 +201,7 @@ class _Connection(object):
         with self.lock:
             self.send('USER %s 0 * :%s' % (user, real_name))
             if self.readable():
-                data = self.recv()
+                data = self._recv()
                 ncode = data.split()[1]
                 if ncode in self.error_dictionary:
                         self.exception(ncode)
@@ -220,7 +220,7 @@ class _Connection(object):
             snomasks = ''
             new_umodes = ''
             if self.readable():
-                    data = self.recv()
+                    data = self._recv()
                     ncode = data.split()[1]
 
                     if ncode in self.error_dictionary:
@@ -247,7 +247,7 @@ class _Connection(object):
                 self.send('MODE %s' % nick)
                 modes = ''
                 if self.readable():
-                    modes = ' '.join(self.recv().split()[3:])
+                    modes = ' '.join(self._recv().split()[3:])
                     modes = modes.replace('+', '').replace(':', '', 1)
                 return modes
 
@@ -255,7 +255,7 @@ class _Connection(object):
                 self.send('MODE %s %s' % (nick, modes))
 
             if self.readable():
-                    data = self.recv()
+                    data = self._recv()
                     ncode = data.split()[1]
 
                     if ncode in self.error_dictionary:
@@ -305,7 +305,7 @@ class _Connection(object):
             self.send('SQUIT %s :%s' % (server, reason))
 
             while self.readable():
-                    data = self.recv()
+                    data = self._recv()
                     ncode = data.split()[1]
 
                     if ncode in self.error_dictionary:
@@ -322,7 +322,7 @@ class _Connection(object):
             self.send('PING %s' % self.server)
             ctime = self.m_time.time()
 
-            data = self.recv().split()[1]
+            data = self._recv().split()[1]
             if data == 'PONG':
                 latency = self.m_time.time() - ctime
                 return latency

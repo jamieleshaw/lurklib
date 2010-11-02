@@ -124,14 +124,14 @@ class IRC(variables._Variables, exceptions._Exceptions,
             while sdata[-1] != self._clrf[-1]:
                 if sdata == ' ':
                     sdata = ''
-                try:
-                    if self.m_sys.version_info[0] > 2:
+                if self.m_sys.version_info[0] > 2:
+                    try:
                         sdata = sdata + self.socket.recv(4096).decode(self.encoding)
-                    else:
-                        sdata = sdata + self.socket.recv(4096)
-                except LookupError:
-                    sdata = sdata + self.socket.recv(4096).decode
-                    (self.fallback_encoding)
+                    except LookupError:
+                        sdata = sdata + self.socket.recv(4096).decode \
+                            (self.fallback_encoding)
+                else:
+                    sdata = sdata + self.socket.recv(4096)
 
             lines = sdata.split(self._clrf)
             for line in lines:
@@ -140,7 +140,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 if line != '':
                     self.buffer.append(line)
 
-    def recv(self):
+    def _recv(self):
         """ Return the next available IRC message in the buffer. """
         with self.lock:
             if self.index >= len(self.buffer):
@@ -162,7 +162,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
 
     def readable(self, timeout=1):
         """
-        Checks whether self.recv() will block or not.
+        Checks whether self._recv() will block or not.
         Optional arguments:
         * timeout=1 - How long to wait before returning False.
         """
@@ -203,13 +203,13 @@ class IRC(variables._Variables, exceptions._Exceptions,
         except IndexError:
             return who
 
-    def _parse(self, msg):
+    def recv(self):
         """
         Parses an IRC protocol message.
         Required arguments:
         * msg - IRC message.
         """
-        msg = msg.split(None, 3)
+        msg = self._recv().split(None, 3)
         if msg[1] in self.error_dictionary:
             self.exception(msg[1])
         return msg
@@ -225,7 +225,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
             if timeout != 1000:
                 if self.readable(timeout) == False:
                     return None
-            data = self.recv()
+            data = self._recv()
             segments = data.split()
 
             if segments[1] == 'JOIN':
