@@ -20,8 +20,11 @@ import time
 import sys
 import select
 from threading import RLock
-try: import ssl
-except ImportError: ssl = None
+try:
+    import ssl
+except ImportError:
+    ssl = None
+
 
 class _Variables(object):
     """ Sets the default values for Lurklib's runtime variables. """

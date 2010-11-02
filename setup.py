@@ -1,5 +1,5 @@
 from distutils.core import setup
-setup( \
+setup(
         name='lurklib',
         packages=['lurklib'],
         version='0.6.0.1',
@@ -8,8 +8,8 @@ setup( \
         author_email='jamieleshaw@gmail.com',
         description='Event-driven IRC library.',
         url='http://github.com/LK-/lurklib/',
-        keywords = ['irc', 'internet relay chat'],
-        classifiers = [
+        keywords=['irc', 'internet relay chat'],
+        classifiers=[
                        'Programming Language :: Python',
                        'Programming Language :: Python :: 2',
                        'Programming Language :: Python :: 3',
@@ -19,7 +19,5 @@ setup( \
                        'Intended Audience :: Developers',
                        'Topic :: Software Development :: Libraries :: Python Modules'
                        ],
-        long_description=
-        """Lurklib is a threading-safe, event-driven IRC library designed for creating anything from bots to full-fledged IRC Clients."""
+        long_description="""Lurklib is a threading-safe, event-driven IRC library designed for creating anything from bots to full-fledged IRC Clients."""
         )
-
