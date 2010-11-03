@@ -28,22 +28,23 @@ except ImportError:
 
 class _Variables(object):
     """ Sets the default values for Lurklib's runtime variables. """
-    buffer = []
-    m_socket = socket
-    select = select
-    m_sys = sys
-    m_tls = tls
-    socket = m_socket.socket()
+    _buffer = []
+    _index = 0
+    _m_socket = socket
+    _select = select
+    _m_sys = sys
+    _m_tls = tls
+    _m_time = time
+    _socket = _m_socket.socket()
 
     motd = []
     version = {}
     channels = {}
-    m_time = time
+
     keep_going = False
     con_msg = []
     ircd = ''
     is_away = False
-
     lusers = {}
     priv_types = ('~', '&', '@', '%', '+')
     connected = False
@@ -52,4 +53,3 @@ class _Variables(object):
     cmodes = ''
     server = ''
     lock = RLock()
-    index = 0

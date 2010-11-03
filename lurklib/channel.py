@@ -70,9 +70,9 @@ class _Channel(object):
                 elif msg[1] == '333':
                     set_by, time_set = msg[3].split(' ', 3)[1:]
                     if self.UTC == False:
-                        time_set = self.m_time.localtime(int(time_set))
+                        time_set = self._m_time.localtime(int(time_set))
                     else:
-                        time_set = self.m_time.gmtime(int(time_set))
+                        time_set = self._m_time.gmtime(int(time_set))
                     set_by = self._from_(set_by)
 
                 elif msg[1] == '353':
@@ -81,11 +81,11 @@ class _Channel(object):
                     channel = msg[2]
                     self.channels[channel] = {}
                     if self.hide_called_events == False:
-                        self.buffer.append(msg)
+                        self._buffer.append(msg)
                 elif msg[1] == '366':
                     break
                 else:
-                    self.buffer.append(msg)
+                    self._buffer.append(msg)
 
             self.channels[channel]['USERS'] = {}
             for user in users:
@@ -138,9 +138,9 @@ class _Channel(object):
                 elif self.find(data, 'PART'):
                     del self.channels[data.split()[2]]
                     if self.hide_called_events == False:
-                        self.buffer.append(data)
+                        self._buffer.append(data)
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def cmode(self, channel, modes=''):
         """
@@ -175,9 +175,9 @@ class _Channel(object):
                         mode = ' '.join(segments[3:]).replace(':', '', 1)
                         self.parse_cmode_string(mode, channel)
                         if self.hide_called_events == False:
-                            self.buffer.append(data)
+                            self._buffer.append(data)
                     else:
-                        self.index -= 1
+                        self._index -= 1
 
     def banlist(self, channel):
         """
@@ -203,7 +203,7 @@ class _Channel(object):
                 elif ncode == '368':
                     break
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
             return bans
 
     def exceptlist(self, channel):
@@ -230,7 +230,7 @@ class _Channel(object):
                 elif ncode == '349':
                     break
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
 
             return excepts
 
@@ -258,7 +258,7 @@ class _Channel(object):
                 elif ncode == '347':
                     break
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
 
             return invites
 
@@ -289,9 +289,9 @@ class _Channel(object):
                         channel = data.split()[2].replace(':', '', 1)
                         self.channels[channel]['TOPIC'] = topic
                         if self.hide_called_events == False:
-                            self.buffer.append(data)
+                            self._buffer.append(data)
                     else:
-                        self.index -= 1
+                        self._index -= 1
             else:
                 self.send('TOPIC %s' % channel)
                 while self.readable():
@@ -306,18 +306,18 @@ class _Channel(object):
                         channel = data.split()[2].replace(':', '', 1)
                         self.channels[channel]['TOPIC'] = topic
                         if self.hide_called_events == False:
-                            self.buffer.append(data)
+                            self._buffer.append(data)
                     elif ncode == '333':
                         segments = data.split()
                         if self.UTC == False:
-                            time_set = self.m_time.localtime(int(segments[5]))
+                            time_set = self._m_time.localtime(int(segments[5]))
                         else:
-                            time_set = self.m_time.gmtime(int(segments[5]))
+                            time_set = self._m_time.gmtime(int(segments[5]))
                         set_by = self._from_(segments[4])
                     elif ncode == '331':
                         topic = ''
                     else:
-                        self.buffer.append(data)
+                        self._buffer.append(data)
 
             return topic, set_by, time_set
 
@@ -351,7 +351,7 @@ class _Channel(object):
                     channel = data.split()[3]
                     break
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
             for name in names:
                 prefix = ''
                 if name[0] in self.priv_types:
@@ -399,7 +399,7 @@ class _Channel(object):
                 elif ncode == '323':
                     break
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
             return list_
 
     def invite(self, channel, nick):
@@ -429,7 +429,7 @@ class _Channel(object):
                     elif self.find(data, 'INVITE') and self.hide_called_events:
                         pass
                     else:
-                        self.buffer.append(data)
+                        self._buffer.append(data)
 
     def kick(self, channel, nick, reason=''):
         """
@@ -455,9 +455,9 @@ class _Channel(object):
                 elif self.find(data, 'KICK'):
                     channel = data.split()[2]
                     if self.hide_called_events == False:
-                        self.buffer.append(data)
+                        self._buffer.append(data)
                 else:
-                    self.index -= 1
+                    self._index -= 1
             if self.compare(self.current_nick, nick):
                 del self.channels[channel]
 

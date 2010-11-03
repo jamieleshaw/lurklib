@@ -36,7 +36,7 @@ class _Optional(object):
                 elif ncode == '305':
                     self.is_away = False
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def rehash(self):
         """
@@ -51,7 +51,7 @@ class _Optional(object):
                 elif segments[1] in self.error_dictionary:
                     self.exception(segments[1])
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def die(self, password=''):
         """
@@ -66,7 +66,7 @@ class _Optional(object):
                 if segments[1] == self.error_dictionary:
                     self.exception(segments[1])
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def restart(self, password=''):
         """
@@ -81,7 +81,7 @@ class _Optional(object):
                 if segments[1] in self.error_dictionary:
                     self.exception(segments[1])
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def summon(self):
         """ Not implemented. """
@@ -114,7 +114,7 @@ class _Optional(object):
                 elif segments[1] in self.error_dictionary:
                     self.exception(segments[1])
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def ison(self, nick):
         """
@@ -131,4 +131,4 @@ class _Optional(object):
                 elif segments[1] in self.error_dictionary:
                     self.exception(segments[1])
                 else:
-                    self.index -= 1
+                    self._index -= 1

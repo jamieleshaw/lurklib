@@ -67,7 +67,7 @@ class _UserQueries(object):
                 elif ncode == '315':
                     return who_lst
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
 
     def whois(self, nick):
         """
@@ -155,4 +155,4 @@ class _UserQueries(object):
                     elif ncode == '369':
                         return rwhowas
                     else:
-                        self.buffer.append(data)
+                        self._buffer.append(data)

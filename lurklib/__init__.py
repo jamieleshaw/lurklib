@@ -68,7 +68,8 @@ class IRC(variables._Variables, exceptions._Exceptions,
         self.encoding = encoding
         self._clrf = '\r\n'
 
-        if self.m_sys.version_info[0] == 2 and self.m_sys.version_info[1] < 6:
+        if self._m_sys.version_info[0] == 2 and \
+            self._m_sys.version_info[1] < 6:
             self.tls = False
         else:
             self.tls = tls
@@ -79,7 +80,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
               % __version__,
              'SOURCE': 'http://github.com/LK-/Lurklib/',
              'PING': 1,
-             'TIME': self.m_time.asctime,
+             'TIME': self._m_time.asctime,
              }
         else:
             self.ctcps = ctcps
@@ -102,10 +103,14 @@ class IRC(variables._Variables, exceptions._Exceptions,
             return True
 
     def send(self, msg):
-        """ Send raw data with the clrf appended to it. """
+        """
+        Send a raw string with the clrf appended to it.
+        Required arguments:
+        * msg - Message to send.
+        """
         with self.lock:
             msg = msg.replace('\r', '\\r').replace('\n', '\\n') + self._clrf
-            if self.m_sys.version_info[0] > 2:
+            if self._m_sys.version_info[0] > 2:
                 try:
                     data = bytes(msg, self.encoding)
                 except LookupError:
@@ -115,63 +120,64 @@ class IRC(variables._Variables, exceptions._Exceptions,
                     data = msg.encode(self.encoding)
                 except UnicodeDecodeError:
                     data = msg.encode(self.fallback_encoding)
-            self.socket.send(data)
+            self._socket.send(data)
 
-    def mcon(self):
+    def _mcon(self):
         """ Buffer IRC data and handle PING/PONG. """
         with self.lock:
             sdata = ' '
             while sdata[-1] != self._clrf[-1]:
                 if sdata == ' ':
                     sdata = ''
-                if self.m_sys.version_info[0] == 3:
+                if self._m_sys.version_info[0] == 3:
                     try:
                         sdata = sdata + \
-                        self.socket.recv(4096).decode(self.encoding)
+                        self._socket.recv(4096).decode(self.encoding)
                     except LookupError:
                         sdata = sdata + \
-                        self.socket.recv(4096).decode(self.fallback_encoding)
+                        self._socket.recv(4096).decode(self.fallback_encoding)
                 else:
-                    sdata = sdata + self.socket.recv(4096)
+                    sdata = sdata + self._socket.recv(4096)
 
             lines = sdata.split(self._clrf)
             for line in lines:
                 if line.find('PING :') == 0:
                     self.send(line.replace('PING', 'PONG'))
                 if line != '':
-                    self.buffer.append(line)
+                    self._buffer.append(line)
 
     def _recv(self):
         """ Return the next available IRC message in the buffer. """
         with self.lock:
-            if self.index >= len(self.buffer):
-                self.mcon()
-            if self.index >= 199:
+            if self._index >= len(self._buffer):
+                self._mcon()
+            if self._index >= 199:
                 self._resetbuffer()
-                self.mcon()
-            msg = self.buffer[self.index]
+                self._mcon()
+            msg = self._buffer[self._index]
             while self.find(msg, 'PING :'):
-                self.index += 1
+                self._index += 1
                 try:
-                    msg = self.buffer[self.index]
+                    msg = self._buffer[self._index]
                 except IndexError:
-                    self.mcon()
-                    self.index -= 1
+                    self._mcon()
+                    self._index -= 1
 
-            self.index += 1
+            self._index += 1
             return msg
 
     def readable(self, timeout=1):
         """
         Checks whether self.recv() will block or not.
         Optional arguments:
-        * timeout=1 - How long to wait before returning False.
+        * timeout=1 - Wait for the socket to be readable,
+            for timeout amount of time.
         """
         with self.lock:
-            if len(self.buffer) > self.index:
+            if len(self._buffer) > self._index:
                 return True
             else:
-                if self.select([self.socket], [], [], timeout)[0] == []:
+                if self._select([self._socket], [], [], timeout)[0] == []:
                     return False
                 else:
                     return True
@@ -179,12 +185,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
     def _resetbuffer(self):
         """ Resets the IRC buffer. """
         with self.lock:
-            self.index, self.buffer = 0, []
-
-    def __close__(self):
-        """ For use with the Python 'with' statement. """
-        with self.lock:
-            self.quit()
+            self._index, self._buffer = 0, []
 
     def _from_(self, who):
         """
@@ -236,7 +237,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 who = self._from_(segments[0][1:])
                 channel = segments[2][1:]
                 if channel not in self.channels:
-                    self.index -= 1
+                    self._index -= 1
                     return 'JOIN', self.join(channel, process_only=True)
                 else:
                     self.channels[channel]['USERS'][who[0]] = \
@@ -377,7 +378,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 self.quit()
                 return 'ERROR', ' '.join(segments[1:]).replace(':', '', 1)
             else:
-                self.index -= 1
+                self._index -= 1
                 return 'UNKNOWN', self.recv()
 
     def compare(self, first, second):

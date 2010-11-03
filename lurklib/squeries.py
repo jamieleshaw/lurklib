@@ -46,7 +46,7 @@ class _ServerQueries(object):
                 elif ncode == '422':
                     break
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
             self.motd = tuple(self.motd)
             return motd
 
@@ -95,7 +95,7 @@ class _ServerQueries(object):
                     self.lusers['GLOBALMAX'] = segments[8]
                     break
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
             return self.lusers
 
     def version(self, target=None):
@@ -177,7 +177,7 @@ class _ServerQueries(object):
                 elif segments[1] == '365':
                     break
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
             return links
 
     def time(self, target=None):
@@ -215,7 +215,7 @@ class _ServerQueries(object):
                 if ncode in self.error_dictionary:
                     self.exception(ncode)
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def trace(self, target):
         """
@@ -257,7 +257,7 @@ class _ServerQueries(object):
                 elif segments[1]  in admin_ncodes:
                     rvalue.append(' '.join(segments[3:])[1:])
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
             return rvalue
 
     def s_info(self, server=None):
@@ -280,7 +280,7 @@ class _ServerQueries(object):
                 elif segments[1] == '374':
                     break
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
             return sinfo
 
     def servlist(self, mask=None, type=None):
@@ -307,7 +307,7 @@ class _ServerQueries(object):
                 elif segments[1] == '235':
                     break
                 else:
-                    self.buffer.append(data)
+                    self._buffer.append(data)
             return servs
 
     def squery(self, sname, msg):
@@ -325,7 +325,7 @@ class _ServerQueries(object):
                 if ncode in self.error_dictionary:
                     self.exception(ncode)
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def kill(self, nick, reason=''):
         """
@@ -344,4 +344,4 @@ class _ServerQueries(object):
                 if ncode in self.error_dictionary:
                     self.exception(ncode)
                 else:
-                    self.index -= 1
+                    self._index -= 1

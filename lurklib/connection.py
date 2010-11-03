@@ -29,8 +29,8 @@ class _Connection(object):
         """
         with self.lock:
             if tls:
-                self.socket = self.m_tls.wrap_socket(self.socket)
-            self.socket.connect((server, port))
+                self._socket = self._m_tls.wrap_socket(self._socket)
+            self._socket.connect((server, port))
 
     def _register(self, nick, user, real_name, password=None):
         """
@@ -163,7 +163,7 @@ class _Connection(object):
                 if ncode in self.error_dictionary:
                         self.exception(ncode)
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def nick(self, nick):
         """
@@ -182,7 +182,7 @@ class _Connection(object):
                 elif data.split()[1] == 'NICK' and self.hide_called_events:
                     pass
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
             for channel in self.channels:
                 priv_level = self.channels[channel]['USERS'][self.current_nick]
@@ -205,7 +205,7 @@ class _Connection(object):
                 if ncode in self.error_dictionary:
                         self.exception(ncode)
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def oper(self, name, password):
         """
@@ -231,7 +231,7 @@ class _Connection(object):
                     elif ncode == '008':
                             snomasks = data.split('(')[1].split(')')[0]
                     else:
-                        self.index -= 1
+                        self._index -= 1
 
     def umode(self, nick, modes=''):
         """
@@ -264,7 +264,7 @@ class _Connection(object):
                     elif self.find(data, 'MODE') and self.hide_called_events:
                             pass
                     else:
-                        self.index -= 1
+                        self._index -= 1
 
     def service(self):
         """ Not implemented. """
@@ -289,8 +289,8 @@ class _Connection(object):
         with self.lock:
             self.keep_going = False
             self._quit(reason)
-            self.socket.shutdown(self.m_socket.SHUT_RDWR)
-            self.socket.close()
+            self._socket.shutdown(self._m_socket.SHUT_RDWR)
+            self._socket.close()
 
     def squit(self, server, reason=''):
         """
@@ -313,17 +313,22 @@ class _Connection(object):
                     elif self.find(data, 'SQUIT') and self.hide_called_events:
                             pass
                     else:
-                        self.index -= 1
+                        self._index -= 1
 
     def latency(self):
         """ Checks the connection latency. """
         with self.lock:
             self.send('PING %s' % self.server)
-            ctime = self.m_time.time()
+            ctime = self._m_time.time()
 
             data = self._recv().split()[1]
             if data == 'PONG':
-                latency = self.m_time.time() - ctime
+                latency = self._m_time.time() - ctime
                 return latency
             else:
-                self.index -= 1
+                self._index -= 1
+
+    def __close__(self):
+        """ For use with the Python 'with' statement. """
+        with self.lock:
+            self.quit()

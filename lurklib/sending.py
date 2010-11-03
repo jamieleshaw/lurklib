@@ -38,7 +38,7 @@ class _Sending(object):
                 elif ncode == '301':
                     return 'AWAY', data.split(None, 3)[3].replace(':', '', 1)
                 else:
-                    self.index -= 1
+                    self._index -= 1
 
     def notice(self, target, message):
         """
@@ -57,4 +57,4 @@ class _Sending(object):
                 elif ncode == '301':
                     return 'AWAY', data.split(None, 3)[3].replace(':', '', 1)
                 else:
-                    self.index -= 1
+                    self._index -= 1
