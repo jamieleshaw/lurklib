@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #    This file is part of Lurklib.
 #    Copyright (C) 2010  Jamie Shaw (LK-)
 #
@@ -16,7 +17,7 @@
 
 """ Lurklib usage example. """
 
-SERVER = 'localhost'
+SERVER = 'irc.codeshock.org'
 
 import lurklib
 

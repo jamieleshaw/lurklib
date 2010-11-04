@@ -20,7 +20,7 @@ from __future__ import with_statement
 
 
 class _Optional(object):
-    """ Defines option IRC protocol features. """
+    """ Defines optional IRC protocol features. """
     def away(self, msg=''):
         """
         Sets/unsets your away status.

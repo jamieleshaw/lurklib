@@ -113,22 +113,19 @@ class _Channel(object):
                     ['', '', '', '', '']
         return users, topic, set_by, time_set
 
-    def part(self, channel, reason=None):
+    def part(self, channel, reason=''):
         """
         Part a channel.
         Required arguments:
         * channel - Channel to part.
         Optional arguments:
-        * reason - Reason for parting.
+        * reason='' - Reason for parting.
         """
         with self.lock:
             if self.is_in_channel(channel) == False:
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
-            if reason == None:
-                self.send('PART %s' % channel)
-            else:
-                self.send('PART %s :%s' % (channel, reason))
+            self.send('PART %s :%s' % (channel, reason))
 
             if self.readable():
                 data = self._recv()
@@ -148,7 +145,7 @@ class _Channel(object):
         Required arguments:
         * channel - Channel to set/get modes of.
         Optional arguments:
-        * modes - Modes to set.
+        * modes='' - Modes to set.
             If not specified return the modes of the channel.
         """
         with self.lock:
@@ -377,7 +374,7 @@ class _Channel(object):
                     ['', '', '', '', '']
             return names
 
-    def slist(self):
+    def list_(self):
         """ Gets a list of channels on the server. """
         with self.lock:
             self.send('LIST')

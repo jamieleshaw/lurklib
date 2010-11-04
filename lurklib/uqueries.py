@@ -13,11 +13,13 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Lurklib.  If not, see <http://www.gnu.org/licenses/>.
+""" User queries and such. """
 
 from __future__ import with_statement
 
 
 class _UserQueries(object):
+    """ Defines user queries and such. """
     def who(self, target):
         """
         Runs a WHO on a target
