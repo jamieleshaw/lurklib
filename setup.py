@@ -13,11 +13,15 @@ setup(
                        'Programming Language :: Python',
                        'Programming Language :: Python :: 2',
                        'Programming Language :: Python :: 3',
-                       'License :: OSI Approved :: GNU General Public License (GPL)',
+                       'License :: OSI Approved ::' + \
+                       ' GNU General Public License (GPL)',
                        'Operating System :: OS Independent',
                        'Development Status :: 5 - Production/Stable',
                        'Intended Audience :: Developers',
-                       'Topic :: Software Development :: Libraries :: Python Modules'
+                       'Topic :: Software Development' + \
+                       ' :: Libraries :: Python Modules'
                        ],
-        long_description="""Lurklib is a threading-safe, event-driven IRC library designed for creating anything from bots to full-fledged IRC Clients."""
+        long_description="""Lurklib is a threading-safe,""" + \
+        """ event-driven IRC library designed for creating""" + \
+        """ anything from bots to full-fledged IRC Clients."""
         )

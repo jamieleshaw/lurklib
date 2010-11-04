@@ -19,6 +19,7 @@
 import unittest
 import threading
 import socket
+import select
 import sys
 import lurklib
 
@@ -74,13 +75,28 @@ class IRCD(threading.Thread):
         msg = self.buffer[self.index]
         self.index += 1
         return msg
-
+    def readable(self, timeout=1):
+        """
+        Checks whether self.recv() will block or not.
+        Optional arguments:
+        * timeout=1 - Wait for the socket to be readable,
+            for timeout amount of time.
+        """
+        if len(self.buffer) > self.index:
+            return True
+        else:
+            if select.select([self.socket], [], [], timeout)[0] == []:
+                return False
+            else:
+                return True
 
 class BaseTest(unittest.TestCase):
     ircd = IRCD()
     ircd.start()
     irc = lurklib.IRC('localhost', nick='Lurklib')
-
+    def tearDown(self):
+        if self.ircd.readable(0.01):
+            self.ircd.socket.recv(4096)
 
 class TestLurklib(BaseTest, ConnectionTest, ChannelTest):
     pass
