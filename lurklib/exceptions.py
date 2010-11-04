@@ -192,5 +192,5 @@ class _Exceptions(object):
         * ncode - Error numerical code.
         """
         error = self.error_dictionary[ncode]
-        error_msg = self.buffer[self.index - 1].split(None, 3)[3]
+        error_msg = self._buffer[self._index - 1].split(None, 3)[3]
         exec('raise self.%s("%s: %s")' % (error, error, error_msg))

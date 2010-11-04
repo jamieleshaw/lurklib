@@ -46,24 +46,10 @@ class _Connection(object):
         * password=None - IRC server password.
         """
         with self.lock:
-            if password != None:
+            if password:
                 self._password(password)
 
-            nick_set_successfully = False
-            try:
-                self.nick(nick)
-                nick_set_successfully = True
-            except TypeError:
-                for nick_ in nick:
-                    try:
-                        self.nick(nick_)
-                        nick_set_successfully = True
-                        break
-
-                    except self.NicknameInUse:
-                        pass
-            if nick_set_successfully == False:
-                self.exception('433')
+            self.nick(nick)
             self._user(user, real_name)
 
     def _init(self, server, nick, user, real_name,
@@ -86,7 +72,7 @@ class _Connection(object):
         """
         with self.lock:
             if tls:
-                if port == None:
+                if not port:
                     port = 6697
                 self._connect(server, port, True)
             else:
@@ -94,7 +80,7 @@ class _Connection(object):
                     port = 6667
 
                 self._connect(server, port)
-            while self.readable():
+            while self.readable(2):
                 data = self.stream()
                 if data[0] == 'NOTICE':
                         self.server = data[1][0]
@@ -165,7 +151,7 @@ class _Connection(object):
                 else:
                     self._index -= 1
 
-    def nick(self, nick):
+    def _nick(self, nick):
         """
         Sets your nick.
         Required arguments:
@@ -189,6 +175,28 @@ class _Connection(object):
                 del self.channels[channel]['USERS'][self.current_nick]
                 self.channels[channel]['USERS'][nick] = priv_level
             self.current_nick = nick
+
+    def nick(self, nick):
+        """
+        Sets your nick.
+        Required arguments:
+        * nick - New nick or a tuple of possible new nicks.
+        """
+        nick_set_successfully = False
+        try:
+            self._nick(nick)
+            nick_set_successfully = True
+        except TypeError:
+            for nick_ in nick:
+                try:
+                    self._nick(nick_)
+                    nick_set_successfully = True
+                    break
+
+                except self.NicknameInUse:
+                    pass
+        if nick_set_successfully == False:
+            self.exception('433')
 
     def _user(self, user, real_name):
         """
@@ -227,7 +235,7 @@ class _Connection(object):
                     elif self.find(data, 'MODE'):
                             new_umodes = data.split()[-1].replace(':', '', 1)
                     elif ncode == '381':
-                            return (new_umodes, snomasks)
+                            return new_umodes, snomasks
                     elif ncode == '008':
                             snomasks = data.split('(')[1].split(')')[0]
                     else:
@@ -279,18 +287,31 @@ class _Connection(object):
         with self.lock:
             self.send('QUIT :%s' % reason)
 
-    def quit(self, reason=None):
+    def quit(self, reason=''):
         """
         Sends a QUIT message, closes the connection and -
             ends Lurklib's mainloop.
         Optional arguments:
-        * reason - Reason for quitting.
+        * reason='' - Reason for quitting.
         """
         with self.lock:
             self.keep_going = False
             self._quit(reason)
             self._socket.shutdown(self._m_socket.SHUT_RDWR)
             self._socket.close()
+
+    def __close__(self):
+        """ For use with the Python 'with' statement. """
+        with self.lock:
+            self.quit()
+
+    def __del__(self):
+        """ For use with Python's automatic garbage collection and such. """
+        with self.lock:
+            try:
+                self.quit()
+            except self._m_socket.error:
+                pass
 
     def squit(self, server, reason=''):
         """
@@ -327,8 +348,3 @@ class _Connection(object):
                 return latency
             else:
                 self._index -= 1
-
-    def __close__(self):
-        """ For use with the Python 'with' statement. """
-        with self.lock:
-            self.quit()
