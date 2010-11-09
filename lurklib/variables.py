@@ -17,12 +17,9 @@
 """ Declares variables and standard modules needed by Lurklib etc. """
 import socket
 import time
+import ssl as tls
 from select import select
 from threading import RLock
-try:
-    import ssl as tls
-except ImportError:
-    tls = None
 
 
 class _Variables(object):

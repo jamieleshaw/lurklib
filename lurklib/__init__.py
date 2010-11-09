@@ -68,12 +68,6 @@ class IRC(variables._Variables, exceptions._Exceptions,
         self.encoding = encoding
         self._clrf = '\r\n'
 
-        if self._m_sys.version_info[0] == 2 and \
-            self._m_sys.version_info[1] < 6:
-            self.tls = False
-        else:
-            self.tls = tls
-
         if ctcps == None:
             self.ctcps = { \
              'VERSION': 'Lurklib : %s' \
@@ -407,14 +401,14 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 elif 'UNHANDLED' in self.hooks:
                     self.hooks['UNHANDLED'](event)
                 else:
-                    raise self.UnhandledEvent \
-                ('Unhandled Event: %s' % event[0])
+                    raise self.UnhandledEvent('Unhandled Event: %s' % \
+                                              event[0])
             except KeyError:
                 if 'UNHANDLED' in self.hooks:
                     self.hooks['UNHANDLED'](event)
                 else:
-                    raise self.UnhandledEvent \
-                ('Unhandled Event: %s' % event[0])
+                    raise self.UnhandledEvent('Unhandled Event: %s' % \
+                                              event[0])
 
     def mainloop(self):
         """
