@@ -13,6 +13,7 @@ setup(
         description='Event-driven IRC library.',
         url='http://github.com/LK-/lurklib/',
         keywords=['irc', 'internet relay chat'],
+        test_suite='test.get_suite',
         classifiers=[
                        'Programming Language :: Python',
                        'Programming Language :: Python :: 2',
