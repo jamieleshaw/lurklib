@@ -86,7 +86,7 @@ class _Channel(object):
                     break
                 else:
                     self._buffer.append(msg)
-
+            self.channels[channel] = {}
             self.channels[channel]['USERS'] = {}
             for user in users:
                 prefix = ''

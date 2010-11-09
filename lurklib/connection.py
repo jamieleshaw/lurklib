@@ -71,6 +71,7 @@ class _Connection(object):
         * tls=False - Should we use TLS/SSL?
         """
         with self.lock:
+            self.current_nick = nick
             if tls:
                 if not port:
                     port = 6697

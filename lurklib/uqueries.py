@@ -120,7 +120,7 @@ class _UserQueries(object):
                 elif ncode == '318':
                     break
                 else:
-                    if 'ETC' in whois_r.keys():
+                    if 'ETC' in whois_r:
                         whois_r['ETC'].append(data.split(':', 2)[2])
                     else:
                         whois_r['ETC'] = [data.split(':', 2)[2]]

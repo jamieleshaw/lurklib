@@ -85,8 +85,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
         else:
             self.ctcps = ctcps
 
-        if server != None:
-            self._init(server, nick, user, real_name, password, port, tls)
+        self._init(server, nick, user, real_name, password, port, tls)
 
     def find(self, haystack, needle):
         """
@@ -96,7 +95,13 @@ class IRC(variables._Variables, exceptions._Exceptions,
         * haystack - Text to search in.
         * needle - Text to search for.
         """
-        qstatus = haystack.find(needle)
+        try:
+            qstatus = haystack.find(needle)
+        except AttributeError:
+            if needle in haystack:
+                return True
+            else:
+                return False
         if qstatus == -1:
             return False
         elif qstatus != -1:
@@ -110,16 +115,10 @@ class IRC(variables._Variables, exceptions._Exceptions,
         """
         with self.lock:
             msg = msg.replace('\r', '\\r').replace('\n', '\\n') + self._clrf
-            if self._m_sys.version_info[0] > 2:
-                try:
-                    data = bytes(msg, self.encoding)
-                except LookupError:
-                    data = bytes(msg, self.fallback_encoding)
-            else:
-                try:
-                    data = msg.encode(self.encoding)
-                except UnicodeDecodeError:
-                    data = msg.encode(self.fallback_encoding)
+            try:
+                data = msg.encode(self.encoding)
+            except UnicodeEncodeError:
+                data = msg.encode(self.fallback_encoding)
             self._socket.send(data)
 
     def _mcon(self):
@@ -129,15 +128,12 @@ class IRC(variables._Variables, exceptions._Exceptions,
             while sdata[-1] != self._clrf[-1]:
                 if sdata == ' ':
                     sdata = ''
-                if self._m_sys.version_info[0] == 3:
-                    try:
-                        sdata = sdata + \
-                        self._socket.recv(4096).decode(self.encoding)
-                    except LookupError:
-                        sdata = sdata + \
-                        self._socket.recv(4096).decode(self.fallback_encoding)
-                else:
-                    sdata = sdata + self._socket.recv(4096)
+                try:
+                    sdata = sdata + \
+                    self._socket.recv(4096).decode(self.encoding)
+                except UnicodeDecodeError:
+                    sdata = sdata + \
+                    self._socket.recv(4096).decode(self.fallback_encoding)
 
             lines = sdata.split(self._clrf)
             for line in lines:
@@ -212,7 +208,11 @@ class IRC(variables._Variables, exceptions._Exceptions,
         * rm_colon=False - If True, the colon prefixed to -
             the event/numeric(command) will be removed.
         """
-        msg = self._recv().split(None, 3)
+        msg = self._recv()
+        try:
+            msg = msg.split(None, 3)
+        except AttributeError:
+            pass
         if msg[1] in self.error_dictionary:
             self.exception(msg[1])
         if rm_colon and msg[2][0] == ':':
@@ -266,7 +266,7 @@ class IRC(variables._Variables, exceptions._Exceptions,
                     if segments[0] == 'ACTION':
                         action = ' '.join(rctcp.split()[1:])
                         return 'ACTION', (rvalue[1][:2], action)
-                    for ctcp in self.ctcps.keys():
+                    for ctcp in self.ctcps:
                         if ctcp == segments[0] and self.ctcps[ctcp] != None:
                             if hasattr(self.ctcps[ctcp], '__call__'):
                                 response = str(self.ctcps[ctcp]())
@@ -407,13 +407,13 @@ class IRC(variables._Variables, exceptions._Exceptions,
                 elif 'UNHANDLED' in self.hooks:
                     self.hooks['UNHANDLED'](event)
                 else:
-                    raise self.UnhandledEvent
+                    raise self.UnhandledEvent \
                 ('Unhandled Event: %s' % event[0])
             except KeyError:
-                if 'UNHANDLED' in self.hooks.keys():
+                if 'UNHANDLED' in self.hooks:
                     self.hooks['UNHANDLED'](event)
                 else:
-                    raise self.UnhandledEvent
+                    raise self.UnhandledEvent \
                 ('Unhandled Event: %s' % event[0])
 
     def mainloop(self):

@@ -17,7 +17,6 @@
 """ Declares variables and standard modules needed by Lurklib etc. """
 import socket
 import time
-import sys
 from select import select
 from threading import RLock
 try:
@@ -32,7 +31,6 @@ class _Variables(object):
     _index = 0
     _m_socket = socket
     _select = select
-    _m_sys = sys
     _m_tls = tls
     _m_time = time
     _socket = _m_socket.socket()
