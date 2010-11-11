@@ -21,13 +21,14 @@ SERVER = 'localhost'
 
 import lurklib
 
+
 class HelloBot(lurklib.Client):
-    def on_auto(self):
+    def on_connect(self):
+        """ Join #bots upon connecting. """
         self.join('#bots')
-        self.quit()
 
     def on_privmsg(self, event):
-        print(event)
+        """ Event handlers for PRIVMSGs. """
         if event[2].lower() == 'hello':
             self.privmsg(event[1], 'Hello, %s!' % event[0][0])
             print('%s said hello!' % event[0][0])
@@ -39,4 +40,4 @@ HELLOBOT = HelloBot(server=SERVER, nick=('HelloBot', 'HelloBot-'))
 
 # Enter lurklib's mainloop which will keep you connected to IRC -
 # and call the specified hooks when necessary.
-#HELLOBOT.mainloop()
+HELLOBOT.mainloop()

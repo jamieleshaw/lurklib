@@ -47,7 +47,7 @@ class Client(core._Core):
                     break
                 self.process_once()
 
-    def on_auto(self, event):
+    def on_connect(self, event):
         pass
 
     def on_join(self, event):
