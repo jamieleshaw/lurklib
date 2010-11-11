@@ -31,7 +31,7 @@ class _Sending(object):
         with self.lock:
             self.send('PRIVMSG ' + target + ' :' + message)
             if self.readable():
-                data = self._recv()
+                data = self._recv_()
                 ncode = data.split()[1]
                 if ncode in self.error_dictionary:
                     self.exception(ncode)
@@ -50,7 +50,7 @@ class _Sending(object):
         with self.lock:
             self.send('NOTICE ' + target + ' :' + message)
             if self.readable():
-                data = self._recv()
+                data = self._recv_()
                 ncode = data.split()[1]
                 if ncode in self.error_dictionary:
                     self.exception(ncode)

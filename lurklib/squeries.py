@@ -35,7 +35,7 @@ class _ServerQueries(object):
 
             motd = []
             while self.readable():
-                data = self._recv()
+                data = self._recv_()
                 ncode = data.split()[1]
                 if ncode == '375':
                     pass
@@ -65,7 +65,7 @@ class _ServerQueries(object):
             else:
                 self.send('LUSERS %s %s' % (mask, target))
             while self.readable():
-                data = self._recv()
+                data = self._recv_()
                 segments = data.split()
 
                 if segments[1] == '250':
@@ -144,7 +144,7 @@ class _ServerQueries(object):
                 self.send('STATS %s %s' % (query, target))
             rvalue = []
             while self.readable():
-                data = self._recv()
+                data = self._recv_()
                 segments = data.split()
                 if segments[1] == '219':
                     break
@@ -168,7 +168,7 @@ class _ServerQueries(object):
                 self.send('LINKS %s %s' % (r_server, mask))
             links = {}
             while self.readable():
-                data = self._recv()
+                data = self._recv_()
                 segments = data.split()
                 if segments[1] == '364':
                     server = segments[3]
@@ -192,7 +192,7 @@ class _ServerQueries(object):
             else:
                 self.send('TIME')
             if self.readable():
-                segments = self._recv().split()
+                segments = self._recv_().split()
                 time = ' '.join(segments[4:]).replace(':', '', 1)
             return time
 
@@ -211,7 +211,7 @@ class _ServerQueries(object):
             else:
                 self.send('CONNECT %s %s %s' % (server, port, r_server))
             if self.readable():
-                ncode = self._recv().split()[1]
+                ncode = self._recv_().split()[1]
                 if ncode in self.error_dictionary:
                     self.exception(ncode)
                 else:
@@ -227,7 +227,7 @@ class _ServerQueries(object):
             self.send('TRACE ' + target)
             rvalue = []
             while self.readable():
-                data = self._recv()
+                data = self._recv_()
                 segments = data.split()
                 if segments[1] == '262':
                     break
@@ -249,7 +249,7 @@ class _ServerQueries(object):
                 self.send('ADMIN %s' % server)
             rvalue = []
             while self.readable():
-                data = self._recv()
+                data = self._recv_()
                 segments = data.split()
                 admin_ncodes = '257', '258', '259'
                 if segments[1] == '256':
@@ -273,7 +273,7 @@ class _ServerQueries(object):
                 self.send('INFO %s' % server)
             sinfo = []
             while self.readable():
-                data = self._recv()
+                data = self._recv_()
                 segments = data.split()
                 if segments[1] == '371':
                     sinfo.append(' '.join(segments[3:])[1:])
@@ -300,7 +300,7 @@ class _ServerQueries(object):
 
             servs = []
             while self.readable():
-                data = self._recv()
+                data = self._recv_()
                 segments = data.split()
                 if segments[1] == '234':
                     servs.append(' '.join(segments[3:]).replace(':', '', 1))
@@ -320,7 +320,7 @@ class _ServerQueries(object):
         with self.lock:
             self.send('SQUERY %s :%s' % (sname, msg))
             if self.readable():
-                data = self._recv()
+                data = self._recv_()
                 ncode = data.split()[1]
                 if ncode in self.error_dictionary:
                     self.exception(ncode)
@@ -339,7 +339,7 @@ class _ServerQueries(object):
             self.send('KILL ' + nick + ' :' + reason)
 
             if self.readable():
-                data = self._recv()
+                data = self._recv_()
                 ncode = data.split()[1]
                 if ncode in self.error_dictionary:
                     self.exception(ncode)

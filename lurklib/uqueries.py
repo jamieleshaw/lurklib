@@ -37,7 +37,7 @@ class _UserQueries(object):
             who_lst = {}
 
             while self.readable():
-                data = self._recv()
+                data = self._recv_()
                 ncode = data.split()[1]
                 if ncode == '352':
                     raw_who = data.split(None, 10)
@@ -94,7 +94,7 @@ class _UserQueries(object):
             whois_r = {'CHANNELS': []}
 
             while self.readable():
-                data = self._recv()
+                data = self._recv_()
                 info = data.split(None, 7)
                 ncode = info[1]
                 if ncode == '311':
@@ -143,7 +143,7 @@ class _UserQueries(object):
 
             rwhowas = []
             while self.readable():
-                    data = self._recv()
+                    data = self._recv_()
                     ncode = data.split()[1]
 
                     if ncode == '314':

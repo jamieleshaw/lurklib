@@ -77,22 +77,22 @@ class _Connection(object):
                     port = 6697
                 self._connect(server, port, True)
             else:
-                if port == None:
+                if not port:
                     port = 6667
 
                 self._connect(server, port)
             while self.readable(2):
-                data = self.stream()
+                data = self.recv()
                 if data[0] == 'NOTICE':
                         self.server = data[1][0]
                 self.con_msg.append(data)
 
             self._register(nick, user, real_name, password)
             while self.readable(timeout=4):
-                rdata = self.stream()
+                rdata = self.recv()
                 if rdata[0] == 'UNKNOWN':
                     data = rdata[1][3].replace(':', '', 1)
-                    ncode = data[1]
+                    ncode = rdata[1][1]
 
                     if ncode == '004':
                         info = data.split()
@@ -101,7 +101,7 @@ class _Connection(object):
                         self.umodes = info[2]
                         self.cmodes = info[3]
                     elif ncode == '005':
-                        version = data.replace
+                        version = data.replace \
                         (':are supported by this server', '')
                         version = version.split()
                         for info in version:
@@ -115,20 +115,16 @@ class _Connection(object):
                                     self.encoding = value
                             except IndexError:
                                 self.version[info[0]] = True
-                    elif ncode == '372':
-                        self.motd.append(data)
                     elif ncode == '376':
-                        self.con_msg.append(data)
+                        self.con_msg.append(rdata)
                         break
                     elif ncode == '422':
-                        self.con_msg.append(data)
+                        self.con_msg.append(rdata)
                         break
                 else:
                     if rdata[0] == 'NOTICE':
                         self.server = rdata[1][0]
-
                 self.con_msg.append(rdata[1])
-
             self.motd = tuple(self.motd)
             self.con_msg = tuple(self.con_msg)
             self.connected = True
@@ -145,7 +141,7 @@ class _Connection(object):
             self.send('PASS :%s' % password)
 
             if self.readable():
-                data = self._recv()
+                data = self._recv_()
                 ncode = data.split()[1]
                 if ncode in self.error_dictionary:
                         self.exception(ncode)
@@ -162,7 +158,7 @@ class _Connection(object):
             self.send('NICK :%s' % nick)
 
             if self.readable():
-                data = self._recv()
+                data = self._recv_()
                 ncode = data.split()[1]
                 if ncode in self.error_dictionary:
                         self.exception(ncode)
@@ -209,7 +205,7 @@ class _Connection(object):
         with self.lock:
             self.send('USER %s 0 * :%s' % (user, real_name))
             if self.readable():
-                data = self._recv()
+                data = self._recv_()
                 ncode = data.split()[1]
                 if ncode in self.error_dictionary:
                         self.exception(ncode)
@@ -228,7 +224,7 @@ class _Connection(object):
             snomasks = ''
             new_umodes = ''
             if self.readable():
-                    data = self._recv()
+                    data = self._recv_()
                     ncode = data.split()[1]
 
                     if ncode in self.error_dictionary:
@@ -255,7 +251,7 @@ class _Connection(object):
                 self.send('MODE %s' % nick)
                 modes = ''
                 if self.readable():
-                    modes = ' '.join(self._recv().split()[3:])
+                    modes = ' '.join(self._recv_().split()[3:])
                     modes = modes.replace('+', '').replace(':', '', 1)
                 return modes
 
@@ -263,7 +259,7 @@ class _Connection(object):
                 self.send('MODE %s %s' % (nick, modes))
 
             if self.readable():
-                    data = self._recv()
+                    data = self._recv_()
                     ncode = data.split()[1]
 
                     if ncode in self.error_dictionary:
@@ -326,7 +322,7 @@ class _Connection(object):
             self.send('SQUIT %s :%s' % (server, reason))
 
             while self.readable():
-                    data = self._recv()
+                    data = self._recv_()
                     ncode = data.split()[1]
 
                     if ncode in self.error_dictionary:
@@ -343,7 +339,7 @@ class _Connection(object):
             self.send('PING %s' % self.server)
             ctime = self._m_time.time()
 
-            data = self._recv().split()[1]
+            data = self._recv_().split()[1]
             if data == 'PONG':
                 latency = self._m_time.time() - ctime
                 return latency

@@ -17,45 +17,26 @@
 
 """ Lurklib usage example. """
 
-SERVER = 'irc.codeshock.org'
+SERVER = 'localhost'
 
 import lurklib
 
+class HelloBot(lurklib.Client):
+    def on_auto(self):
+        self.join('#bots')
+        self.quit()
 
-def on_auto():
-    """ Join #bots and print it's information out. """
-    print(IRC.join('#bots'))
+    def on_privmsg(self, event):
+        print(event)
+        if event[2].lower() == 'hello':
+            self.privmsg(event[1], 'Hello, %s!' % event[0][0])
+            print('%s said hello!' % event[0][0])
+        elif event[2].lower() == '!quit':
+            self.quit('Bye!')
 
-
-def on_privmsg(event):
-    '''
-    An event argument must be accepted by all hooked methods -
-    except the AUTO hook.
-    '''
-    if event[2].lower() == 'hello':
-        IRC.privmsg(event[1], 'Hello, %s!' % event[0][0])
-        print('%s said hello!' % event[0][0])
-    elif event[2].lower() == '!quit':
-        IRC.quit('Bye!')
-
-
-def on_unhandled(event):
-    """
-    This method will be called -
-    when their isn't a method specified for said event.
-    """
-    print(event)
-
-# Specify our hooks, and the method to be called when said hook is triggered.
-HOOKS = { \
-         'PRIVMSG': on_privmsg,
-         'AUTO': on_auto,
-         'UNHANDLED': on_unhandled
-         }
 # Connect to IRC, and assign the returned IRC object, to the IRC variable.
-IRC = lurklib.IRC(server=SERVER, nick=('HelloBot', 'HelloBot-'),
-                  hooks=HOOKS)
+HELLOBOT = HelloBot(server=SERVER, nick=('HelloBot', 'HelloBot-'))
 
 # Enter lurklib's mainloop which will keep you connected to IRC -
 # and call the specified hooks when necessary.
-IRC.mainloop()
+#HELLOBOT.mainloop()
