@@ -194,7 +194,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
             return who
 
     def _recv(self, rm_colon=False, blocking=False, \
-              expected_replies=None, default_rvalue=None, \
+              expected_replies=None, append=False, default_rvalue=None, \
+              ignore_unexpected_replies=False, \
               item_slice=None):
         """
         Receives and processes an IRC protocol message.
@@ -210,8 +211,12 @@ class _Core(variables._Variables, exceptions._Exceptions,
                         Return the default_rvalue.
                     Else:
                         Return the message.
+        * append=False - If a reply is unexpected, append it;
+                        Defaults to reversing the index.
         * default_rvalue=None - If no message or a matching message;
                             is found, return default_rvalue.
+        * ignore_unexpected_replies=False - If an unexpected reply is encountered,
+                                    should we keep going until we get one?
         * item_slice=None - Return a specific piece of the message;
                         Number or list/tuple containing a,
                          starting range and ending range.
@@ -225,7 +230,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 msg = self._raw_recv()
         try:
             msg = msg.split(None, 3)
-        except AttributeError:
+        except AttributeError: # Temporary
             pass
         if msg[1] in self.error_dictionary:
             self.exception(msg[1])
@@ -233,7 +238,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
             if len(msg) > 3:
                 if msg[3][0] == ':':
                     msg[3] = msg[3][1:]
-            else:
+            elif len(msg) > 2:
                 if msg[2][0] == ':':
                     msg[2] = msg[2][1:]
         if expected_replies:
@@ -246,6 +251,12 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 else:
                     return msg
             else:
+                self.stepback(append=append)
+                if ignore_unexpected_replies:
+                    return self._recv(rm_colon=rm_colon, blocking=blocking, \
+                               expected_replies=expected_replies, \
+                               append=append, default_rvalue=default_rvalue, \
+                               ignore_unexpected_replies=ignore_unexpected_replies)
                 return default_rvalue
         return msg
 

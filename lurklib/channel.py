@@ -57,35 +57,36 @@ class _Channel(object):
                 raise \
                     self.AlreadyInChannel('LurklibError: AlreadyInChannel')
             if not process_only:
-                if key != None:
+                if key:
                     self.send('JOIN %s %s' % (channel, key))
                 else:
                     self.send('JOIN %s' % channel)
 
             while self.readable(4):
-                msg = self._recv(True)
+                msg = self._recv(rm_colon=True, blocking=True, \
+                                 expected_replies=('332', '333', '353', 'JOIN', '366'), \
+                                 append=True, ignore_unexpected_replies=True
+                                 )[1:]
 
-                if msg[1] == '332':
-                    topic = msg[3].split(':', 1)[1]
-                elif msg[1] == '333':
-                    set_by, time_set = msg[3].split(' ', 3)[1:]
+                if msg[0] == '332':
+                    topic = msg[2].split(':', 1)[1]
+                elif msg[0] == '333':
+                    set_by, time_set = msg[2].split(' ', 3)[1:]
                     if not self.UTC:
                         time_set = self._m_time.localtime(int(time_set))
                     else:
                         time_set = self._m_time.gmtime(int(time_set))
                     set_by = self._from_(set_by)
 
-                elif msg[1] == '353':
-                    users.extend(msg[3].split(':', 1)[1].split())
-                elif msg[1] == 'JOIN':
-                    channel = msg[2]
+                elif msg[0] == '353':
+                    users.extend(msg[2].split(':', 1)[1].split())
+                elif msg[0] == 'JOIN':
+                    channel = msg[1]
                     self.channels[channel] = {}
                     if not self.hide_called_events:
                         self.stepback(append=True)
-                elif msg[1] == '366':
+                elif msg[0] == '366':
                     break
-                else:
-                    self._buffer.append(msg)
             self.channels[channel] = {}
             self.channels[channel]['USERS'] = {}
             for user in users:
