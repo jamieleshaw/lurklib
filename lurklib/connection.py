@@ -18,7 +18,7 @@ from __future__ import with_statement
 
 
 class _Connection(object):
-    def _connect(self, server, port, tls=False):
+    def _connect(self, server, port, tls=False, tls_verify=False):
         """
         Connects the socket to an IRC server.
         Required arguments:
@@ -26,10 +26,14 @@ class _Connection(object):
         * port - Port to use.
         Optional arguments:
         * tls=False - Should we use TLS/SSL?
+        * tls_verify=False - Verify the TLS certificate?
         """
         with self.lock:
             if tls:
-                self._socket = self._m_tls.wrap_socket(self._socket)
+                if tls_verify:
+                    self._socket = self._m_tls.wrap_socket(self._socket, cert_reqs=self._m_tls.CERT_REQUIRED)
+                else:
+                    self._socket = self._m_tls.wrap_socket(self._socket)
             self._socket.connect((server, port))
 
     def _register(self, nick, user, real_name, password=None):
@@ -53,7 +57,7 @@ class _Connection(object):
             self._user(user, real_name)
 
     def _init(self, server, nick, user, real_name,
-              password, port=None, tls=False):
+              password, port=None, tls=False, tls_verify=False):
         """
         Connect and register with the IRC server and -
             set server-related information variables.
@@ -69,6 +73,7 @@ class _Connection(object):
         Optional arguments:
         * port - Port to use.
         * tls=False - Should we use TLS/SSL?
+        * tls_verify=False - Verify the TLS certificate?
         """
         with self.lock:
             self.current_nick = nick
