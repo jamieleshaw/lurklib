@@ -81,7 +81,7 @@ class _Channel(object):
                     channel = msg[2]
                     self.channels[channel] = {}
                     if not self.hide_called_events:
-                        self._buffer.append(msg)
+                        self.stepback(append=True)
                 elif msg[1] == '366':
                     break
                 else:

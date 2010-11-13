@@ -121,7 +121,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 if line != '':
                     self._buffer.append(line)
 
-    def _recv_(self):
+    def _raw_recv(self):
         """ Return the next available IRC message in the buffer. """
         with self.lock:
             if self._index >= len(self._buffer):
@@ -193,14 +193,36 @@ class _Core(variables._Variables, exceptions._Exceptions,
         except IndexError:
             return who
 
-    def _recv(self, rm_colon=False):
+    def _recv(self, rm_colon=False, blocking=False, \
+              expected_replies=None, default_rvalue=None, \
+              item_slice=None):
         """
         Receives and processes an IRC protocol message.
         Optional arguments:
-        * rm_colon=False - If True, the colon prefixed to -
-            the event/numeric(command) will be removed.
+        * rm_colon=False - If True:
+                        If the message is > 3 items long:
+                            Remove the colon(if found) from the [3] item.
+                        Else:
+                        Remove the colon(if found) from the [2] item.
+        * blocking=False - Should this call block?
+        * expected_replies=None - If specified:
+                     If no matching reply is found:
+                        Return the default_rvalue.
+                    Else:
+                        Return the message.
+        * default_rvalue=None - If no message or a matching message;
+                            is found, return default_rvalue.
+        * item_slice=None - Return a specific piece of the message;
+                        Number or list/tuple containing a,
+                         starting range and ending range.
         """
-        msg = self._recv_()
+        if self.readable():
+            msg = self._raw_recv()
+        else:
+            if not blocking:
+                return default_rvalue
+            else:
+                msg = self._raw_recv()
         try:
             msg = msg.split(None, 3)
         except AttributeError:
@@ -214,6 +236,17 @@ class _Core(variables._Variables, exceptions._Exceptions,
             else:
                 if msg[2][0] == ':':
                     msg[2] = msg[2][1:]
+        if expected_replies:
+            if msg[1] in expected_replies:
+                if item_slice:
+                    if isinstance(item_slice, int):
+                        return msg[item_slice]
+                    else:
+                        return msg[item_slice[0]:item_slice[1]]
+                else:
+                    return msg
+            else:
+                return default_rvalue
         return msg
 
     def recv(self, timeout=None):
@@ -227,7 +260,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
             if timeout != None:
                 if self.readable(timeout) == False:
                     return None
-            data = self._recv_()
+            data = self._raw_recv()
             segments = data.split()
 
             if segments[1] == 'JOIN':

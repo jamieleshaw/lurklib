@@ -1,7 +1,8 @@
 import unittest
+from commonbase import CommonBase
 
 
-class test__ServerQueries(unittest.TestCase):
+class test__ServerQueries(CommonBase):
     def test_admin(self):
         pass
 
@@ -33,7 +34,11 @@ class test__ServerQueries(unittest.TestCase):
         pass
 
     def test_time(self):
-        pass
+        self.server_nsend('391', \
+                          'Lurklib.test :Saturday' + \
+                          ' November 13 2010 -- 17:02 +11:00')
+        self.assertEqual(self.client.time(), \
+                         'Saturday November 13 2010 -- 17:02 +11:00')
 
     def test_trace(self):
         pass

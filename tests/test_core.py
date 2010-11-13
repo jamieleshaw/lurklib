@@ -27,12 +27,12 @@ class Test_Core(CommonBase):
     def test_stepback(self):
         pass
 
-    def test_mcon(self):
+    def test__mcon(self):
         pass
 
-    def test__recv_(self):
+    def test__raw_recv(self):
         self.server_rsend('ABCD')
-        self.assertEqual(self.client._recv_(), 'ABCD')
+        self.assertEqual(self.client._raw_recv(), 'ABCD')
         self.assertEqual(1, self.client._index)
         self.assertEqual('ABCD', self.client._buffer[0])
 
