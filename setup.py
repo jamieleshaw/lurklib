@@ -26,7 +26,5 @@ setup(
                        'Topic :: Software Development' + \
                        ' :: Libraries :: Python Modules'
                        ],
-        long_description="""Lurklib is a threading-safe,""" + \
-        """ event-driven IRC library designed for creating""" + \
-        """ anything from bots to full-fledged IRC Clients."""
+        long_description=open('README.rst')
         )
