@@ -1,5 +1,6 @@
 import unittest
 
+
 class test__Exceptions(unittest.TestCase):
     def test_exception(self):
         pass

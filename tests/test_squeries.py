@@ -1,5 +1,6 @@
 import unittest
 
+
 class test__ServerQueries(unittest.TestCase):
     def test_admin(self):
         pass

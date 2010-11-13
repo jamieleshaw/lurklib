@@ -6,6 +6,7 @@ sys.path.append(os.path.dirname(os.getcwd()))
 import unittest
 import lurklib
 
+
 class CommonBase(unittest.TestCase):
     def server_rsend(self, msg):
         """

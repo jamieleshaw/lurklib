@@ -63,7 +63,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
         self.encoding = encoding
         self._clrf = '\r\n'
 
-        self._init(server, nick, user, real_name, password, port, tls, tls_verify)
+        self._init(server, nick, user, real_name, password, port, tls, \
+                   tls_verify)
 
     def find(self, haystack, needle):
         """

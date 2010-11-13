@@ -17,7 +17,7 @@
 
 """ Lurklib usage example. """
 
-SERVER = 'localhost'
+SERVER = 'irc.codeshock.org'
 
 import lurklib
 
@@ -36,7 +36,7 @@ class HelloBot(lurklib.Client):
             self.quit('Bye!')
 
 # Connect to IRC, and assign the returned IRC object, to the IRC variable.
-HELLOBOT = HelloBot(server=SERVER, nick=('HelloBot', 'HelloBot-'), tls_verify=True)
+HELLOBOT = HelloBot(server=SERVER, nick=('HelloBot', 'HelloBot-'))
 
 # Enter lurklib's mainloop which will keep you connected to IRC -
 # and call the specified hooks when necessary.

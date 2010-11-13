@@ -1,5 +1,6 @@
 import unittest
 
+
 class test__Optional(unittest.TestCase):
     def test_away(self):
         pass

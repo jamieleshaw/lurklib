@@ -1,6 +1,7 @@
 import unittest
 from commonbase import CommonBase
 
+
 class TestClient(CommonBase):
     def test_process_once(self):
         pass

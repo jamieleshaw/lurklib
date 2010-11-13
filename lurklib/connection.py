@@ -31,7 +31,10 @@ class _Connection(object):
         with self.lock:
             if tls:
                 if tls_verify:
-                    self._socket = self._m_tls.wrap_socket(self._socket, cert_reqs=self._m_tls.CERT_REQUIRED)
+                    cert_required = self._m_tls.CERT_REQUIRED
+                    self._socket = \
+                    self._m_tls.wrap_socket(self._socket, \
+                                            cert_reqs=cert_required)
                 else:
                     self._socket = self._m_tls.wrap_socket(self._socket)
             self._socket.connect((server, port))

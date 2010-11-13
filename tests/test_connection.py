@@ -1,5 +1,6 @@
 import unittest
 
+
 class test__Connection(unittest.TestCase):
     def test___close__(self):
         pass

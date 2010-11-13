@@ -1,6 +1,7 @@
 import unittest
 from commonbase import CommonBase
 
+
 class Test_Core(CommonBase):
     def test___init__(self):
         pass
@@ -20,6 +21,12 @@ class Test_Core(CommonBase):
     def test_readable(self):
         pass
 
+    def test__resetbuffer(self):
+        pass
+
+    def test_stepback(self):
+        pass
+
     def test_mcon(self):
         pass
 
@@ -31,9 +38,11 @@ class Test_Core(CommonBase):
 
     def test__recv(self):
         self.server_rsend(':Test PRIVMSG #Test :A B C D')
-        self.assertEqual(self.client._recv(), [':Test', 'PRIVMSG', '#Test', ':A B C D'])
-        self.server_rsend(':Test PRIVMSG #Test :A B C D')
-        self.assertEqual(self.client._recv(True), [':Test', 'PRIVMSG', '#Test', 'A B C D'])
+        self.assertEqual(self.client._recv(), \
+                         [':Test', 'PRIVMSG', '#Test', ':A B C D'])
+        self.client.stepback()
+        self.assertEqual(self.client._recv(True), \
+                         [':Test', 'PRIVMSG', '#Test', 'A B C D'])
 
     def test_send(self):
         pass
