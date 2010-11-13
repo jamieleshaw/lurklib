@@ -58,9 +58,9 @@ class _ServerQueries(object):
         * target=None - Forward the query.
         """
         with self.lock:
-            if mask == None:
+            if not mask:
                 self.send('LUSERS')
-            elif not target and not mask:
+            elif not target and mask:
                 self.send('LUSERS %s' % mask)
             else:
                 self.send('LUSERS %s %s' % (mask, target))
@@ -138,7 +138,7 @@ class _ServerQueries(object):
         with self.lock:
             if not query:
                 self.send('STATS')
-            elif not target and not query:
+            elif not target and query:
                 self.send('STATS %s' % query)
             else:
                 self.send('STATS %s %s' % (query, target))
@@ -162,7 +162,7 @@ class _ServerQueries(object):
         with self.lock:
             if not r_server:
                 self.send('LINKS')
-            elif not mask and not r_server:
+            elif not mask and r_server:
                 self.send('LINKS %s' % r_server)
             else:
                 self.send('LINKS %s %s' % (r_server, mask))
@@ -293,7 +293,7 @@ class _ServerQueries(object):
         with self.lock:
             if not mask:
                 self.send('SERVLIST')
-            elif not type and not mask:
+            elif not type and mask:
                 self.send('SERVLIST %s' % mask)
             else:
                 self.send('SERVLIST %s %s' % (mask, type))

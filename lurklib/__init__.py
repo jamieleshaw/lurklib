@@ -31,7 +31,8 @@ class Client(core._Core):
         * timeout=0.01 - Wait for an event until the timeout is reached.
         """
         event = self.recv(timeout)
-        if not event:
+
+        if event:
             exec('self.on_%s(%s)' % (event[0].lower(), event[1]))
 
     def mainloop(self):
@@ -40,9 +41,9 @@ class Client(core._Core):
         """
         while self.keep_going:
             with self.lock:
-                if self.on_auto and not self.readable(2):
-                    self.on_auto()
-                    self.on_auto = None
+                if self.on_connect and not self.readable(2):
+                    self.on_connect()
+                    self.on_connect = None
                 if not self.keep_going:
                     break
                 self.process_once()
