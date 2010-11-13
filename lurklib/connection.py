@@ -176,9 +176,10 @@ class _Connection(object):
                     self._index -= 1
 
             for channel in self.channels:
-                priv_level = self.channels[channel]['USERS'][self.current_nick]
-                del self.channels[channel]['USERS'][self.current_nick]
-                self.channels[channel]['USERS'][nick] = priv_level
+                if 'USERS' in self.channels[channel]:
+                    priv_level = self.channels[channel]['USERS'][self.current_nick]
+                    del self.channels[channel]['USERS'][self.current_nick]
+                    self.channels[channel]['USERS'][nick] = priv_level
             self.current_nick = nick
 
     def nick(self, nick):
