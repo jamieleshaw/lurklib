@@ -34,6 +34,7 @@ class Test_Core(CommonBase):
         self.assertEqual(self.client._recv(), [':Test', 'PRIVMSG', '#Test', ':A B C D'])
         self.server_rsend(':Test PRIVMSG #Test :A B C D')
         self.assertEqual(self.client._recv(True), [':Test', 'PRIVMSG', '#Test', 'A B C D'])
+
     def test_send(self):
         pass
 
