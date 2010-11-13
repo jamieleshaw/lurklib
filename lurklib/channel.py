@@ -56,7 +56,7 @@ class _Channel(object):
             if self.is_in_channel(channel):
                 raise \
                     self.AlreadyInChannel('LurklibError: AlreadyInChannel')
-            if process_only == False:
+            if not process_only:
                 if key != None:
                     self.send('JOIN %s %s' % (channel, key))
                 else:
@@ -69,7 +69,7 @@ class _Channel(object):
                     topic = msg[3].split(':', 1)[1]
                 elif msg[1] == '333':
                     set_by, time_set = msg[3].split(' ', 3)[1:]
-                    if self.UTC == False:
+                    if not self.UTC:
                         time_set = self._m_time.localtime(int(time_set))
                     else:
                         time_set = self._m_time.gmtime(int(time_set))
@@ -80,7 +80,7 @@ class _Channel(object):
                 elif msg[1] == 'JOIN':
                     channel = msg[2]
                     self.channels[channel] = {}
-                    if self.hide_called_events == False:
+                    if not self.hide_called_events:
                         self._buffer.append(msg)
                 elif msg[1] == '366':
                     break
@@ -122,7 +122,7 @@ class _Channel(object):
         * reason='' - Reason for parting.
         """
         with self.lock:
-            if self.is_in_channel(channel) == False:
+            if not self.is_in_channel(channel):
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
             self.send('PART %s :%s' % (channel, reason))
@@ -134,7 +134,7 @@ class _Channel(object):
                     self.exception(ncode)
                 elif self.find(data, 'PART'):
                     del self.channels[data.split()[2]]
-                    if self.hide_called_events == False:
+                    if not self.hide_called_events:
                         self._buffer.append(data)
                 else:
                     self._index -= 1
@@ -149,7 +149,7 @@ class _Channel(object):
             If not specified return the modes of the channel.
         """
         with self.lock:
-            if self.is_in_channel(channel) == False:
+            if not self.is_in_channel(channel):
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
             if modes == '':
@@ -171,7 +171,7 @@ class _Channel(object):
                         channel = data.split()[2].replace(':', '', 1)
                         mode = ' '.join(segments[3:]).replace(':', '', 1)
                         self.parse_cmode_string(mode, channel)
-                        if self.hide_called_events == False:
+                        if not self.hide_called_events:
                             self._buffer.append(data)
                     else:
                         self._index -= 1
@@ -183,7 +183,7 @@ class _Channel(object):
         * channel - Channel of which to get the banlist for.
         """
         with self.lock:
-            if self.is_in_channel(channel) == False:
+            if not self.is_in_channel(channel):
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
             self.send('MODE %s b' % channel)
@@ -210,7 +210,7 @@ class _Channel(object):
         * channel - Channel of which to get the exceptlist for.
         """
         with self.lock:
-            if self.is_in_channel(channel) == False:
+            if not self.is_in_channel(channel):
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
             self.send('MODE %s e' % channel)
@@ -238,7 +238,7 @@ class _Channel(object):
         * channel - Channel of which to get the invitelist for.
         """
         with self.lock:
-            if self.is_in_channel(channel) == False:
+            if not self.is_in_channel(channel):
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
             self.send('MODE %s i' % channel)
@@ -269,7 +269,7 @@ class _Channel(object):
             If not specified the current channel topic will be returned.
         """
         with self.lock:
-            if self.is_in_channel(channel) == False:
+            if not self.is_in_channel(channel):
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
             topic = ''
@@ -285,7 +285,7 @@ class _Channel(object):
                     elif self.find(data, 'TOPIC') and self.hide_called_events:
                         channel = data.split()[2].replace(':', '', 1)
                         self.channels[channel]['TOPIC'] = topic
-                        if self.hide_called_events == False:
+                        if not self.hide_called_events:
                             self._buffer.append(data)
                     else:
                         self._index -= 1
@@ -302,7 +302,7 @@ class _Channel(object):
                     elif self.find(data, 'TOPIC'):
                         channel = data.split()[2].replace(':', '', 1)
                         self.channels[channel]['TOPIC'] = topic
-                        if self.hide_called_events == False:
+                        if not self.hide_called_events:
                             self._buffer.append(data)
                     elif ncode == '333':
                         segments = data.split()
@@ -325,7 +325,7 @@ class _Channel(object):
         * channel - Channel to get list of users for.
         """
         with self.lock:
-            if self.is_in_channel(channel) == False:
+            if not self.is_in_channel(channel):
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
             self.send('NAMES %s' % channel)
@@ -407,7 +407,7 @@ class _Channel(object):
         * nick - Nick to invite.
         """
         with self.lock:
-            if self.is_in_channel(channel) == False:
+            if not self.is_in_channel(channel):
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
             self.send('INVITE %s %s' % (nick, channel))
@@ -438,7 +438,7 @@ class _Channel(object):
         * reason - Reason for the kick.
         """
         with self.lock:
-            if self.is_in_channel(channel) == False:
+            if not self.is_in_channel(channel):
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
             self.send('KICK %s %s :%s' % (channel, nick, reason))
@@ -451,7 +451,7 @@ class _Channel(object):
                         self.exception(ncode)
                 elif self.find(data, 'KICK'):
                     channel = data.split()[2]
-                    if self.hide_called_events == False:
+                    if not self.hide_called_events:
                         self._buffer.append(data)
                 else:
                     self._index -= 1

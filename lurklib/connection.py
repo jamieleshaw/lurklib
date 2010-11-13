@@ -192,7 +192,7 @@ class _Connection(object):
 
                 except self.NicknameInUse:
                     pass
-        if nick_set_successfully == False:
+        if not nick_set_successfully:
             self.exception('433')
 
     def _user(self, user, real_name):

@@ -60,7 +60,7 @@ class _ServerQueries(object):
         with self.lock:
             if mask == None:
                 self.send('LUSERS')
-            elif target == None and mask != None:
+            elif not target and not mask:
                 self.send('LUSERS %s' % mask)
             else:
                 self.send('LUSERS %s %s' % (mask, target))
@@ -105,7 +105,7 @@ class _ServerQueries(object):
         * target=None - Server to get the VERSION information of.
         """
         with self.lock:
-            if target == None:
+            if not target:
                 self.send('VERSION')
             else:
                 self.send('VERSION %s' % target)
@@ -136,9 +136,9 @@ class _ServerQueries(object):
         * target=None - Target server.
         """
         with self.lock:
-            if query == None:
+            if not query:
                 self.send('STATS')
-            elif target == None and query != None:
+            elif not target and not query:
                 self.send('STATS %s' % query)
             else:
                 self.send('STATS %s %s' % (query, target))
@@ -160,9 +160,9 @@ class _ServerQueries(object):
         * mask=None - Match mask servers.
         """
         with self.lock:
-            if r_server == None:
+            if not r_server:
                 self.send('LINKS')
-            elif mask == None and r_server != None:
+            elif not mask and not r_server:
                 self.send('LINKS %s' % r_server)
             else:
                 self.send('LINKS %s %s' % (r_server, mask))
@@ -187,7 +187,7 @@ class _ServerQueries(object):
         * target=None - Target server.
         """
         with self.lock:
-            if target != None:
+            if not target:
                 self.send('TIME %s' % target)
             else:
                 self.send('TIME')
@@ -206,7 +206,7 @@ class _ServerQueries(object):
         * r_server=None - Link r_server with server.
         """
         with self.lock:
-            if r_server == None:
+            if not r_server:
                 self.send('CONNECT %s %s' % (server, port))
             else:
                 self.send('CONNECT %s %s %s' % (server, port, r_server))
@@ -243,7 +243,7 @@ class _ServerQueries(object):
             server instead of the current server.
         """
         with self.lock:
-            if server == None:
+            if not server:
                 self.send('ADMIN')
             else:
                 self.send('ADMIN %s' % server)
@@ -267,7 +267,7 @@ class _ServerQueries(object):
         * server=None - Get INFO for server instead of the current server.
         """
         with self.lock:
-            if server == None:
+            if not server:
                 self.send('INFO')
             else:
                 self.send('INFO %s' % server)
@@ -291,9 +291,9 @@ class _ServerQueries(object):
         * type=None - Type.
         """
         with self.lock:
-            if mask == None:
+            if not mask:
                 self.send('SERVLIST')
-            elif type == None and mask != None:
+            elif not type and not mask:
                 self.send('SERVLIST %s' % mask)
             else:
                 self.send('SERVLIST %s %s' % (mask, type))
