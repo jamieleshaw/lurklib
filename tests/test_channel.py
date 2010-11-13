@@ -39,7 +39,7 @@ class test__Channel(CommonBase):
                          {'#Test': {'USERS': \
                                     {'Lurklib': ['', '', '', '', ''], \
                             'TopicBot': ['', '', '@', '', '']}}})
-        self.assertEqual(self.client.recv(), \
+        self.assertEqual(self.client._recv(), \
                          [':Lurklib!user@host', 'JOIN', '#Test'])
 
     def test_kick(self):

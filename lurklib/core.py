@@ -215,8 +215,10 @@ class _Core(variables._Variables, exceptions._Exceptions,
                         Defaults to reversing the index.
         * default_rvalue=None - If no message or a matching message;
                             is found, return default_rvalue.
-        * ignore_unexpected_replies=False - If an unexpected reply is encountered,
-                                    should we keep going until we get one?
+        * ignore_unexpected_replies=False - If an,
+                                    unexpected reply is encountered,
+                                    should we keep going,
+                                    until we get a valid reply?
         * item_slice=None - Return a specific piece of the message;
                         Number or list/tuple containing a,
                          starting range and ending range.
@@ -228,10 +230,12 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 return default_rvalue
             else:
                 msg = self._raw_recv()
+#<FIXME>
         try:
             msg = msg.split(None, 3)
-        except AttributeError: # Temporary
+        except AttributeError:
             pass
+#</FIXME>
         if msg[1] in self.error_dictionary:
             self.exception(msg[1])
         if rm_colon:
@@ -251,7 +255,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 else:
                     return msg
             else:
-                self.stepback(append=append)
+                self.stepback()
                 if ignore_unexpected_replies:
                     return self._recv(rm_colon=rm_colon, blocking=blocking, \
                                expected_replies=expected_replies, \

@@ -177,7 +177,8 @@ class _Connection(object):
 
             for channel in self.channels:
                 if 'USERS' in self.channels[channel]:
-                    priv_level = self.channels[channel]['USERS'][self.current_nick]
+                    priv_level = \
+                    self.channels[channel]['USERS'][self.current_nick]
                     del self.channels[channel]['USERS'][self.current_nick]
                     self.channels[channel]['USERS'][nick] = priv_level
             self.current_nick = nick

@@ -64,7 +64,8 @@ class _Channel(object):
 
             while self.readable(4):
                 msg = self._recv(rm_colon=True, blocking=True, \
-                                 expected_replies=('332', '333', '353', 'JOIN', '366'), \
+                                 expected_replies=('332', '333', \
+                                                   '353', 'JOIN', '366'), \
                                  append=True, ignore_unexpected_replies=True
                                  )[1:]
 
