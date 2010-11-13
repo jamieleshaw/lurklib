@@ -28,18 +28,18 @@ class test__Channel(CommonBase):
         self.server_nsend('333', '#Test TopicBot 1279950991')
         self.server_nsend('353', '= #Test :@TopicBot Lurklib')
         self.server_nsend('366', '#Test :End of /NAMES list.')
-        self.assertEqual(str(self.irc.join('#Test')), \
+        self.assertEqual(str(self.client.join('#Test')), \
                          """(['@TopicBot', 'Lurklib'], 'TheTopic',""" + \
                          """ 'TopicBot', time.struct_time(tm_ye""" + \
                          """ar=2010, tm_mon=7, tm_mday=24,""" + \
                          """ tm_hour=15, tm_min=56, """ + \
                          """tm_sec=31, tm_wday=5, tm_yday=205, tm_isdst=0))""")
         self.assertEqual(self.server_recv(), 'JOIN #Test')
-        self.assertEqual(self.irc.channels, \
+        self.assertEqual(self.client.channels, \
                          {'#Test': {'USERS': \
                                     {'Lurklib': ['', '', '', '', ''], \
                             'TopicBot': ['', '', '@', '', '']}}})
-        self.assertEqual(self.irc.recv(), [':Lurklib!user@host', 'JOIN', '#Test'])
+        self.assertEqual(self.client.recv(), [':Lurklib!user@host', 'JOIN', '#Test'])
 
     def test_kick(self):
         pass

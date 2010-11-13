@@ -60,12 +60,12 @@ class CommonBase(unittest.TestCase):
         self.server_buffer = []
         self.lurklib_buffer = []
         self.lurklib_index = 0
-        lurklib.variables._Variables._buffer = self.lurklib_buffer
-        lurklib.variables._Variables._index = self.lurklib_index
-        lurklib.IRC._connect = self.lurklib__connect
-        lurklib.IRC.send = self.lurklib_send
-        lurklib.IRC.readable = self.lurklib_readable
-        self.irc = lurklib.IRC(server='', hide_called_events=False)
+        lurklib.Client._buffer = self.lurklib_buffer
+        lurklib.Client._index = self.lurklib_index
+        lurklib.Client._connect = self.lurklib__connect
+        lurklib.Client.send = self.lurklib_send
+        lurklib.Client.readable = self.lurklib_readable
+        self.client = lurklib.Client(server='', hide_called_events=False)
         self.server_recv()
         self.server_recv()
 
