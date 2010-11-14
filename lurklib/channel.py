@@ -66,8 +66,9 @@ class _Channel(object):
                 msg = self._recv(rm_colon=True, blocking=True, \
                                  expected_replies=('332', '333', \
                                                    '353', 'JOIN', '366'), \
-                                 append=True, ignore_unexpected_replies=True
-                                 )[1:]
+                                 append=True, ignore_unexpected_replies=True,
+                                 item_slice=(1, None)
+                                 )
 
                 if msg[0] == '332':
                     topic = msg[2].split(':', 1)[1]
@@ -128,18 +129,14 @@ class _Channel(object):
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
             self.send('PART %s :%s' % (channel, reason))
-
-            if self.readable():
-                data = self.__recv()
-                ncode = data.split()[1]
-                if ncode in self.error_dictionary:
-                    self.exception(ncode)
-                elif self.find(data, 'PART'):
-                    del self.channels[data.split()[2]]
-                    if not self.hide_called_events:
-                        self._buffer.append(data)
-                else:
-                    self._index -= 1
+            msg = self._recv(expected_replies=('PART',), \
+                                 ignore_unexpected_replies=True, \
+                                 item_slice=(1, None)
+                                 )
+            if msg[0] == 'PART':
+                del self.channels[msg[1]]
+                if not self.hide_called_events:
+                    self.stepback()
 
     def cmode(self, channel, modes=''):
         """

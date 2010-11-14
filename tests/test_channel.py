@@ -55,7 +55,10 @@ class test__Channel(CommonBase):
         pass
 
     def test_part(self):
-        pass
+        self.client.channels['##Test'] = {}
+        self.server_rsend(':Lurklib!user@host PART ##Test')
+        self.client.part('##Test')
+        self.assertEqual(self.server_recv(), 'PART ##Test :')
 
     def test_topic(self):
         pass

@@ -70,6 +70,5 @@ class CommonBase(unittest.TestCase):
         self.server_recv()
         self.server_recv()
 
-
 if __name__ == '__main__':
     unittest.main()
