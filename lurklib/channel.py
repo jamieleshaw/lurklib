@@ -154,13 +154,13 @@ class _Channel(object):
             if modes == '':
                     self.send('MODE %s' % channel)
                     if self.readable():
-                        data = self.__recv().split()[4]
+                        data = self._raw_recv().split()[4]
                         return data.replace('+', '').replace(':', '', 1)
             else:
                 self.send('MODE %s %s' % (channel, modes))
 
                 if self.readable():
-                    data = self.__recv()
+                    data = self._raw_recv()
                     segments = data.split()
                     ncode = segments[1]
 
@@ -189,7 +189,7 @@ class _Channel(object):
             bans = []
 
             while self.readable():
-                data = self.__recv()
+                data = self._raw_recv()
                 ncode = data.split()[1]
 
                 if ncode in self.error_dictionary:
@@ -216,7 +216,7 @@ class _Channel(object):
             excepts = []
 
             while self.readable():
-                data = self.__recv()
+                data = self._raw_recv()
                 ncode = data.split()[1]
 
                 if ncode in self.error_dictionary:
@@ -244,7 +244,7 @@ class _Channel(object):
             invites = []
 
             while self.readable():
-                data = self.__recv()
+                data = self._raw_recv()
                 ncode = data.split()[1]
 
                 if ncode in self.error_dictionary:
@@ -277,7 +277,7 @@ class _Channel(object):
             if topic != None:
                 self.send('TOPIC %s :%s' % (channel, topic))
                 if self.readable():
-                    data = self.__recv()
+                    data = self._raw_recv()
                     ncode = data.split()[1]
                     if ncode in self.error_dictionary:
                         self.exception(ncode)
@@ -291,13 +291,13 @@ class _Channel(object):
             else:
                 self.send('TOPIC %s' % channel)
                 while self.readable():
-                    data = self.__recv()
+                    data = self._raw_recv()
                     ncode = data.split()[1]
                     if ncode in self.error_dictionary:
                         self.exception(ncode)
                     elif ncode == '332':
                         topic = data.split(None, 4)[4].replace(':', '', 1)
-                        self.__recv()
+                        self._raw_recv()
                     elif self.find(data, 'TOPIC'):
                         channel = data.split()[2].replace(':', '', 1)
                         self.channels[channel]['TOPIC'] = topic
@@ -331,7 +331,7 @@ class _Channel(object):
             names = []
 
             while self.readable():
-                data = self.__recv()
+                data = self._raw_recv()
                 ncode = data.split()[1]
 
                 if ncode == '353':
@@ -380,7 +380,7 @@ class _Channel(object):
             list_ = {}
 
             while self.readable():
-                data = self.__recv()
+                data = self._raw_recv()
                 ncode = data.split()[1]
 
                 if ncode == '322':
@@ -412,7 +412,7 @@ class _Channel(object):
             self.send('INVITE %s %s' % (nick, channel))
 
             while self.readable():
-                    data = self.__recv()
+                    data = self._raw_recv()
                     ncode = data.split()[1]
 
                     if ncode in self.error_dictionary:
@@ -443,7 +443,7 @@ class _Channel(object):
             self.send('KICK %s %s :%s' % (channel, nick, reason))
 
             if self.readable():
-                data = self.__recv()
+                data = self._raw_recv()
                 ncode = data.split()[1]
 
                 if ncode in self.error_dictionary:
