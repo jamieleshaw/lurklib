@@ -19,7 +19,9 @@ class test__Channel(CommonBase):
         pass
 
     def test_is_in_channel(self):
-        pass
+        self.assertRaises(self.client.NotInChannel, self.client.is_in_channel, '#Test', True)
+        self.client.channels['#Test'] = {}
+        self.assertRaises(self.client.AlreadyInChannel, self.client.is_in_channel, '#Test', False)
 
     def test_join(self):
         """ Test join() method. """

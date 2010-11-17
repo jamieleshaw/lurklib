@@ -21,16 +21,23 @@ from __future__ import with_statement
 
 class _Channel(object):
     """ Channel-related interaction class. """
-    def is_in_channel(self, channel):
+    def is_in_channel(self, channel, should_be):
         """
         Find out if you are in a channel.
         Required arguments:
         * channel - Channel to check whether you are in it or not.
+        * should_be - If True, raise an exception if you aren't in the channel;
+                    If False, raise an exception if you are in the channel.
         """
-        for channel_ in self.channels:
-            if self.compare(channel_, channel):
-                return True
-        return False
+        with self.lock:
+            for channel_ in self.channels:
+                if self.compare(channel_, channel):
+                    if not should_be:
+                        raise \
+                    self.AlreadyInChannel('LurklibError: AlreadyInChannel')
+                    return None
+            if should_be:
+                raise self.NotInChannel('LurklibError: NotInChannel')
 
     def join(self, channel, key=None, process_only=False):
         """
@@ -53,9 +60,7 @@ class _Channel(object):
             users = []
             set_by = ''
             time_set = ''
-            if self.is_in_channel(channel):
-                raise \
-                    self.AlreadyInChannel('LurklibError: AlreadyInChannel')
+            self.is_in_channel(channel, False)
             if not process_only:
                 if key:
                     self.send('JOIN %s %s' % (channel, key))
@@ -125,8 +130,7 @@ class _Channel(object):
         * reason='' - Reason for parting.
         """
         with self.lock:
-            if not self.is_in_channel(channel):
-                raise self.NotInChannel('LurklibError: NotInChannel')
+            self.is_in_channel(channel, True)
 
             self.send('PART %s :%s' % (channel, reason))
             msg = self._recv(expected_replies=('PART',), \
@@ -148,8 +152,7 @@ class _Channel(object):
             If not specified return the modes of the channel.
         """
         with self.lock:
-            if not self.is_in_channel(channel):
-                raise self.NotInChannel('LurklibError: NotInChannel')
+            self.is_in_channel(channel, True)
 
             if modes == '':
                     self.send('MODE %s' % channel)
