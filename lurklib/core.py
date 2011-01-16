@@ -344,7 +344,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
 
             elif segments[1] == 'NICK':
                 who = self._from_(segments[0].replace(':', '', 1))
-                new_nick = ' '.join(segments[2:])
+                new_nick = ' '.join(segments[2:]).replace(':', '',1)
                 if self.current_nick == who[0]:
                     self.current_nick = new_nick
                 for channel in self.channels:
