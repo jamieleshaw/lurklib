@@ -348,9 +348,10 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 if self.current_nick == who[0]:
                     self.current_nick = new_nick
                 for channel in self.channels:
-                    priv_level = self.channels[channel]['USERS'][who[0]]
-                    del self.channels[channel]['USERS'][who[0]]
-                    self.channels[channel]['USERS'][new_nick] = priv_level
+                    if who[0] in self.channels[channel]['USERS']:
+                        priv_level = self.channels[channel]['USERS'][who[0]]
+                        del self.channels[channel]['USERS'][who[0]]
+                        self.channels[channel]['USERS'][new_nick] = priv_level
                 return 'NICK', (who, new_nick)
 
             elif segments[1] == 'TOPIC':
