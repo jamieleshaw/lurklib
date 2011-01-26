@@ -287,7 +287,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 else:
                     self.channels[channel]['USERS'][who[0]] = \
                     ['', '', '', '', '']
-                return 'JOIN', who, channel
+                return 'JOIN', (who, channel)
 
             elif segments[1] == 'PART':
                 who = self._from_(segments[0].replace(':', '', 1))
