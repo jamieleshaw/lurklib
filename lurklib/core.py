@@ -295,10 +295,10 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 del self.channels[channel]['USERS'][who[0]]
                 try:
                     reason = ' '.join(segments[3:]).replace(':', '', 1)
-                    return 'PART', who, channel, reason
+                    return 'PART', (who, channel, reason)
                 except IndexError:
                     who = self._from_(segments[0].replace(':', '', 1))
-                    return 'PART', who, channel, ''
+                    return 'PART', (who, channel, '')
 
             elif segments[1] == 'PRIVMSG':
                 who = self._from_(segments[0].replace(':', '', 1))
