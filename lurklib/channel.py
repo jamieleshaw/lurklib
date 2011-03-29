@@ -190,24 +190,22 @@ class _Channel(object):
         * channel - Channel of which to get the banlist for.
         """
         with self.lock:
-            if not self.is_in_channel(channel):
-                raise self.NotInChannel('LurklibError: NotInChannel')
+            self.is_in_channel(channel, True)
 
             self.send('MODE %s b' % channel)
             bans = []
 
             while self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
-
-                if ncode in self.error_dictionary:
-                    self.exception(ncode)
-                elif ncode == '367':
-                    bans.append(data.split()[4])
-                elif ncode == '368':
+                msg = self._recv(expected_replies=('367', '368'), \
+                                     ignore_unexpected_replies=True, \
+                                     append=True, \
+                                     item_slice=(1, None)
+                                     )
+                if msg[0] == '367':
+                    segments = msg[2].split()
+                    bans.append((self._from_(segments[1]), segments[2], self._m_time.localtime(int(segments[3]))))
+                elif msg[0] == '368':
                     break
-                else:
-                    self._buffer.append(data)
             return bans
 
     def exceptlist(self, channel):
@@ -217,24 +215,23 @@ class _Channel(object):
         * channel - Channel of which to get the exceptlist for.
         """
         with self.lock:
-            if not self.is_in_channel(channel):
-                raise self.NotInChannel('LurklibError: NotInChannel')
+            self.is_in_channel(channel, True)
 
             self.send('MODE %s e' % channel)
             excepts = []
 
             while self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
+                msg = self._recv(expected_replies=('348', '349'), \
+                                     ignore_unexpected_replies=True, \
+                                     append=True, \
+                                     item_slice=(1, None)
+                                     )
 
-                if ncode in self.error_dictionary:
-                    self.exception(ncode)
-                elif ncode == '348':
-                    excepts.append(data.split()[4])
-                elif ncode == '349':
+                if msg[0] == '348':
+                    segments = msg[2].split()
+                    excepts.append((self._from_(segments[1]), segments[2], self._m_time.localtime(int(segments[3]))))
+                elif msg[0] == '349':
                     break
-                else:
-                    self._buffer.append(data)
 
             return excepts
 
@@ -245,24 +242,23 @@ class _Channel(object):
         * channel - Channel of which to get the invitelist for.
         """
         with self.lock:
-            if not self.is_in_channel(channel):
-                raise self.NotInChannel('LurklibError: NotInChannel')
+            self.is_in_channel(channel, True)
 
             self.send('MODE %s i' % channel)
             invites = []
 
             while self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
+                msg = self._recv(expected_replies=('346', '347'), \
+                                     ignore_unexpected_replies=True, \
+                                     append=True, \
+                                     item_slice=(1, None)
+                                     )
 
-                if ncode in self.error_dictionary:
-                    self.exception(ncode)
-                elif ncode == '346':
-                    invites.append(data.split()[4])
-                elif ncode == '347':
+                if msg[0] == '346':
+                    segments = msg[2].split()
+                    invites.append((self._from_(segments[1]), segments[2], self._m_time.localtime(int(segments[3]))))
+                elif msg[0] == '347':
                     break
-                else:
-                    self._buffer.append(data)
 
             return invites
 
