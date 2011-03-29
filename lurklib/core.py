@@ -287,7 +287,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 else:
                     self.channels[channel]['USERS'][who[0]] = \
                     ['', '', '', '', '']
-                return 'JOIN', who, channel
+                return 'JOIN', (who, channel)
 
             elif segments[1] == 'PART':
                 who = self._from_(segments[0].replace(':', '', 1))
@@ -295,10 +295,10 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 del self.channels[channel]['USERS'][who[0]]
                 try:
                     reason = ' '.join(segments[3:]).replace(':', '', 1)
-                    return 'PART', who, channel, reason
+                    return 'PART', (who, channel, reason)
                 except IndexError:
                     who = self._from_(segments[0].replace(':', '', 1))
-                    return 'PART', who, channel, ''
+                    return 'PART', (who, channel, '')
 
             elif segments[1] == 'PRIVMSG':
                 who = self._from_(segments[0].replace(':', '', 1))
@@ -333,7 +333,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 who = self._from_(segments[0].replace(':', '', 1))
                 if self.current_nick == segments[3]:
                     del self.channels['USERS'][segments[2]]
-                del self.channels[channel][segments[3]]
+                del self.channels[segments[2]]['USERS'][segments[3]]
                 reason = ' '.join(segments[4:]).replace(':', '', 1)
                 return 'KICK', (who, segments[2], segments[3], reason)
 
@@ -344,13 +344,14 @@ class _Core(variables._Variables, exceptions._Exceptions,
 
             elif segments[1] == 'NICK':
                 who = self._from_(segments[0].replace(':', '', 1))
-                new_nick = ' '.join(segments[2:])
+                new_nick = ' '.join(segments[2:]).replace(':', '',1)
                 if self.current_nick == who[0]:
                     self.current_nick = new_nick
                 for channel in self.channels:
-                    priv_level = self.channels[channel]['USERS'][who[0]]
-                    del self.channels[channel]['USERS'][who[0]]
-                    self.channels[channel]['USERS'][new_nick] = priv_level
+                    if who[0] in self.channels[channel]['USERS']:
+                        priv_level = self.channels[channel]['USERS'][who[0]]
+                        del self.channels[channel]['USERS'][who[0]]
+                        self.channels[channel]['USERS'][new_nick] = priv_level
                 return 'NICK', (who, new_nick)
 
             elif segments[1] == 'TOPIC':

@@ -98,12 +98,9 @@ class _UserQueries(object):
                 info = data.split(None, 7)
                 ncode = info[1]
                 if ncode == '311':
-                    whois_r = \
-                            {
-                                'IDENT': info[4],
-                                'HOST': info[5],
-                                'NAME': info[7][1:]
-                            }
+                    whois_r['IDENT'] = info[4]
+                    whois_r['HOST'] = info[5]
+                    whois_r['NAME'] = info[7][1:]
                 elif ncode == '312':
                     whois_r['SERVER'] = info[4]
                     whois_r['SERVER_INFO'] = ' '.join(info[5:])[1:]
