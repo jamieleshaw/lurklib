@@ -154,29 +154,34 @@ class _Channel(object):
         with self.lock:
             self.is_in_channel(channel, True)
 
-            if modes == '':
+            if not modes:
                     self.send('MODE %s' % channel)
-                    if self.readable():
-                        data = self._raw_recv().split()[4]
-                        return data.replace('+', '').replace(':', '', 1)
+                    modes = ''
+                    mode_set_time = None
+                    while self.readable():
+                        msg = self._recv(rm_colon=True, blocking=True, \
+                        expected_replies=('324', '329'), \
+                        append=True, ignore_unexpected_replies=True,
+                        item_slice=(1, None)
+                        )
+                        if msg[0] == '324':
+                            modes = msg[2].split()[1].replace('+', '', 1)
+                        elif msg[0] == '329':
+                            mode_set_time = self._m_time.localtime(int(msg[2].split()[1]))
+                    return modes, mode_set_time
             else:
                 self.send('MODE %s %s' % (channel, modes))
 
                 if self.readable():
-                    data = self._raw_recv()
-                    segments = data.split()
-                    ncode = segments[1]
-
-                    if ncode in self.error_dictionary:
-                        self.exception(ncode)
-                    elif self.find(data, 'MODE'):
-                        channel = data.split()[2].replace(':', '', 1)
-                        mode = ' '.join(segments[3:]).replace(':', '', 1)
-                        self.parse_cmode_string(mode, channel)
+                    msg = self._recv(expected_replies=('MODE',), \
+                                         ignore_unexpected_replies=True, \
+                                         item_slice=(1, None)
+                                         )
+                    if msg[0]:
+                        mode = msg[2]
+                        self.parse_cmode_string(mode, msg[1])
                         if not self.hide_called_events:
-                            self._buffer.append(data)
-                    else:
-                        self._index -= 1
+                            self.stepback()
 
     def banlist(self, channel):
         """
