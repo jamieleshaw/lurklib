@@ -194,7 +194,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
             return who
 
     def _recv(self, rm_colon=False, blocking=True, \
-              expected_replies=None, append=False, default_rvalue=None, \
+              expected_replies=None, default_rvalue=None, \
               ignore_unexpected_replies=False, \
               item_slice=None):
         """
@@ -211,8 +211,6 @@ class _Core(variables._Variables, exceptions._Exceptions,
                         Return the default_rvalue.
                     Else:
                         Return the message.
-        * append=False - If a reply is unexpected, append it;
-                        Defaults to reversing the index.
         * default_rvalue=None - If no message or a matching message;
                             is found, return default_rvalue.
         * ignore_unexpected_replies=False - If an,
@@ -223,6 +221,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
                         Number or list/tuple containing a,
                          starting range and ending range.
         """
+        if len(expected_replies) > 1:
+            append = True
         if self.readable():
             msg = self._raw_recv()
         else:

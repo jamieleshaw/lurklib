@@ -9,3 +9,6 @@ WWW: http://github.com/LK-/lurklib
 Issues: http://github.com/LK-/lurklib/issues
 
 Lurklib is released under the GNU General Public License.
+
+TODO
+----
