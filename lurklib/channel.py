@@ -21,7 +21,7 @@ from __future__ import with_statement
 
 class _Channel(object):
     """ Channel-related interaction class. """
-    def is_in_channel(self, channel, should_be):
+    def is_in_channel(self, channel, should_be, True):
         """
         Find out if you are in a channel.
         Required arguments:
@@ -130,7 +130,7 @@ class _Channel(object):
         * reason='' - Reason for parting.
         """
         with self.lock:
-            self.is_in_channel(channel, True)
+            self.is_in_channel(channel)
 
             self.send('PART %s :%s' % (channel, reason))
             msg = self._recv(expected_replies=('PART',), \
@@ -152,7 +152,7 @@ class _Channel(object):
             If not specified return the modes of the channel.
         """
         with self.lock:
-            self.is_in_channel(channel, True)
+            self.is_in_channel(channel)
 
             if not modes:
                     self.send('MODE %s' % channel)
@@ -190,7 +190,7 @@ class _Channel(object):
         * channel - Channel of which to get the banlist for.
         """
         with self.lock:
-            self.is_in_channel(channel, True)
+            self.is_in_channel(channel)
 
             self.send('MODE %s b' % channel)
             bans = []
@@ -215,7 +215,7 @@ class _Channel(object):
         * channel - Channel of which to get the exceptlist for.
         """
         with self.lock:
-            self.is_in_channel(channel, True)
+            self.is_in_channel(channel)
 
             self.send('MODE %s e' % channel)
             excepts = []
@@ -242,7 +242,7 @@ class _Channel(object):
         * channel - Channel of which to get the invitelist for.
         """
         with self.lock:
-            self.is_in_channel(channel, True)
+            self.is_in_channel(channel)
 
             self.send('MODE %s i' % channel)
             invites = []
@@ -272,8 +272,7 @@ class _Channel(object):
             If not specified the current channel topic will be returned.
         """
         with self.lock:
-            if not self.is_in_channel(channel):
-                raise self.NotInChannel('LurklibError: NotInChannel')
+            self.is_in_channel(channel)
 
             topic = ''
             set_by = ''
@@ -328,8 +327,7 @@ class _Channel(object):
         * channel - Channel to get list of users for.
         """
         with self.lock:
-            if not self.is_in_channel(channel):
-                raise self.NotInChannel('LurklibError: NotInChannel')
+            self.is_in_channel(channel)
 
             self.send('NAMES %s' % channel)
             names = []
@@ -410,8 +408,7 @@ class _Channel(object):
         * nick - Nick to invite.
         """
         with self.lock:
-            if not self.is_in_channel(channel):
-                raise self.NotInChannel('LurklibError: NotInChannel')
+            self.is_in_channel(channel)
 
             self.send('INVITE %s %s' % (nick, channel))
 
@@ -441,8 +438,7 @@ class _Channel(object):
         * reason - Reason for the kick.
         """
         with self.lock:
-            if not self.is_in_channel(channel):
-                raise self.NotInChannel('LurklibError: NotInChannel')
+            self.is_in_channel(channel)
 
             self.send('KICK %s %s :%s' % (channel, nick, reason))
 
