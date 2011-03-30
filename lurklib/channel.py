@@ -21,7 +21,7 @@ from __future__ import with_statement
 
 class _Channel(object):
     """ Channel-related interaction class. """
-    def is_in_channel(self, channel, should_be, True):
+    def is_in_channel(self, channel, should_be=True):
         """
         Find out if you are in a channel.
         Required arguments:
