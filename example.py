@@ -17,7 +17,7 @@
 
 """ Lurklib usage example. """
 
-SERVER = 'localhost'
+SERVER = 'irc.rizon.net'
 
 import lurklib
 
@@ -25,7 +25,7 @@ import lurklib
 class HelloBot(lurklib.Client):
     def on_connect(self):
         """ Join #bots upon connecting. """
-        self.join('#bots')
+        self.join('#lurklibtest')
 
     def on_privmsg(self, event):
         """ Event handlers for PRIVMSGs. """

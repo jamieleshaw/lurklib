@@ -193,7 +193,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
         except IndexError:
             return who
 
-    def _recv(self, rm_colon=False, blocking=False, \
+    def _recv(self, rm_colon=False, blocking=True, \
               expected_replies=None, append=False, default_rvalue=None, \
               ignore_unexpected_replies=False, \
               item_slice=None):
@@ -205,7 +205,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                             Remove the colon(if found) from the [3] item.
                         Else:
                         Remove the colon(if found) from the [2] item.
-        * blocking=False - Should this call block?
+        * blocking=True - Should this call block?
         * expected_replies=None - If specified:
                      If no matching reply is found:
                         Return the default_rvalue.
