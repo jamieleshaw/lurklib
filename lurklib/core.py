@@ -255,12 +255,13 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 else:
                     return msg
             else:
-                self.stepback()
+                self.stepback(append)
                 if ignore_unexpected_replies:
                     return self._recv(rm_colon=rm_colon, blocking=blocking, \
                                expected_replies=expected_replies, \
                                append=append, default_rvalue=default_rvalue, \
                                ignore_unexpected_replies=ignore_unexpected_replies)
+
                 return default_rvalue
         return msg
 
