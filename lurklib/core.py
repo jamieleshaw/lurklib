@@ -223,6 +223,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
         """
         if len(expected_replies) > 1:
             append = True
+        else:
+            append = False
         if self.readable():
             msg = self._raw_recv()
         else:
