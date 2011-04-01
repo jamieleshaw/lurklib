@@ -195,7 +195,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
 
     def _recv(self, rm_colon=False, blocking=True, \
               expected_replies=None, default_rvalue=None, \
-              ignore_unexpected_replies=False, \
+              ignore_unexpected_replies=True, \
               item_slice=None):
         """
         Receives and processes an IRC protocol message.
@@ -213,10 +213,11 @@ class _Core(variables._Variables, exceptions._Exceptions,
                         Return the message.
         * default_rvalue=None - If no message or a matching message;
                             is found, return default_rvalue.
-        * ignore_unexpected_replies=False - If an,
+        * ignore_unexpected_replies=True - If an,
                                     unexpected reply is encountered,
                                     should we keep going,
                                     until we get a valid reply?
+                                    If False, it will just return default_rvalue(If a valid reply isn't found).
         * item_slice=None - Return a specific piece of the message;
                         Number or list/tuple containing a,
                          starting range and ending range.
@@ -260,8 +261,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 self.stepback(append)
                 if ignore_unexpected_replies:
                     return self._recv(rm_colon=rm_colon, blocking=blocking, \
-                               expected_replies=expected_replies, \
-                               append=append, default_rvalue=default_rvalue, \
+                               expected_replies=expected_replies, default_rvalue=default_rvalue, \
                                ignore_unexpected_replies=ignore_unexpected_replies)
 
                 return default_rvalue
