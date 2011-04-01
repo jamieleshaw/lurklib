@@ -265,51 +265,39 @@ class _Channel(object):
         with self.lock:
             self.is_in_channel(channel)
 
-            topic = ''
-            set_by = ''
-            time_set = ''
-            if topic != None:
+            if topic:
                 self.send('TOPIC %s :%s' % (channel, topic))
                 if self.readable():
-                    data = self._raw_recv()
-                    ncode = data.split()[1]
-                    if ncode in self.error_dictionary:
-                        self.exception(ncode)
-                    elif self.find(data, 'TOPIC') and self.hide_called_events:
-                        channel = data.split()[2].replace(':', '', 1)
-                        self.channels[channel]['TOPIC'] = topic
+                    msg = self._recv(expected_replies=('TOPIC',), \
+                                     item_slice=(1, None)
+                                     )
+                    if msg[0] == 'TOPIC' and self.hide_called_events:
+                        channel = msg[1]
+                        self.channels[channel]['TOPIC'] = msg[2].replace(':', '', 1)
                         if not self.hide_called_events:
-                            self._buffer.append(data)
-                    else:
-                        self._index -= 1
+                            self.stepback()
             else:
+                topic = ''
+                set_by = ''
+                time_set = ''
                 self.send('TOPIC %s' % channel)
                 while self.readable():
-                    data = self._raw_recv()
-                    ncode = data.split()[1]
-                    if ncode in self.error_dictionary:
-                        self.exception(ncode)
-                    elif ncode == '332':
-                        topic = data.split(None, 4)[4].replace(':', '', 1)
-                        self._raw_recv()
-                    elif self.find(data, 'TOPIC'):
-                        channel = data.split()[2].replace(':', '', 1)
-                        self.channels[channel]['TOPIC'] = topic
-                        if not self.hide_called_events:
-                            self._buffer.append(data)
-                    elif ncode == '333':
-                        segments = data.split()
+                    msg = self._recv(expected_replies=('332', '333', '331'), \
+                                     item_slice=(1, None)
+                                     )
+                    if msg[0] == '332':
+                        topic = msg[2].split(':', 1)[1]
+                    elif msg[0] == '333':
+                        set_by, time_set = msg[2].split()[1:]
                         if self.UTC == False:
-                            time_set = self._m_time.localtime(int(segments[5]))
+                            time_set = self._m_time.localtime(int(time_set))
                         else:
-                            time_set = self._m_time.gmtime(int(segments[5]))
-                        set_by = self._from_(segments[4])
-                    elif ncode == '331':
+                            time_set = self._m_time.gmtime(int(time_set))
+                        set_by = self._from_(set_by)
+                    elif msg[0] == '331':
                         topic = ''
-                    else:
-                        self._buffer.append(data)
 
-            return topic, set_by, time_set
+                return topic, set_by, time_set
 
     def names(self, channel):
         """
