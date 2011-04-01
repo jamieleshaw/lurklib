@@ -356,22 +356,20 @@ class _Channel(object):
             list_ = {}
 
             while self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
+                msg = self._recv(expected_replies=('322', '321', '323'), \
+                                 item_slice=(1, None)
+                                 )
 
-                if ncode == '322':
-                    raw_lst = data.split(None, 6)
-                    modes = raw_lst[5].replace(':', '', 1)
+                if msg[0] == '322':
+                    raw_lst = msg[2].split(' ', 3)
+                    modes = raw_lst[2].replace(':', '', 1).replace(':', '', 1)
                     modes = modes.replace('[', '').replace(']', '')
-                    list_[raw_lst[3]] = raw_lst[4], modes, raw_lst[6]
-                elif ncode == '321':
+                    list_[raw_lst[0]] = raw_lst[1], modes, raw_lst[3]
+                elif msg[0] == '321':
                     pass
-                elif ncode in self.error_dictionary:
-                    self.exception(ncode)
-                elif ncode == '323':
+                elif msg[0] == '323':
                     break
-                else:
-                    self._buffer.append(data)
+
             return list_
 
     def invite(self, channel, nick):
