@@ -197,8 +197,8 @@ class _Channel(object):
                                      item_slice=(1, None)
                                      )
                 if msg[0] == '367':
-                    segments = msg[2].split()
-                    bans.append((self._from_(segments[1]), segments[2], self._m_time.localtime(int(segments[3]))))
+                    banmask, who, timestamp = msg[2].split()[1:]
+                    bans.append((self._from_(banmask), who, self._m_time.localtime(int(timestamp))))
                 elif msg[0] == '368':
                     break
             return bans
@@ -221,8 +221,8 @@ class _Channel(object):
                                      )
 
                 if msg[0] == '348':
-                    segments = msg[2].split()
-                    excepts.append((self._from_(segments[1]), segments[2], self._m_time.localtime(int(segments[3]))))
+                    exceptmask, who, timestamp = msg[2].split()[1:]
+                    excepts.append((self._from_(exceptmask), who, self._m_time.localtime(int(timestamp))))
                 elif msg[0] == '349':
                     break
 
@@ -246,8 +246,8 @@ class _Channel(object):
                                      )
 
                 if msg[0] == '346':
-                    segments = msg[2].split()
-                    invites.append((self._from_(segments[1]), segments[2], self._m_time.localtime(int(segments[3]))))
+                    invitemask, who, timestamp = msg[2].split()[1:]
+                    invites.append((self._from_(invitemask), who, self._m_time.localtime(int(timestamp))))
                 elif msg[0] == '347':
                     break
 
@@ -361,10 +361,10 @@ class _Channel(object):
                                  )
 
                 if msg[0] == '322':
-                    raw_lst = msg[2].split(' ', 3)
-                    modes = raw_lst[2].replace(':', '', 1).replace(':', '', 1)
-                    modes = modes.replace('[', '').replace(']', '')
-                    list_[raw_lst[0]] = raw_lst[1], modes, raw_lst[3]
+                    channel, usercount, modes, topic = msg[2].split(' ', 3)
+                    modes = modes.replace(':', '', 1).replace(':', '', 1)
+                    modes = modes.replace('[', '').replace(']', '').replace('+', '')
+                    list_[channel] = usercount, modes, topic
                 elif msg[0] == '321':
                     pass
                 elif msg[0] == '323':
