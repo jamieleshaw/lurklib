@@ -319,10 +319,7 @@ class _Channel(object):
                 if msg[0] == '353':
                     new_names = msg[2].split()[2:]
                     new_names[0] = new_names[0].replace(':', '', 1)
-                    try:
-                        names.extend(new_names)
-                    except NameError:
-                        names = new_names
+                    names.extend(new_names)
                 elif msg[0] == '366':
                     channel = msg[2].split()[0]
                     break
