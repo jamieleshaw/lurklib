@@ -399,7 +399,7 @@ class _Channel(object):
         """
         Kick someone from a channel.
         Required arguments:
-        * channel - Channel to kick them fromn.
+        * channel - Channel to kick them from.
         * nick - Nick to kick.
         Optional arguments:
         * reason - Reason for the kick.
@@ -410,17 +410,15 @@ class _Channel(object):
             self.send('KICK %s %s :%s' % (channel, nick, reason))
 
             if self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
+                msg = self._recv(expected_replies=('KICK',), \
+                                 item_slice=(1, None)
+                                 )
 
-                if ncode in self.error_dictionary:
-                        self.exception(ncode)
-                elif self.find(data, 'KICK'):
-                    channel = data.split()[2]
+                if msg[0] == 'KICK':
+                    channel = msg[1]
                     if not self.hide_called_events:
-                        self._buffer.append(data)
-                else:
-                    self._index -= 1
+                        self.stepback()
+
             if self.compare(self.current_nick, nick):
                 del self.channels[channel]
 
