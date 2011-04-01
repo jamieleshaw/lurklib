@@ -385,20 +385,15 @@ class _Channel(object):
             self.send('INVITE %s %s' % (nick, channel))
 
             while self.readable():
-                    data = self._raw_recv()
-                    ncode = data.split()[1]
+                    msg = self._recv(expected_replies=('341', '301'), \
+                                 item_slice=(1, None)
+                                 )
 
-                    if ncode in self.error_dictionary:
-                        self.exception(ncode)
-                    elif ncode == '341':
+                    if msg[0] == '341':
                         pass
-                    elif ncode == '301':
-                        away_msg = data.split(None, 3)[3].replace(':', '', 1)
+                    elif msg[0] == '301':
+                        away_msg = msg[2].split()[1].replace(':', '', 1)
                         return 'AWAY', away_msg
-                    elif self.find(data, 'INVITE') and self.hide_called_events:
-                        pass
-                    else:
-                        self._buffer.append(data)
 
     def kick(self, channel, nick, reason=''):
         """
