@@ -312,23 +312,21 @@ class _Channel(object):
             names = []
 
             while self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
+                msg = self._recv(expected_replies=('353', '366'), \
+                                 item_slice=(1, None)
+                                 )
 
-                if ncode == '353':
-                    new_names = data.split()[5:]
+                if msg[0] == '353':
+                    new_names = msg[2].split()[2:]
                     new_names[0] = new_names[0].replace(':', '', 1)
                     try:
-                        names.append = new_names
+                        names.extend(new_names)
                     except NameError:
                         names = new_names
-                elif ncode in self.error_dictionary:
-                    self.exception(ncode)
-                elif ncode == '366':
-                    channel = data.split()[3]
+                elif msg[0] == '366':
+                    channel = msg[2].split()[0]
                     break
-                else:
-                    self._buffer.append(data)
+
             for name in names:
                 prefix = ''
                 if name[0] in self.priv_types:
