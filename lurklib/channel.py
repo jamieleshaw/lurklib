@@ -71,7 +71,6 @@ class _Channel(object):
                 msg = self._recv(rm_colon=True, \
                                  expected_replies=('332', '333', \
                                                    '353', 'JOIN', '366'), \
-                                 ignore_unexpected_replies=True,
                                  item_slice=(1, None)
                                  )
 
@@ -134,7 +133,6 @@ class _Channel(object):
 
             self.send('PART %s :%s' % (channel, reason))
             msg = self._recv(expected_replies=('PART',), \
-                                 ignore_unexpected_replies=True, \
                                  item_slice=(1, None)
                                  )
             if msg[0] == 'PART':
@@ -161,7 +159,6 @@ class _Channel(object):
                     while self.readable():
                         msg = self._recv(rm_colon=True, \
                         expected_replies=('324', '329'), \
-                        ignore_unexpected_replies=True,
                         item_slice=(1, None)
                         )
                         if msg[0] == '324':
@@ -197,7 +194,6 @@ class _Channel(object):
 
             while self.readable():
                 msg = self._recv(expected_replies=('367', '368'), \
-                                     ignore_unexpected_replies=True, \
                                      item_slice=(1, None)
                                      )
                 if msg[0] == '367':
@@ -221,7 +217,6 @@ class _Channel(object):
 
             while self.readable():
                 msg = self._recv(expected_replies=('348', '349'), \
-                                     ignore_unexpected_replies=True, \
                                      item_slice=(1, None)
                                      )
 
@@ -247,7 +242,6 @@ class _Channel(object):
 
             while self.readable():
                 msg = self._recv(expected_replies=('346', '347'), \
-                                     ignore_unexpected_replies=True, \
                                      item_slice=(1, None)
                                      )
 
