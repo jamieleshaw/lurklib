@@ -90,13 +90,9 @@ class _Optional(object):
         with self.lock:
             self.send('USERHOST :%s' % nick)
             if self.readable():
-                segments = self._raw_recv().split()
-                if segments[1] == '302':
-                    return ' '.join(segments[3:]).replace(':', '', 1)
-                elif segments[1] in self.error_dictionary:
-                    self.exception(segments[1])
-                else:
-                    self._index -= 1
+                msg = self._recv(expected_replies=('302',), item_slice=(1, None))
+                if msg[0] == '302':
+                    return msg[2].replace(':', '', 1).split()
 
     def ison(self, nick):
         """
