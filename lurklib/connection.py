@@ -222,19 +222,13 @@ class _Connection(object):
             snomasks = ''
             new_umodes = ''
             if self.readable():
-                    data = self._raw_recv()
-                    ncode = data.split()[1]
-
-                    if ncode in self.error_dictionary:
-                            self.exception(ncode)
-                    elif self.find(data, 'MODE'):
-                            new_umodes = data.split()[-1].replace(':', '', 1)
-                    elif ncode == '381':
+                    msg = self._recv(expected_replies=('MODE', '381', '008'), item_slice=(1, None))
+                    if msg[0] == 'MODE':
+                            new_umodes = msg[2].replace(':', '', 1)
+                    elif msg[0] == '381':
                             return new_umodes, snomasks
-                    elif ncode == '008':
-                            snomasks = data.split('(')[1].split(')')[0]
-                    else:
-                        self._index -= 1
+                    elif msg[0] == '008':
+                            snomasks = msg[2].split('(')[1].split(')')[0]
 
     def umode(self, nick, modes=''):
         """
