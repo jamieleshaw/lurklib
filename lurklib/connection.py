@@ -162,14 +162,10 @@ class _Connection(object):
             self.send('NICK :%s' % nick)
 
             if self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
-                if ncode in self.error_dictionary:
-                        self.exception(ncode)
-                elif data.split()[1] == 'NICK' and self.hide_called_events:
-                    pass
-                else:
-                    self._index -= 1
+                msg = self._recv(expected_replies='NICK', item_slice=(1, None))
+                if msg[0] == 'NICK':
+                    if not self.hide_called_events:
+                        self.stepback()
 
             for channel in self.channels:
                 if 'USERS' in self.channels[channel]:
@@ -211,12 +207,8 @@ class _Connection(object):
         with self.lock:
             self.send('USER %s 0 * :%s' % (user, real_name))
             if self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
-                if ncode in self.error_dictionary:
-                        self.exception(ncode)
-                else:
-                    self._index -= 1
+                self._recv()
+                self.stepback()
 
     def oper(self, name, password):
         """
