@@ -79,7 +79,7 @@ class _Optional(object):
         Required arguments:
         * msg - Message to send.
         """
-        self.send('WALLOPS :%s' % msg)
+        self.send('WALLOPS :%s' % msg, error_check=True)
 
     def userhost(self, nick):
         """
