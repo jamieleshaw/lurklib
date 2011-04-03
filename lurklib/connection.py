@@ -142,19 +142,15 @@ class _Connection(object):
     def _password(self, password):
         """
         Authenticates with the IRC server.
+        NOTE: Method will not raise an exception, if the password is wrong. It will just fail..
         Required arguments:
         * password - Password to send.
         """
         with self.lock:
             self.send('PASS :%s' % password)
-
             if self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
-                if ncode in self.error_dictionary:
-                        self.exception(ncode)
-                else:
-                    self._index -= 1
+                self._recv()
+                self.stepback()
 
     def _nick(self, nick):
         """
