@@ -239,29 +239,22 @@ class _Connection(object):
         * modes='' - Sets these user modes on a nick.
         """
         with self.lock:
-            if modes == '':
+            if not modes:
                 self.send('MODE %s' % nick)
-                modes = ''
                 if self.readable():
-                    modes = ' '.join(self._raw_recv().split()[3:])
-                    modes = modes.replace('+', '').replace(':', '', 1)
+                    msg = self._recv(expected_replies=('221',), item_slice=(1, None))
+                    if msg[0] == '221':
+                        modes = msg[2].replace('+', '').replace(':', '', 1)
                 return modes
 
-            else:
-                self.send('MODE %s %s' % (nick, modes))
+            self.send('MODE %s %s' % (nick, modes))
 
             if self.readable():
-                    data = self._raw_recv()
-                    ncode = data.split()[1]
-
-                    if ncode in self.error_dictionary:
-                            self.exception(ncode)
-                    elif ncode == '221':
-                            return data.split()[3].replace(':', '', 1)
-                    elif self.find(data, 'MODE') and self.hide_called_events:
-                            pass
-                    else:
-                        self._index -= 1
+                msg = self._recv(expected_replies=('MODE',), item_slice=(1, None))
+                if msg[0] == 'MODE':
+                    if not self.hide_called_events:
+                        self.stepback()
+                    return msg[2].replace(':', '', 1)
 
     def service(self):
         """ Not implemented. """
