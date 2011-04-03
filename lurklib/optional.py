@@ -81,32 +81,33 @@ class _Optional(object):
         """
         self.send('WALLOPS :%s' % msg, error_check=True)
 
-    def userhost(self, nick):
+    def userhost(self, nicks):
         """
         Runs a userhost on a nick.
         Required arguments:
         * nick - Nick to run a userhost on.
         """
         with self.lock:
-            self.send('USERHOST :%s' % nick)
+            self.send('USERHOST :%s' % nicks)
+            userhosts = []
             if self.readable():
                 msg = self._recv(expected_replies=('302',), item_slice=(1, None))
                 if msg[0] == '302':
-                    return msg[2].replace(':', '', 1).split()
+                    userhosts = msg[2].replace(':', '', 1).split()
+            return userhosts
 
-    def ison(self, nick):
+    def ison(self, nicks):
         """
         Checks if a nick is on or not.
+        Returns list of nicks online.
         Required arguments:
         * nick - Nick to check.
         """
         with self.lock:
-            self.send('ISON :%s' % nick)
+            self.send('ISON :%s' % ' '.join(nicks))
+            online_nicks = []
             if self.readable():
-                segments = self._raw_recv().split()
-                if segments[1] == '303':
-                    return ' '.join(segments[3:]).replace(':', '', 1)
-                elif segments[1] in self.error_dictionary:
-                    self.exception(segments[1])
-                else:
-                    self._index -= 1
+                msg = self._recv(expected_replies=('303',), item_slice=(1, None))
+                if msg[0] == '303':
+                    online_nicks = msg[2].replace(':', '', 1).split()
+            return online_nicks
