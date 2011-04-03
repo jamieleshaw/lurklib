@@ -307,16 +307,10 @@ class _Connection(object):
             self.send('SQUIT %s :%s' % (server, reason))
 
             while self.readable():
-                    data = self._raw_recv()
-                    ncode = data.split()[1]
-
-                    if ncode in self.error_dictionary:
-                            self.exception(ncode)
-
-                    elif self.find(data, 'SQUIT') and self.hide_called_events:
-                            pass
-                    else:
-                        self._index -= 1
+                msg = self._recv(expected_replies=('SQUIT',), item_slice=(1, None))
+                if msg[0] == 'SQUIT':
+                    if not self.hide_called_events:
+                        self.stepback()
 
     def latency(self):
         """ Checks the connection latency. """
@@ -324,9 +318,7 @@ class _Connection(object):
             self.send('PING %s' % self.server)
             ctime = self._m_time.time()
 
-            data = self._raw_recv().split()[1]
-            if data == 'PONG':
+            msg = self._recv(expected_replies=('PONG',), item_slice=(1, None))
+            if msg[0] == 'PONG':
                 latency = self._m_time.time() - ctime
                 return latency
-            else:
-                self._index -= 1
