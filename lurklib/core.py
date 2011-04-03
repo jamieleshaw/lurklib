@@ -86,11 +86,13 @@ class _Core(variables._Variables, exceptions._Exceptions,
         elif qstatus != -1:
             return True
 
-    def send(self, msg):
+    def send(self, msg, error_check=False):
         """
         Send a raw string with the clrf appended to it.
         Required arguments:
         * msg - Message to send.
+        Optional arguments:
+        * error_check=False - Check for errors. If an error is found the relevant exception will be raised.
         """
         with self.lock:
             msg = msg.replace('\r', '\\r').replace('\n', '\\n') + self._clrf
@@ -99,6 +101,9 @@ class _Core(variables._Variables, exceptions._Exceptions,
             except UnicodeEncodeError:
                 data = msg.encode(self.fallback_encoding)
             self._socket.send(data)
+            if error_check and self.readable():
+                self._recv()
+                self.stepback()
 
     def _mcon(self):
         """ Buffer IRC data and handle PING/PONG. """

@@ -147,10 +147,7 @@ class _Connection(object):
         * password - Password to send.
         """
         with self.lock:
-            self.send('PASS :%s' % password)
-            if self.readable():
-                self._recv()
-                self.stepback()
+            self.send('PASS :%s' % password, error_check=True)
 
     def _nick(self, nick):
         """

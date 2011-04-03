@@ -30,13 +30,11 @@ class _Optional(object):
         with self.lock:
             self.send('AWAY :%s' % msg)
             if self.readable():
-                ncode = self._raw_recv().split()[1]
-                if ncode == '306':
+                msg = self._recv(expected_replies=('306', '305'), item_slice=(1, None))
+                if msg[0] == '306':
                     self.is_away = True
-                elif ncode == '305':
+                elif msg[0] == '305':
                     self.is_away = False
-                else:
-                    self._index -= 1
 
     def rehash(self):
         """
@@ -45,13 +43,9 @@ class _Optional(object):
         with self.lock:
             self.send('REHASH')
             if self.readable():
-                segments = self._raw_recv().split()
-                if segments[1] == '382':
+                msg = self._recv(expected_replies=('382',), item_slice=(1, None))
+                if msg[0] == '382':
                     pass
-                elif segments[1] in self.error_dictionary:
-                    self.exception(segments[1])
-                else:
-                    self._index -= 1
 
     def die(self, password=''):
         """
@@ -60,13 +54,7 @@ class _Optional(object):
         * password='' - Die command password.
         """
         with self.lock:
-            self.send('DIE :%s' % password)
-            if self.readable():
-                segments = self._raw_recv().split()
-                if segments[1] == self.error_dictionary:
-                    self.exception(segments[1])
-                else:
-                    self._index -= 1
+            self.send('DIE :%s' % password, error_check=True)
 
     def restart(self, password=''):
         """
@@ -75,13 +63,7 @@ class _Optional(object):
         * password='' - Restart command password.
         """
         with self.lock:
-            self.send('RESTART :%s' % password)
-            if self.readable():
-                segments = self._raw_recv().split()
-                if segments[1] in self.error_dictionary:
-                    self.exception(segments[1])
-                else:
-                    self._index -= 1
+            self.send('RESTART :%s' % password, error_check=True)
 
     def summon(self):
         """ Not implemented. """
