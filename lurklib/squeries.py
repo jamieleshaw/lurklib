@@ -28,26 +28,22 @@ class _ServerQueries(object):
         * server=None - Server to get the MOTD of.
         """
         with self.lock:
-            if server == None:
+            if not server:
                 self.send('MOTD')
             else:
                 self.send('MOTD %s' % server)
 
             motd = []
             while self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
-                if ncode == '375':
+                msg = self._recv(expected_replies=('375', '372', '376', '422'), item_slice=(1, None))
+                if msg[0] == '375':
                     pass
-                elif ncode == '372':
-                    motd.append(data.split(None, 3)[3].replace(':', '', 1))
-                elif ncode == '376':
+                elif msg[0] == '372':
+                    motd.append(msg[2].replace(':', '', 1))
+                elif msg[0] == '376':
                     break
-                elif ncode == '422':
+                elif msg[0] == '422':
                     break
-                else:
-                    self._buffer.append(data)
-            self.motd = tuple(self.motd)
             return motd
 
     def get_lusers(self, mask=None, target=None):
