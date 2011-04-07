@@ -136,15 +136,14 @@ class _ServerQueries(object):
                 self.send('STATS %s' % query)
             else:
                 self.send('STATS %s %s' % (query, target))
-            rvalue = []
+            stat_lines = []
             while self.readable():
-                data = self._raw_recv()
-                segments = data.split()
-                if segments[1] == '219':
+                msg = self._recv()
+                if msg[1] == '219':
                     break
                 else:
-                    rvalue.append(' '.join(segments[4:]))
-            return rvalue
+                    stat_lines.append(msg[3].replace(':', '', 1))
+            return stat_lines
 
     def links(self, r_server=None, mask=None):
         """
