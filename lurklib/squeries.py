@@ -44,6 +44,7 @@ class _ServerQueries(object):
                     break
                 elif msg[0] == '422':
                     break
+            self.motd = tuple(self.motd)
             return motd
 
     def get_lusers(self, mask=None, target=None):
@@ -61,37 +62,34 @@ class _ServerQueries(object):
             else:
                 self.send('LUSERS %s %s' % (mask, target))
             while self.readable():
-                data = self._raw_recv()
-                segments = data.split()
-
-                if segments[1] == '250':
-                    self.lusers['HIGHESTCONNECTIONS'] = segments[6]
+                msg = self._recv(expected_replies=('250', '251', '252', '254', '255', '265', '266'), item_slice=(1, None))
+                segments = msg[2].split()
+                if msg[0] == '250':
+                    self.lusers['HIGHESTCONNECTIONS'] = segments[3]
                     self.lusers['TOTALCONNECTIONS'] = segments[9][1:]
-                elif segments[1] == '251':
-                    self.lusers['USERS'] = segments[5]
-                    self.lusers['INVISIBLE'] = segments[8]
-                    self.lusers['SERVERS'] = segments[11]
+                elif msg[0] == '251':
+                    self.lusers['USERS'] = segments[2]
+                    self.lusers['INVISIBLE'] = segments[5]
+                    self.lusers['SERVERS'] = segments[8]
 
-                elif segments[1] == '252':
-                    self.lusers['OPERATORS'] = segments[3]
+                elif msg[0] == '252':
+                    self.lusers['OPERATORS'] = segments[0]
 
-                elif segments[1] == '254':
-                    self.lusers['CHANNELS'] = segments[3]
+                elif msg[0] == '254':
+                    self.lusers['CHANNELS'] = segments[0]
 
-                elif segments[1] == '255':
-                    self.lusers['CLIENTS'] = segments[5]
-                    self.lusers['LSERVERS'] = segments[8]
+                elif msg[0] == '255':
+                    self.lusers['CLIENTS'] = segments[2]
+                    self.lusers['LSERVERS'] = segments[5]
 
-                elif segments[1] == '265':
-                    self.lusers['LOCALUSERS'] = segments[6]
-                    self.lusers['LOCALMAX'] = segments[8]
+                elif msg[0] == '265':
+                    self.lusers['LOCALUSERS'] = segments[3]
+                    self.lusers['LOCALMAX'] = segments[5]
 
-                elif segments[1] == '266':
-                    self.lusers['GLOBALUSERS'] = segments[6]
-                    self.lusers['GLOBALMAX'] = segments[8]
+                elif msg[0] == '266':
+                    self.lusers['GLOBALUSERS'] = segments[3]
+                    self.lusers['GLOBALMAX'] = segments[5]
                     break
-                else:
-                    self._buffer.append(data)
             return self.lusers
 
     def version(self, target=None):
