@@ -146,7 +146,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
             self._index += 1
             return msg
 
-    def readable(self, timeout=5):
+    def readable(self, timeout=1):
         """
         Checks whether self.recv() will block or not.
         Optional arguments:

@@ -109,7 +109,7 @@ class _Connection(object):
                         self.umodes = info[2]
                         self.cmodes = info[3]
                     elif ncode == '005':
-                        version = data.replace(':are supported' + \
+                        version = rdata[1][3].replace(':are supported' + \
                                                'by this server', '')
                         version = version.split()
                         for info in version:

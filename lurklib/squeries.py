@@ -92,7 +92,7 @@ class _ServerQueries(object):
                     break
             return self.lusers
 
-    def version(self, target=None):
+    def get_version(self, target=None):
         """
         Get the servers VERSION information.
         Optional arguments:
@@ -105,8 +105,8 @@ class _ServerQueries(object):
                 self.send('VERSION %s' % target)
 
             while self.readable():
-                data = self.stream()[1][3].replace(':', '', 1)
-                version = data.replace(' :are supported by this server', '')
+                msg = self._recv(expected_replies=('351', '005'), item_slice=(1, None))
+                version = msg[2].replace(' :are supported by this server', '')
                 version = version.split()
                 for info in version:
                         try:
