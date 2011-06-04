@@ -262,14 +262,7 @@ class _ServerQueries(object):
         * msg - Message to send.
         """
         with self.lock:
-            self.send('SQUERY %s :%s' % (sname, msg))
-            if self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
-                if ncode in self.error_dictionary:
-                    self.exception(ncode)
-                else:
-                    self._index -= 1
+            self.send('SQUERY %s :%s' % (sname, msg), error_check=True)
 
     def kill(self, nick, reason=''):
         """
@@ -280,12 +273,4 @@ class _ServerQueries(object):
         * reason='' - Reason for killing them.
         """
         with self.lock:
-            self.send('KILL ' + nick + ' :' + reason)
-
-            if self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
-                if ncode in self.error_dictionary:
-                    self.exception(ncode)
-                else:
-                    self._index -= 1
+            self.send('KILL ' + nick + ' :' + reason, error_check=True)
