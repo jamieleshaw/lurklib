@@ -92,7 +92,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
         Required arguments:
         * msg - Message to send.
         Optional arguments:
-        * error_check=False - Check for errors. If an error is found the relevant exception will be raised.
+        * error_check=False - Check for errors. \
+        If an error is found the relevant exception will be raised.
         """
         with self.lock:
             msg = msg.replace('\r', '\\r').replace('\n', '\\n') + self._clrf
@@ -222,7 +223,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
                                     unexpected reply is encountered,
                                     should we keep going,
                                     until we get a valid reply?
-                                    If False, it will just return default_rvalue(If a valid reply isn't found).
+                                    If False, it will just return \
+                        default_rvalue(If a valid reply isn't found).
         * item_slice=None - Return a specific piece of the message;
                         Number or list/tuple containing a,
                          starting range and ending range.
@@ -267,8 +269,9 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 self.stepback(append)
                 if ignore_unexpected_replies:
                     return self._recv(rm_colon=rm_colon, blocking=blocking, \
-                               expected_replies=expected_replies, default_rvalue=default_rvalue, \
-                               ignore_unexpected_replies=ignore_unexpected_replies)
+                               expected_replies=expected_replies, \
+                               default_rvalue=default_rvalue, \
+            ignore_unexpected_replies=ignore_unexpected_replies)
 
                 return default_rvalue
         return msg
@@ -353,7 +356,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
 
             elif segments[1] == 'NICK':
                 who = self._from_(segments[0].replace(':', '', 1))
-                new_nick = ' '.join(segments[2:]).replace(':', '',1)
+                new_nick = ' '.join(segments[2:]).replace(':', '', 1)
                 if self.current_nick == who[0]:
                     self.current_nick = new_nick
                 for channel in self.channels:

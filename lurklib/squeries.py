@@ -35,7 +35,7 @@ class _ServerQueries(object):
 
             motd = []
             while self.readable():
-                msg = self._recv(expected_replies=('375', '372', '376', '422'), item_slice=(1, None))
+                msg = self._recv(expected_replies=('375', '372', '376', '422'))
                 if msg[0] == '375':
                     pass
                 elif msg[0] == '372':
@@ -62,7 +62,8 @@ class _ServerQueries(object):
             else:
                 self.send('LUSERS %s %s' % (mask, target))
             while self.readable():
-                msg = self._recv(expected_replies=('250', '251', '252', '254', '255', '265', '266'), item_slice=(1, None))
+                msg = self._recv(expected_replies=('250', '251', '252', \
+                                            '254', '255', '265', '266'))
                 segments = msg[2].split()
                 if msg[0] == '250':
                     self.lusers['HIGHESTCONNECTIONS'] = segments[3]
@@ -105,7 +106,7 @@ class _ServerQueries(object):
                 self.send('VERSION %s' % target)
 
             while self.readable():
-                msg = self._recv(expected_replies=('351', '005'), item_slice=(1, None))
+                msg = self._recv(expected_replies=('351', '005'))
                 version = msg[2].replace(' :are supported by this server', '')
                 version = version.split()
                 for info in version:
@@ -201,7 +202,8 @@ class _ServerQueries(object):
             if not r_server:
                 self.send('CONNECT %s %s' % (server, port), error_check=True)
             else:
-                self.send('CONNECT %s %s %s' % (server, port, r_server), error_check=True)
+                self.send('CONNECT %s %s %s' % (server, port, \
+                                    r_server), error_check=True)
 
     def trace(self):
         raise self.NotImplemented

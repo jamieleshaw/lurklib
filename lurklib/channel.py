@@ -164,7 +164,8 @@ class _Channel(object):
                         if msg[0] == '324':
                             modes = msg[2].split()[1].replace('+', '', 1)
                         elif msg[0] == '329':
-                            mode_set_time = self._m_time.localtime(int(msg[2].split()[1]))
+                            mode_set_time = self._m_time.localtime( \
+                                                        int(msg[2].split()[1]))
                     return modes, mode_set_time
             else:
                 self.send('MODE %s %s' % (channel, modes))
@@ -198,7 +199,8 @@ class _Channel(object):
                                      )
                 if msg[0] == '367':
                     banmask, who, timestamp = msg[2].split()[1:]
-                    bans.append((self._from_(banmask), who, self._m_time.localtime(int(timestamp))))
+                    bans.append((self._from_(banmask), who, \
+                                 self._m_time.localtime(int(timestamp))))
                 elif msg[0] == '368':
                     break
             return bans
@@ -222,7 +224,8 @@ class _Channel(object):
 
                 if msg[0] == '348':
                     exceptmask, who, timestamp = msg[2].split()[1:]
-                    excepts.append((self._from_(exceptmask), who, self._m_time.localtime(int(timestamp))))
+                    excepts.append((self._from_(exceptmask), who, \
+                                    self._m_time.localtime(int(timestamp))))
                 elif msg[0] == '349':
                     break
 
@@ -247,7 +250,8 @@ class _Channel(object):
 
                 if msg[0] == '346':
                     invitemask, who, timestamp = msg[2].split()[1:]
-                    invites.append((self._from_(invitemask), who, self._m_time.localtime(int(timestamp))))
+                    invites.append((self._from_(invitemask), who, \
+                                    self._m_time.localtime(int(timestamp))))
                 elif msg[0] == '347':
                     break
 
@@ -273,7 +277,8 @@ class _Channel(object):
                                      )
                     if msg[0] == 'TOPIC' and self.hide_called_events:
                         channel = msg[1]
-                        self.channels[channel]['TOPIC'] = msg[2].replace(':', '', 1)
+                        self.channels[channel]['TOPIC'] = \
+                        msg[2].replace(':', '', 1)
                         if not self.hide_called_events:
                             self.stepback()
             else:
@@ -363,7 +368,8 @@ class _Channel(object):
                 if msg[0] == '322':
                     channel, usercount, modes, topic = msg[2].split(' ', 3)
                     modes = modes.replace(':', '', 1).replace(':', '', 1)
-                    modes = modes.replace('[', '').replace(']', '').replace('+', '')
+                    modes = modes.replace('[', '').replace( \
+                                                    ']', '').replace('+', '')
                     list_[channel] = usercount, modes, topic
                 elif msg[0] == '321':
                     pass

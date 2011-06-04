@@ -30,7 +30,7 @@ class _Optional(object):
         with self.lock:
             self.send('AWAY :%s' % msg)
             if self.readable():
-                msg = self._recv(expected_replies=('306', '305'), item_slice=(1, None))
+                msg = self._recv(expected_replies=('306', '305'))[1:]
                 if msg[0] == '306':
                     self.is_away = True
                 elif msg[0] == '305':
@@ -43,7 +43,7 @@ class _Optional(object):
         with self.lock:
             self.send('REHASH')
             if self.readable():
-                msg = self._recv(expected_replies=('382',), item_slice=(1, None))
+                msg = self._recv(expected_replies=('382',))
                 if msg[0] == '382':
                     pass
 
@@ -91,7 +91,7 @@ class _Optional(object):
             self.send('USERHOST :%s' % nicks)
             userhosts = []
             if self.readable():
-                msg = self._recv(expected_replies=('302',), item_slice=(1, None))
+                msg = self._recv(expected_replies=('302',))
                 if msg[0] == '302':
                     userhosts = msg[2].replace(':', '', 1).split()
             return userhosts
@@ -107,7 +107,7 @@ class _Optional(object):
             self.send('ISON :%s' % ' '.join(nicks))
             online_nicks = []
             if self.readable():
-                msg = self._recv(expected_replies=('303',), item_slice=(1, None))
+                msg = self._recv(expected_replies=('303',))
                 if msg[0] == '303':
                     online_nicks = msg[2].replace(':', '', 1).split()
             return online_nicks

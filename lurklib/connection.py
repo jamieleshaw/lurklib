@@ -142,7 +142,8 @@ class _Connection(object):
     def _password(self, password):
         """
         Authenticates with the IRC server.
-        NOTE: Method will not raise an exception, if the password is wrong. It will just fail..
+        NOTE: Method will not raise an exception, \
+        if the password is wrong. It will just fail..
         Required arguments:
         * password - Password to send.
         """
@@ -219,7 +220,8 @@ class _Connection(object):
             snomasks = ''
             new_umodes = ''
             if self.readable():
-                    msg = self._recv(expected_replies=('MODE', '381', '008'), item_slice=(1, None))
+                    msg = self._recv(expected_replies=( \
+                                                    'MODE', '381', '008'))[1:]
                     if msg[0] == 'MODE':
                             new_umodes = msg[2].replace(':', '', 1)
                     elif msg[0] == '381':
@@ -239,7 +241,7 @@ class _Connection(object):
             if not modes:
                 self.send('MODE %s' % nick)
                 if self.readable():
-                    msg = self._recv(expected_replies=('221',), item_slice=(1, None))
+                    msg = self._recv(expected_replies=('221',))[1:]
                     if msg[0] == '221':
                         modes = msg[2].replace('+', '').replace(':', '', 1)
                 return modes
@@ -247,7 +249,7 @@ class _Connection(object):
             self.send('MODE %s %s' % (nick, modes))
 
             if self.readable():
-                msg = self._recv(expected_replies=('MODE',), item_slice=(1, None))
+                msg = self._recv(expected_replies=('MODE',))[1:]
                 if msg[0] == 'MODE':
                     if not self.hide_called_events:
                         self.stepback()
@@ -304,7 +306,7 @@ class _Connection(object):
             self.send('SQUIT %s :%s' % (server, reason))
 
             while self.readable():
-                msg = self._recv(expected_replies=('SQUIT',), item_slice=(1, None))
+                msg = self._recv(expected_replies=('SQUIT',))[1:]
                 if msg[0] == 'SQUIT':
                     if not self.hide_called_events:
                         self.stepback()
