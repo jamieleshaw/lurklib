@@ -203,23 +203,8 @@ class _ServerQueries(object):
             else:
                 self.send('CONNECT %s %s %s' % (server, port, r_server), error_check=True)
 
-    def trace(self, target):
-        """
-        Run a trace on a target
-        Required arguments:
-        * target - Who to trace.
-        """
-        with self.lock:
-            self.send('TRACE ' + target)
-            rvalue = []
-            while self.readable():
-                data = self._raw_recv()
-                segments = data.split()
-                if segments[1] == '262':
-                    break
-                else:
-                    rvalue.append(' '.join(segments[4:]).replace(':', '', 1))
-            return rvalue
+    def trace(self):
+        raise self.NotImplemented
 
     def admin(self, server=None):
         """
@@ -235,15 +220,13 @@ class _ServerQueries(object):
                 self.send('ADMIN %s' % server)
             rvalue = []
             while self.readable():
-                data = self._raw_recv()
-                segments = data.split()
                 admin_ncodes = '257', '258', '259'
-                if segments[1] == '256':
+                msg = self._recv(expected_replies=('256',) + admin_ncodes)[1:]
+                if msg[0] == '256':
                     pass
-                elif segments[1]  in admin_ncodes:
-                    rvalue.append(' '.join(segments[3:])[1:])
-                else:
-                    self._buffer.append(data)
+                elif msg[0]  in admin_ncodes:
+                    rvalue.append(' '.join(msg[2:])[1:])
+
             return rvalue
 
     def s_info(self, server=None):
