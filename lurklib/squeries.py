@@ -199,15 +199,9 @@ class _ServerQueries(object):
         """
         with self.lock:
             if not r_server:
-                self.send('CONNECT %s %s' % (server, port))
+                self.send('CONNECT %s %s' % (server, port), error_check=True)
             else:
-                self.send('CONNECT %s %s %s' % (server, port, r_server))
-            if self.readable():
-                ncode = self._raw_recv().split()[1]
-                if ncode in self.error_dictionary:
-                    self.exception(ncode)
-                else:
-                    self._index -= 1
+                self.send('CONNECT %s %s %s' % (server, port, r_server), error_check=True)
 
     def trace(self, target):
         """
