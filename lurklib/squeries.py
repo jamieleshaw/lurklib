@@ -161,16 +161,14 @@ class _ServerQueries(object):
                 self.send('LINKS %s %s' % (r_server, mask))
             links = {}
             while self.readable():
-                data = self._raw_recv()
-                segments = data.split()
-                if segments[1] == '364':
-                    server = segments[3]
-                    desc = ' '.join(segments[5:])[3:]
+                msg = self._recv(expected_replies=('364', '365'))[1:]
+                segments = msg[2].split()
+                if msg[0] == '364':
+                    server = segments[0]
+                    desc = ' '.join(segments[3:])
                     links[server] = desc
-                elif segments[1] == '365':
+                elif msg[0] == '365':
                     break
-                else:
-                    self._buffer.append(data)
             return links
 
     def time(self, target=None):
