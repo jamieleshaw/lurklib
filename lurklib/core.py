@@ -227,7 +227,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                         Number or list/tuple containing a,
                          starting range and ending range.
         """
-        append=False
+        append = False
         if expected_replies:
             if len(expected_replies) > 1:
                 append = True

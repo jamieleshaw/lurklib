@@ -65,6 +65,9 @@ class _Exceptions(object):
     class LurklibError(Exception):
         pass
 
+    class NotImplemented(Exception):
+        pass
+
     class IRCError(LurklibError):
         pass
 
