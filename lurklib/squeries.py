@@ -251,32 +251,8 @@ class _ServerQueries(object):
 
             return sinfo
 
-    def servlist(self, mask=None, type=None):
-        """
-        Runs the servlist command.
-        Optional arguments:
-        * mask=None - Mask
-        * type=None - Type.
-        """
-        with self.lock:
-            if not mask:
-                self.send('SERVLIST')
-            elif not type and mask:
-                self.send('SERVLIST %s' % mask)
-            else:
-                self.send('SERVLIST %s %s' % (mask, type))
-
-            servs = []
-            while self.readable():
-                data = self._raw_recv()
-                segments = data.split()
-                if segments[1] == '234':
-                    servs.append(' '.join(segments[3:]).replace(':', '', 1))
-                elif segments[1] == '235':
-                    break
-                else:
-                    self._buffer.append(data)
-            return servs
+    def servlist(self):
+        raise self.NotImplemented
 
     def squery(self, sname, msg):
         """
