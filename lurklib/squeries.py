@@ -242,14 +242,13 @@ class _ServerQueries(object):
                 self.send('INFO %s' % server)
             sinfo = []
             while self.readable():
-                data = self._raw_recv()
-                segments = data.split()
-                if segments[1] == '371':
-                    sinfo.append(' '.join(segments[3:])[1:])
-                elif segments[1] == '374':
+                msg = self._recv(expected_replies=('371', '374'))[1:]
+                if msg[0] == '371':
+                    print(msg)
+                    sinfo.append(' '.join(msg[2:])[1:])
+                elif msg[0] == '374':
                     break
-                else:
-                    self._buffer.append(data)
+
             return sinfo
 
     def servlist(self, mask=None, type=None):
