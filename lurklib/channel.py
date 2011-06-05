@@ -39,7 +39,7 @@ class _Channel(object):
             if should_be:
                 raise self.NotInChannel('LurklibError: NotInChannel')
 
-    def join(self, channel, key=None, process_only=False):
+    def join_(self, channel, key=None, process_only=False):
         """
         Joins a channel.
         Returns a tuple of information regarding the channel.

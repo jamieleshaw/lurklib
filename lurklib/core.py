@@ -295,7 +295,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 channel = segments[2][1:]
                 if channel not in self.channels:
                     self._index -= 1
-                    return 'JOIN', self.join(channel, process_only=True)
+                    return 'JOIN', self.join_(channel, process_only=True)
                 else:
                     self.channels[channel]['USERS'][who[0]] = \
                     ['', '', '', '', '']

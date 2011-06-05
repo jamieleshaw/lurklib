@@ -25,7 +25,7 @@ import lurklib
 class HelloBot(lurklib.Client):
     def on_connect(self):
         """ Join #bots upon connecting. """
-        self.join('#bots')
+        self.join_('#bots')
 
     def on_privmsg(self, event):
         """ Event handlers for PRIVMSGs. """
