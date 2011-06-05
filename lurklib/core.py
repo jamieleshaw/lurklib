@@ -142,7 +142,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                     msg = self._buffer[self._index]
                 except IndexError:
                     self._mcon()
-                    self._index -= 1
+                    self.stepback(append=False)
 
             self._index += 1
             return msg
@@ -200,8 +200,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
             return who
 
     def _recv(self, rm_colon=False, blocking=True, \
-              expected_replies=None, default_rvalue=None, \
-              ignore_unexpected_replies=True, rm_first=True):
+              expected_replies=None, default_rvalue=[''], \
+              ignore_unexpected_replies=True, rm_first=True, recur_limit=10):
         """
         Receives and processes an IRC protocol message.
         Optional arguments:
@@ -216,7 +216,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                         Return the default_rvalue.
                     Else:
                         Return the message.
-        * default_rvalue=None - If no message or a matching message;
+        * default_rvalue=[''] - If no message or a matching message;
                             is found, return default_rvalue.
         * ignore_unexpected_replies=True - If an,
                                     unexpected reply is encountered,
@@ -261,11 +261,13 @@ class _Core(variables._Variables, exceptions._Exceptions,
                     return msg
             else:
                 self.stepback(append)
-                if ignore_unexpected_replies:
+                if ignore_unexpected_replies and recur_limit > 0:
+                    recur_limit -= 1
                     return self._recv(rm_colon=rm_colon, blocking=blocking, \
                                expected_replies=expected_replies, \
                                default_rvalue=default_rvalue, \
-            ignore_unexpected_replies=ignore_unexpected_replies)
+            ignore_unexpected_replies=ignore_unexpected_replies,
+            rm_first=rm_first, recur_limit=recur_limit)
 
                 return default_rvalue
         return msg
@@ -288,7 +290,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 who = self._from_(segments[0][1:])
                 channel = segments[2][1:]
                 if channel not in self.channels:
-                    self._index -= 1
+                    self.stepback(append=False)
                     return 'JOIN', self.join_(channel, process_only=True)
                 else:
                     self.channels[channel]['USERS'][who[0]] = \
@@ -414,7 +416,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 self.quit()
                 return 'ERROR', ' '.join(segments[1:]).replace(':', '', 1)
             else:
-                self._index -= 1
+                self.stepback(append=False)
                 return 'UNKNOWN', self._recv()
 
     def compare(self, first, second):

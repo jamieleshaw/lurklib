@@ -32,6 +32,7 @@ class HelloBot(lurklib.Client):
         if event[2].lower() == 'hello':
             self.privmsg(event[1], 'Hello, %s!' % event[0][0])
             print('%s said hello!' % event[0][0])
+
         elif event[2].lower() == '!quit':
             self.quit('Bye!')
 

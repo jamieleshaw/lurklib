@@ -183,10 +183,10 @@ class _ServerQueries(object):
                 self.send('TIME %s' % target)
             else:
                 self.send('TIME')
-            time = self._recv(rm_colon=True, expected_replies=('391'), \
-                              default_rvalue='', item_slice=3)
-            if time:
-                time = time.split(':', 1)[1]
+            time = ''
+            msg = self._recv(rm_colon=True, expected_replies=('391',))
+            if msg[0] == '391':
+                time = msg[2].split(':', 1)[1]
             return time
 
     def s_connect(self, server, port, r_server=None):
