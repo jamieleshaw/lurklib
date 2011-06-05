@@ -224,7 +224,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
                                     until we get a valid reply?
                                     If False, it will just return \
                         default_rvalue(If a valid reply isn't found).
-        * rm_first=True - If True, remove [0] from the message before returning it.
+        * rm_first=True - If True, \
+        remove [0] from the message before returning it.
         """
         append = False
         if expected_replies:

@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-from distribute_setup import use_setuptools
-use_setuptools()
-
-from setuptools import setup
+from distutils.core import setup
 setup(
         name='lurklib',
         packages=['lurklib'],
-        version='0.7',
+        version='0.8',
         author='LK-',
         license='GPL V3',
         author_email='lk07805@gmail.com',
@@ -25,5 +22,4 @@ setup(
                        'Topic :: Software Development' + \
                        ' :: Libraries :: Python Modules'
                        ],
-        long_description=open('README.txt')
         )
