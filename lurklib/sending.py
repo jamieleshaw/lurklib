@@ -30,10 +30,10 @@ class _Sending(object):
         """
         with self.lock:
             self.send('PRIVMSG ' + target + ' :' + message)
-            if self.readable():
-                msg = self._recv(expected_replies=('301',))
-                if msg[0] == '301':
-                    return 'AWAY', msg[2].split(None, 1)[1].replace(':', '', 1)
+#            if self.readable():
+#                msg = self._recv(expected_replies=('301',))
+#                if msg[0] == '301':
+#                    return 'AWAY', msg[2].split(None, 1)[1].replace(':', '', 1)
 
     def notice(self, target, message):
         """

@@ -140,18 +140,13 @@ class _UserQueries(object):
 
             rwhowas = []
             while self.readable():
-                    data = self._raw_recv()
-                    ncode = data.split()[1]
-
-                    if ncode == '314':
-                        raw_whowas = data.split()
-                        rwhowas = raw_whowas[3], raw_whowas[4], \
-                            raw_whowas[5], raw_whowas[7][1:]
-                    elif ncode in self.error_dictionary:
-                        self.exception(ncode)
-                    elif ncode == '312':
-                        pass
-                    elif ncode == '369':
-                        return rwhowas
-                    else:
-                        self._buffer.append(data)
+                msg = self._recv(expected_replies=('314', '312', '369'))
+                if msg[0] == '314':
+                    print(msg)
+                    raw_whowas = msg[2].split()
+                    rwhowas = raw_whowas[0], raw_whowas[1], \
+                        raw_whowas[2], raw_whowas[4][1:]
+                elif msg[0] == '312':
+                    pass
+                elif msg[0] == '369':
+                    return rwhowas
