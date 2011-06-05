@@ -162,7 +162,7 @@ class _ServerQueries(object):
                 self.send('LINKS %s %s' % (r_server, mask))
             links = {}
             while self.readable():
-                msg = self._recv(expected_replies=('364', '365'))[1:]
+                msg = self._recv(expected_replies=('364', '365'))
                 segments = msg[2].split()
                 if msg[0] == '364':
                     server = segments[0]
@@ -223,7 +223,7 @@ class _ServerQueries(object):
             rvalue = []
             while self.readable():
                 admin_ncodes = '257', '258', '259'
-                msg = self._recv(expected_replies=('256',) + admin_ncodes)[1:]
+                msg = self._recv(expected_replies=('256',) + admin_ncodes)
                 if msg[0] == '256':
                     pass
                 elif msg[0]  in admin_ncodes:
@@ -244,9 +244,8 @@ class _ServerQueries(object):
                 self.send('INFO %s' % server)
             sinfo = []
             while self.readable():
-                msg = self._recv(expected_replies=('371', '374'))[1:]
+                msg = self._recv(expected_replies=('371', '374'))
                 if msg[0] == '371':
-                    print(msg)
                     sinfo.append(' '.join(msg[2:])[1:])
                 elif msg[0] == '374':
                     break

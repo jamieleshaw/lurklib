@@ -30,7 +30,7 @@ class _Optional(object):
         with self.lock:
             self.send('AWAY :%s' % msg)
             if self.readable():
-                msg = self._recv(expected_replies=('306', '305'))[1:]
+                msg = self._recv(expected_replies=('306', '305'))
                 if msg[0] == '306':
                     self.is_away = True
                 elif msg[0] == '305':

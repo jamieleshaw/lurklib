@@ -160,7 +160,7 @@ class _Connection(object):
             self.send('NICK :%s' % nick)
 
             if self.readable():
-                msg = self._recv(expected_replies='NICK', item_slice=(1, None))
+                msg = self._recv(expected_replies='NICK')
                 if msg[0] == 'NICK':
                     if not self.hide_called_events:
                         self.stepback()
@@ -221,7 +221,7 @@ class _Connection(object):
             new_umodes = ''
             if self.readable():
                     msg = self._recv(expected_replies=( \
-                                                    'MODE', '381', '008'))[1:]
+                                                    'MODE', '381', '008'))
                     if msg[0] == 'MODE':
                             new_umodes = msg[2].replace(':', '', 1)
                     elif msg[0] == '381':
@@ -241,7 +241,7 @@ class _Connection(object):
             if not modes:
                 self.send('MODE %s' % nick)
                 if self.readable():
-                    msg = self._recv(expected_replies=('221',))[1:]
+                    msg = self._recv(expected_replies=('221',))
                     if msg[0] == '221':
                         modes = msg[2].replace('+', '').replace(':', '', 1)
                 return modes
@@ -249,7 +249,7 @@ class _Connection(object):
             self.send('MODE %s %s' % (nick, modes))
 
             if self.readable():
-                msg = self._recv(expected_replies=('MODE',))[1:]
+                msg = self._recv(expected_replies=('MODE',))
                 if msg[0] == 'MODE':
                     if not self.hide_called_events:
                         self.stepback()
@@ -306,7 +306,7 @@ class _Connection(object):
             self.send('SQUIT %s :%s' % (server, reason))
 
             while self.readable():
-                msg = self._recv(expected_replies=('SQUIT',))[1:]
+                msg = self._recv(expected_replies=('SQUIT',))
                 if msg[0] == 'SQUIT':
                     if not self.hide_called_events:
                         self.stepback()
@@ -317,7 +317,7 @@ class _Connection(object):
             self.send('PING %s' % self.server)
             ctime = self._m_time.time()
 
-            msg = self._recv(expected_replies=('PONG',), item_slice=(1, None))
+            msg = self._recv(expected_replies=('PONG',))
             if msg[0] == 'PONG':
                 latency = self._m_time.time() - ctime
                 return latency

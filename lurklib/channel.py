@@ -70,9 +70,7 @@ class _Channel(object):
             while self.readable(4):
                 msg = self._recv(rm_colon=True, \
                                  expected_replies=('332', '333', \
-                                                   '353', 'JOIN', '366'), \
-                                 item_slice=(1, None)
-                                 )
+                                                   '353', 'JOIN', '366'))
 
                 if msg[0] == '332':
                     topic = msg[2].split(':', 1)[1]
@@ -132,9 +130,7 @@ class _Channel(object):
             self.is_in_channel(channel)
 
             self.send('PART %s :%s' % (channel, reason))
-            msg = self._recv(expected_replies=('PART',), \
-                                 item_slice=(1, None)
-                                 )
+            msg = self._recv(expected_replies=('PART',))
             if msg[0] == 'PART':
                 del self.channels[msg[1]]
                 if not self.hide_called_events:
@@ -158,9 +154,7 @@ class _Channel(object):
                     mode_set_time = None
                     while self.readable():
                         msg = self._recv(rm_colon=True, \
-                        expected_replies=('324', '329'), \
-                        item_slice=(1, None)
-                        )
+                        expected_replies=('324', '329'))
                         if msg[0] == '324':
                             modes = msg[2].split()[1].replace('+', '', 1)
                         elif msg[0] == '329':
@@ -172,9 +166,7 @@ class _Channel(object):
 
                 if self.readable():
                     msg = self._recv(expected_replies=('MODE',), \
-                                         ignore_unexpected_replies=True, \
-                                         item_slice=(1, None)
-                                         )
+                                         ignore_unexpected_replies=True)
                     if msg[0]:
                         mode = msg[2]
                         self.parse_cmode_string(mode, msg[1])
@@ -194,9 +186,7 @@ class _Channel(object):
             bans = []
 
             while self.readable():
-                msg = self._recv(expected_replies=('367', '368'), \
-                                     item_slice=(1, None)
-                                     )
+                msg = self._recv(expected_replies=('367', '368'))
                 if msg[0] == '367':
                     banmask, who, timestamp = msg[2].split()[1:]
                     bans.append((self._from_(banmask), who, \
@@ -218,9 +208,7 @@ class _Channel(object):
             excepts = []
 
             while self.readable():
-                msg = self._recv(expected_replies=('348', '349'), \
-                                     item_slice=(1, None)
-                                     )
+                msg = self._recv(expected_replies=('348', '349'))
 
                 if msg[0] == '348':
                     exceptmask, who, timestamp = msg[2].split()[1:]
@@ -244,9 +232,7 @@ class _Channel(object):
             invites = []
 
             while self.readable():
-                msg = self._recv(expected_replies=('346', '347'), \
-                                     item_slice=(1, None)
-                                     )
+                msg = self._recv(expected_replies=('346', '347'))
 
                 if msg[0] == '346':
                     invitemask, who, timestamp = msg[2].split()[1:]
@@ -272,9 +258,7 @@ class _Channel(object):
             if topic:
                 self.send('TOPIC %s :%s' % (channel, topic))
                 if self.readable():
-                    msg = self._recv(expected_replies=('TOPIC',), \
-                                     item_slice=(1, None)
-                                     )
+                    msg = self._recv(expected_replies=('TOPIC',))
                     if msg[0] == 'TOPIC' and self.hide_called_events:
                         channel = msg[1]
                         self.channels[channel]['TOPIC'] = \
@@ -287,9 +271,7 @@ class _Channel(object):
                 time_set = ''
                 self.send('TOPIC %s' % channel)
                 while self.readable():
-                    msg = self._recv(expected_replies=('332', '333', '331'), \
-                                     item_slice=(1, None)
-                                     )
+                    msg = self._recv(expected_replies=('332', '333', '331'))
                     if msg[0] == '332':
                         topic = msg[2].split(':', 1)[1]
                     elif msg[0] == '333':
@@ -317,9 +299,7 @@ class _Channel(object):
             names = []
 
             while self.readable():
-                msg = self._recv(expected_replies=('353', '366'), \
-                                 item_slice=(1, None)
-                                 )
+                msg = self._recv(expected_replies=('353', '366'))
 
                 if msg[0] == '353':
                     new_names = msg[2].split()[2:]
@@ -361,9 +341,7 @@ class _Channel(object):
             list_ = {}
 
             while self.readable():
-                msg = self._recv(expected_replies=('322', '321', '323'), \
-                                 item_slice=(1, None)
-                                 )
+                msg = self._recv(expected_replies=('322', '321', '323'))
 
                 if msg[0] == '322':
                     channel, usercount, modes, topic = msg[2].split(' ', 3)
@@ -391,9 +369,7 @@ class _Channel(object):
             self.send('INVITE %s %s' % (nick, channel))
 
             while self.readable():
-                    msg = self._recv(expected_replies=('341', '301'), \
-                                 item_slice=(1, None)
-                                 )
+                    msg = self._recv(expected_replies=('341', '301'))
 
                     if msg[0] == '341':
                         pass
@@ -416,9 +392,7 @@ class _Channel(object):
             self.send('KICK %s %s :%s' % (channel, nick, reason))
 
             if self.readable():
-                msg = self._recv(expected_replies=('KICK',), \
-                                 item_slice=(1, None)
-                                 )
+                msg = self._recv(expected_replies=('KICK',))
 
                 if msg[0] == 'KICK':
                     channel = msg[1]
