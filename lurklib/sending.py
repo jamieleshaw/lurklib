@@ -31,14 +31,9 @@ class _Sending(object):
         with self.lock:
             self.send('PRIVMSG ' + target + ' :' + message)
             if self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
-                if ncode in self.error_dictionary:
-                    self.exception(ncode)
-                elif ncode == '301':
-                    return 'AWAY', data.split(None, 3)[3].replace(':', '', 1)
-                else:
-                    self._index -= 1
+                msg = self._recv(expected_replies=('301',))[1:]
+                if msg[0] == '301':
+                    return 'AWAY', msg[2].split(None, 1)[1].replace(':', '', 1)
 
     def notice(self, target, message):
         """
@@ -50,11 +45,6 @@ class _Sending(object):
         with self.lock:
             self.send('NOTICE ' + target + ' :' + message)
             if self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
-                if ncode in self.error_dictionary:
-                    self.exception(ncode)
-                elif ncode == '301':
-                    return 'AWAY', data.split(None, 3)[3].replace(':', '', 1)
-                else:
-                    self._index -= 1
+                msg = self._recv(expected_replies=('301',))[1:]
+                if msg[0] == '301':
+                    return 'AWAY', msg[2].split(None, 1)[1].replace(':', '', 1)
