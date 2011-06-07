@@ -61,7 +61,6 @@ class _Core(variables._Variables, exceptions._Exceptions,
         self.UTC = UTC
         self.fallback_encoding = encoding
         self.encoding = encoding
-        self._clrf = '\r\n'
 
         self._init(server, nick, user, real_name, password, port, tls, \
                    tls_verify)

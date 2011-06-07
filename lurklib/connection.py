@@ -256,8 +256,7 @@ class _Connection(object):
                     return msg[2].replace(':', '', 1)
 
     def service(self):
-        """ Not implemented. """
-        pass
+        raise self.NotImplemented
 
     def _quit(self, reason=''):
         """
@@ -281,18 +280,13 @@ class _Connection(object):
             self._socket.shutdown(self._m_socket.SHUT_RDWR)
             self._socket.close()
 
-    def __close__(self):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
         """ For use with the Python 'with' statement. """
         with self.lock:
             self.quit()
-
-    def __del__(self):
-        """ For use with Python's automatic garbage collection and such. """
-        with self.lock:
-            try:
-                self.quit()
-            except self._m_socket.error:
-                pass
 
     def squit(self, server, reason=''):
         """

@@ -26,6 +26,7 @@ class _Variables(object):
     """ Sets the default values for Lurklib's runtime variables. """
     _buffer = []
     _index = 0
+    _clrf = '\r\n'
     _m_socket = socket
     _select = select
     _m_tls = tls

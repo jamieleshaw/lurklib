@@ -19,7 +19,7 @@
 from __future__ import with_statement
 from . import core
 
-__version__ = '0.8'
+__version__ = '0.9'
 
 
 class Client(core._Core):

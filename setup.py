@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
         name='lurklib',
         packages=['lurklib'],
-        version='0.8',
+        version='0.9',
         author='LK-',
         license='GPL V3',
         author_email='lk07805@gmail.com',
