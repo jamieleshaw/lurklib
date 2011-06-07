@@ -23,29 +23,34 @@ from threading import RLock
 
 
 class _Variables(object):
-    """ Sets the default values for Lurklib's runtime variables. """
-    _buffer = []
-    _index = 0
-    _clrf = '\r\n'
+    """ Set Lurklib module variables/objects. """
     _m_socket = socket
     _select = select
     _m_tls = tls
     _m_time = time
-    _socket = _m_socket.socket()
 
-    motd = []
-    version = {}
-    channels = {}
-
-    keep_going = False
-    con_msg = []
-    ircd = ''
-    is_away = False
-    lusers = {}
+    _clrf = '\r\n'
     priv_types = ('~', '&', '@', '%', '+')
-    connected = False
-    server = ''
-    umodes = ''
-    cmodes = ''
-    server = ''
-    lock = RLock()
+
+    def __init__(self):
+        """ Set instance-specific variables/objects. """
+        self._buffer = []
+        self._index = 0
+
+        self._socket = self._m_socket.socket()
+
+        self.motd = []
+        self.version = {}
+        self.channels = {}
+
+        self.keep_going = False
+        self.con_msg = []
+        self.ircd = ''
+        self.is_away = False
+        self.lusers = {}
+        self.connected = False
+        self.server = ''
+        self.umodes = ''
+        self.cmodes = ''
+        self.server = ''
+        self.lock = RLock()

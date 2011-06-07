@@ -37,9 +37,9 @@ class HelloBot(lurklib.Client):
             self.quit('Bye!')
 
 if __name__ == '__main__':
-    # Connect to IRC, and assign the returned IRC object, to the IRC variable.
+    # Connect to IRC, and assign the returned lurklib.Client object, to the HELLOBOT variable.
     HELLOBOT = HelloBot(server=SERVER, nick=('HelloBot', 'HelloBot-'))
 
-    # Enter lurklib's mainloop which will keep you connected to IRC -
+    # Enter Lurklib's main loop which will keep you connected to IRC -
     # and call the specified hooks when necessary.
     HELLOBOT.mainloop()
