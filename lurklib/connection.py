@@ -270,7 +270,7 @@ class _Connection(object):
     def quit(self, reason=''):
         """
         Sends a QUIT message, closes the connection and -
-            ends Lurklib's mainloop.
+            ends Lurklib's main loop.
         Optional arguments:
         * reason='' - Reason for quitting.
         """

@@ -142,7 +142,6 @@ class _UserQueries(object):
             while self.readable():
                 msg = self._recv(expected_replies=('314', '312', '369'))
                 if msg[0] == '314':
-                    print(msg)
                     raw_whowas = msg[2].split()
                     rwhowas = raw_whowas[0], raw_whowas[1], \
                         raw_whowas[2], raw_whowas[4][1:]
