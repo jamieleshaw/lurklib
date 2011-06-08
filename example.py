@@ -17,7 +17,7 @@
 
 """ Lurklib usage example. """
 
-SERVER = 'localhost'
+SERVER = 'irc.darchoods.net'
 
 import lurklib
 

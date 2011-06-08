@@ -29,7 +29,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
     def __init__(self, server, port=None, nick='Lurklib',
                   user='Lurklib',
                   real_name='The Lurk Internet Relay Chat Library',
-                  password=None, tls=False, tls_verify=False, encoding='UTF-8',
+                  password=None, tls=True, tls_verify=True, encoding='UTF-8',
                   hide_called_events=True, UTC=False):
         """
         Initializes Lurklib and connects to the IRC server.
@@ -47,8 +47,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
         * real_name='The Lurk Internet Relay Chat Library'
              - IRC real name to use.
         * password=None - IRC server password.
-        * tls=False - Should the connection use TLS/SSL?
-        * tls_verify=False - Verify the TLS certificate?
+        * tls=True - Should the connection use TLS/SSL?
+        * tls_verify=True - Verify the TLS certificate?
         * encoding='UTF-8' - The encoding that should be used.
             if the IRC server specifies a CHARSET it will be used instead,
             however in the event of a LookupError it will fallback to this.
@@ -240,12 +240,9 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 return default_rvalue
             else:
                 msg = self._raw_recv()
-#<FIXME>
-        try:
-            msg = msg.split(None, 3)
-        except AttributeError:
-            pass
-#</FIXME>
+
+        msg = msg.split(None, 3)
+
         if msg[1] in self.error_dictionary:
             self.exception(msg[1])
         if rm_colon:

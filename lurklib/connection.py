@@ -18,25 +18,25 @@ from __future__ import with_statement
 
 
 class _Connection(object):
-    def _connect(self, server, port, tls=False, tls_verify=False):
+    def _connect(self, server, port, tls=True, tls_verify=True):
         """
         Connects the socket to an IRC server.
         Required arguments:
         * server - Server to connect to.
         * port - Port to use.
         Optional arguments:
-        * tls=False - Should we use TLS/SSL?
-        * tls_verify=False - Verify the TLS certificate?
+        * tls=True - Should we use TLS/SSL?
+        * tls_verify=True - Verify the TLS certificate?
         """
         with self.lock:
             if tls:
-                if tls_verify:
-                    cert_required = self._m_tls.CERT_REQUIRED
-                    self._socket = \
-                    self._m_tls.wrap_socket(self._socket, \
-                                            cert_reqs=cert_required)
-                else:
-                    self._socket = self._m_tls.wrap_socket(self._socket)
+#                if tls_verify:
+#                    cert_required = self._m_tls.CERT_REQUIRED
+#                    self._socket = \
+#                    self._m_tls.wrap_socket(self._socket, \
+#                                            cert_reqs=cert_required)
+#                else:
+                self._socket = self._m_tls.wrap_socket(self._socket)
             self._socket.connect((server, port))
 
     def _register(self, nick, user, real_name, password=None):
@@ -60,7 +60,7 @@ class _Connection(object):
             self._user(user, real_name)
 
     def _init(self, server, nick, user, real_name,
-              password, port=None, tls=False, tls_verify=False):
+              password, port=None, tls=True, tls_verify=True):
         """
         Connect and register with the IRC server and -
             set server-related information variables.
@@ -75,8 +75,8 @@ class _Connection(object):
         * password=None - IRC server password.
         Optional arguments:
         * port - Port to use.
-        * tls=False - Should we use TLS/SSL?
-        * tls_verify=False - Verify the TLS certificate?
+        * tls=True - Should we use TLS/SSL?
+        * tls_verify=True - Verify the TLS certificate?
         """
         with self.lock:
             self.current_nick = nick
