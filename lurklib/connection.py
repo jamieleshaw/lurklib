@@ -83,12 +83,12 @@ class _Connection(object):
             if tls:
                 if not port:
                     port = 6697
-                self._connect(server, port, True)
+                self._connect(server, port, tls, tls_verify)
             else:
                 if not port:
                     port = 6667
 
-                self._connect(server, port)
+                self._connect(server, port, tls, tls_verify)
             while self.readable(2):
                 data = self.recv()
                 if data[0] == 'NOTICE':
