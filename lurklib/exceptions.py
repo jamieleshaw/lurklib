@@ -74,6 +74,15 @@ class _Exceptions(object):
     class NullCharNotAllowed(LurklibError):
         pass
 
+    class AlreadyInChannel(LurklibError):
+        pass
+
+    class NotInChannel(LurklibError):
+        pass
+
+    class UnhandledEvent(LurklibError):
+        pass
+
     class IRCError(LurklibError):
         pass
 
@@ -183,15 +192,6 @@ class _Exceptions(object):
         pass
 
     class NoChanModes(IRCError):
-        pass
-
-    class AlreadyInChannel(LurklibError):
-        pass
-
-    class NotInChannel(LurklibError):
-        pass
-
-    class UnhandledEvent(LurklibError):
         pass
 
     def exception(self, ncode):

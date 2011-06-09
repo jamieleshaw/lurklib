@@ -30,10 +30,12 @@ class Client(core._Core):
         Optional arguments:
         * timeout=0.01 - Wait for an event until the timeout is reached.
         """
-        event = self.recv(timeout)
-
-        if event:
-            exec('self.on_%s(%s)' % (event[0].lower(), event[1]))
+        try:
+            event = self.recv(timeout)
+            if event:
+                exec('self.on_%s(%s)' % (event[0].lower(), event[1]))
+        except self.LurklibError as exception:
+            self.on_exception(exception)
 
     def mainloop(self):
         """
@@ -94,4 +96,7 @@ class Client(core._Core):
         pass
 
     def on_unknown(self, event):
+        pass
+
+    def on_exception(self, exception):
         pass

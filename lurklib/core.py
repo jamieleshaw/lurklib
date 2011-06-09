@@ -98,7 +98,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
         """
         with self.lock:
             if self.find(msg, '\0') or self.find(msg, '\x00'):
-                raise self.NullCharNotAllowed("LurklibError: NullCharNotAllowed")
+                raise \
+                self.NullCharNotAllowed("LurklibError: NullCharNotAllowed")
             msg = msg.replace('\r', '\\r').replace('\n', '\\n') + self._crlf
             try:
                 data = msg.encode(self.encoding)
