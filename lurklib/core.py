@@ -97,13 +97,15 @@ class _Core(variables._Variables, exceptions._Exceptions,
         If an error is found the relevant exception will be raised.
         """
         with self.lock:
+            if self.find(msg, '\0') or self.find(msg, '\x00'):
+                raise self.NullCharNotAllowed("LurklibError: NullCharNotAllowed")
             msg = msg.replace('\r', '\\r').replace('\n', '\\n') + self._crlf
             try:
                 data = msg.encode(self.encoding)
             except UnicodeEncodeError:
                 data = msg.encode(self.fallback_encoding)
             if len(data) > 512:
-                raise self.MessageTooLong
+                raise self.MessageTooLong("LurklibError: MessageTooLong")
             self._socket.send(data)
             if error_check and self.readable():
                 self._recv()
