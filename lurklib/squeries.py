@@ -206,7 +206,8 @@ class _ServerQueries(object):
                                     r_server), error_check=True)
 
     def trace(self):
-        raise self.NotImplemented
+        """ Not implemented. """
+        raise self.NotImplemented('LurklibError: NotImplemented')
 
     def admin(self, server=None):
         """
@@ -253,7 +254,8 @@ class _ServerQueries(object):
             return sinfo
 
     def servlist(self):
-        raise self.NotImplemented
+        """ Not implemented. """
+        raise self.NotImplemented('LurklibError: NotImplemented')
 
     def squery(self, sname, msg):
         """

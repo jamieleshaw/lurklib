@@ -67,11 +67,11 @@ class _Optional(object):
 
     def summon(self):
         """ Not implemented. """
-        pass
+        raise self.NotImplemented('LurklibError: NotImplemented')
 
     def users(self):
         """ Not implemented. """
-        pass
+        raise self.NotImplemented('LurklibError: NotImplemented')
 
     def operwall(self, msg):
         """

@@ -256,7 +256,8 @@ class _Connection(object):
                     return msg[2].replace(':', '', 1)
 
     def service(self):
-        raise self.NotImplemented
+        """ Not implemented. """
+        raise self.NotImplemented('LurklibError: NotImplemented')
 
     def _quit(self, reason=''):
         """
