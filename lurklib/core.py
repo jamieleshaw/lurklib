@@ -89,7 +89,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
 
     def send(self, msg, error_check=False):
         """
-        Send a raw string with the clrf appended to it.
+        Send a raw string with the CR-LF appended to it.
         Required arguments:
         * msg - Message to send.
         Optional arguments:
@@ -97,7 +97,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
         If an error is found the relevant exception will be raised.
         """
         with self.lock:
-            msg = msg.replace('\r', '\\r').replace('\n', '\\n') + self._clrf
+            msg = msg.replace('\r', '\\r').replace('\n', '\\n') + self._crlf
             try:
                 data = msg.encode(self.encoding)
             except UnicodeEncodeError:
@@ -113,7 +113,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
         """ Buffer IRC data and handle PING/PONG. """
         with self.lock:
             sdata = ' '
-            while sdata[-1] != self._clrf[-1]:
+            while sdata[-1] != self._crlf[-1]:
                 if sdata == ' ':
                     sdata = ''
                 try:
@@ -123,7 +123,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                     sdata = sdata + \
                     self._socket.recv(4096).decode(self.fallback_encoding)
 
-            lines = sdata.split(self._clrf)
+            lines = sdata.split(self._crlf)
             for line in lines:
                 if line.find('PING :') == 0:
                     self.send(line.replace('PING', 'PONG'))

@@ -29,7 +29,7 @@ class _Variables(object):
     _m_tls = tls
     _m_time = time
 
-    _clrf = '\r\n'
+    _crlf = '\r\n'
     priv_types = ('~', '&', '@', '%', '+')
 
     def __init__(self):
