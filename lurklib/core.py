@@ -102,6 +102,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 data = msg.encode(self.encoding)
             except UnicodeEncodeError:
                 data = msg.encode(self.fallback_encoding)
+            if len(data) > 512:
+                raise self.MessageTooLong
             self._socket.send(data)
             if error_check and self.readable():
                 self._recv()

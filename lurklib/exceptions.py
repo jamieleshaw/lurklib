@@ -65,7 +65,10 @@ class _Exceptions(object):
     class LurklibError(Exception):
         pass
 
-    class NotImplemented(Exception):
+    class NotImplemented(LurklibError):
+        pass
+
+    class MessageTooLong(LurklibError):
         pass
 
     class IRCError(LurklibError):
