@@ -37,13 +37,12 @@ class _UserQueries(object):
             who_lst = {}
 
             while self.readable():
-                data = self._raw_recv()
-                ncode = data.split()[1]
-                if ncode == '352':
-                    raw_who = data.split(None, 10)
-                    prefix = raw_who[8].replace('H', '', 1)
-                    channel = raw_who[3]
-                    nick = raw_who[7]
+                msg = self._recv(expected_replies=('352', '315'))
+                if msg[0] == '352':
+                    raw_who = msg[2].split(None, 7)
+                    prefix = raw_who[5].replace('H', '', 1).replace('*', '', 1)
+                    channel = raw_who[0]
+                    nick = raw_who[4]
                     if prefix == '~':
                         self.channels[channel]['USERS'][nick] = \
                            ['~', '', '', '', '']
@@ -62,14 +61,10 @@ class _UserQueries(object):
                     else:
                         self.channels[channel]['USERS'][nick] = \
                            ['', '', '', '', '']
-                    who_lst[raw_who[7]] = raw_who[4], prefix, \
-                        raw_who[10], raw_who[5]
-                elif ncode in self.error_dictionary:
-                    self.exception(ncode)
-                elif ncode == '315':
+                    who_lst[raw_who[4]] = raw_who[1], prefix, \
+                        raw_who[7], raw_who[2]
+                elif msg[0] == '315':
                     return who_lst
-                else:
-                    self._buffer.append(data)
 
     def whois(self, nick):
         """
