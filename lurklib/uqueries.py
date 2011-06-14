@@ -89,33 +89,30 @@ class _UserQueries(object):
             whois_r = {'CHANNELS': []}
 
             while self.readable():
-                data = self._raw_recv()
-                info = data.split(None, 7)
-                ncode = info[1]
-                if ncode == '311':
-                    whois_r['IDENT'] = info[4]
-                    whois_r['HOST'] = info[5]
-                    whois_r['NAME'] = info[7][1:]
-                elif ncode == '312':
-                    whois_r['SERVER'] = info[4]
-                    whois_r['SERVER_INFO'] = ' '.join(info[5:])[1:]
-                elif ncode == '319':
-                    whois_r['CHANNELS'].append(' '.join(info[4:])[1:].split())
-                elif ncode == '317':
-                    whois_r['IDLE'] = info[5]
-                elif ncode == '301':
-                    whois_r['AWAY'] = info[4][1:]
-                elif ncode == '313':
-                    whois_r['OP'] = ' '.join(info[4:])[1:]
-                elif ncode in self.error_dictionary:
-                    self.exception(ncode)
-                elif ncode == '318':
+                msg = self._recv()
+                info = msg[2].split(None, 4)
+                if msg[0] == '311':
+                    whois_r['IDENT'] = info[1]
+                    whois_r['HOST'] = info[2]
+                    whois_r['NAME'] = info[4][1:]
+                elif msg[0] == '312':
+                    whois_r['SERVER'] = info[1]
+                    whois_r['SERVER_INFO'] = ' '.join(info[2:])[1:]
+                elif msg[0] == '319':
+                    whois_r['CHANNELS'].append(' '.join(info[1:])[1:].split())
+                elif msg[0] == '317':
+                    whois_r['IDLE'] = info[2]
+                elif msg[0] == '301':
+                    whois_r['AWAY'] = info[1][1:]
+                elif msg[0] == '313':
+                    whois_r['OP'] = ' '.join(info[1:])[1:]
+                elif msg[0] == '318':
                     break
                 else:
                     if 'ETC' in whois_r:
-                        whois_r['ETC'].append(data.split(':', 2)[2])
+                        whois_r['ETC'].append(msg[2])
                     else:
-                        whois_r['ETC'] = [data.split(':', 2)[2]]
+                        whois_r['ETC'] = [msg[2]]
 
             return whois_r
 

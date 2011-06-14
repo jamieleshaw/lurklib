@@ -258,12 +258,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 if msg[2][0] == ':':
                     msg[2] = msg[2][1:]
         if expected_replies:
-            if msg[1] in expected_replies:
-                if rm_first:
-                    return msg[1:]
-                else:
-                    return msg
-            else:
+            if msg[1] not in expected_replies:
                 self.stepback(append)
                 if ignore_unexpected_replies and recur_limit > 0:
                     recur_limit -= 1
@@ -274,6 +269,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
             rm_first=rm_first, recur_limit=recur_limit)
 
                 return default_rvalue
+        if rm_first:
+            return msg[1:]
         return msg
 
     def recv(self, timeout=None):
@@ -424,7 +421,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 return 'ERROR', ' '.join(segments[1:]).replace(':', '', 1)
             else:
                 self.stepback(append=False)
-                return 'UNKNOWN', self._recv()
+                return 'UNKNOWN', self._recv(rm_first=False)
 
     def compare(self, first, second):
         """
