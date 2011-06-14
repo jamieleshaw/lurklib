@@ -376,6 +376,9 @@ class _Core(variables._Variables, exceptions._Exceptions,
             elif segments[1] == 'QUIT':
                 who = self._from_(segments[0].replace(':', '', 1))
                 msg = ' '.join(segments[2:]).replace(':', '', 1)
+                for channel in self.channels:
+                    if who[0] in self.channels[channel]['USERS']:
+                        del self.channels[channel]['USERS'][who[0]]
                 return 'QUIT', (who, msg)
 
             elif segments[1] == '250':
