@@ -71,9 +71,6 @@ class _Exceptions(object):
     class MessageTooLong(LurklibError):
         pass
 
-    class NullCharNotAllowed(LurklibError):
-        pass
-
     class AlreadyInChannel(LurklibError):
         pass
 
