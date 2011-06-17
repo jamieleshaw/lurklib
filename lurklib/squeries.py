@@ -44,8 +44,8 @@ class _ServerQueries(object):
                     break
                 elif msg[0] == '422':
                     break
-            self.motd = tuple(self.motd)
-            return motd
+            self.motd = tuple(motd)
+            return self.motd
 
     def get_lusers(self, mask=None, target=None):
         """
