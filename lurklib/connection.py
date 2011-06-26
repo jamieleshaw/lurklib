@@ -36,7 +36,7 @@ class _Connection(object):
 #                    self._m_tls.wrap_socket(self._socket, \
 #                                            cert_reqs=cert_required)
 #                else:
-#                    self._socket = self._m_tls.wrap_socket(self._socket)
+                self._socket = self._m_tls.wrap_socket(self._socket)
             self._socket.connect((server, port))
 
     def _register(self, nick, user, real_name, password=None):
