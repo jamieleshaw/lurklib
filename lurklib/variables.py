@@ -20,7 +20,10 @@ import time
 import ssl as tls
 from select import select
 from threading import RLock
-
+try:
+    import socks
+except ImportError:
+    pass
 
 class _Variables(object):
     """ Set Lurklib module variables/objects. """
@@ -28,6 +31,7 @@ class _Variables(object):
     _select = select
     _m_tls = tls
     _m_time = time
+    _m_proxy = socks
 
     _crlf = '\r\n'
     priv_types = ('~', '&', '@', '%', '+')

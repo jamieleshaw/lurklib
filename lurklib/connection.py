@@ -18,7 +18,7 @@ from __future__ import with_statement
 
 
 class _Connection(object):
-    def _connect(self, server, port, tls=True, tls_verify=True):
+    def _connect(self, server, port, tls=True, tls_verify=True, proxy=False, proxy_type='SOCKS5', proxy_server=None, proxy_port=None, proxy_username=None, proxy_password=None):
         """
         Connects the socket to an IRC server.
         Required arguments:
@@ -27,8 +27,24 @@ class _Connection(object):
         Optional arguments:
         * tls=True - Should we use TLS/SSL?
         * tls_verify=True - Verify the TLS certificate?
+        * proxy=False - Should we use a proxy?
+        * proxy_type='SOCKS5' - Proxy type: SOCKS5, SOCKS4 or HTTP
+        * proxy_server=None - Proxy server's address
+        * proxy_port=None - Proxy server's port
+        * proxy_username=None - If SOCKS5 is used, a proxy username/password can be specified.
+        * proxy_password=None - If SOCKS5 is used, a proxy username/password can be specified.
         """
         with self.lock:
+            if proxy:
+                if proxy_type == 'SOCKS5':
+                    proxy_type = self._m_proxy.PROXY_TYPE_SOCKS5
+                elif proxy_type == 'SOCKS4':
+                    proxy_type = self._m_proxy.PROXY_TYPE_SOCKS4
+                elif proxy_type == 'HTTP':
+                    proxy_type = self._m_proxy.PROXY_TYPE_HTTP
+                self._socket = self._m_proxy.socksocket()
+                self._socket.setproxy(proxytype=proxy_type, addr=proxy_server, port=proxy_port, username=proxy_username, password=proxy_password)
+
             if tls:
 #                if tls_verify:
 #                    cert_required = self._m_tls.CERT_REQUIRED
@@ -60,7 +76,7 @@ class _Connection(object):
             self._user(user, real_name)
 
     def _init(self, server, nick, user, real_name,
-              password, port=None, tls=True, tls_verify=True):
+              password, port=None, tls=True, tls_verify=True, proxy=False, proxy_type='SOCKS5', proxy_server=None, proxy_port=None, proxy_username=None, proxy_password=None):
         """
         Connect and register with the IRC server and -
             set server-related information variables.
@@ -77,18 +93,24 @@ class _Connection(object):
         * port - Port to use.
         * tls=True - Should we use TLS/SSL?
         * tls_verify=True - Verify the TLS certificate?
+        * proxy=False - Should we use a proxy?
+        * proxy_type='SOCKS5' - Proxy type: SOCKS5, SOCKS4 or HTTP
+        * proxy_server=None - Proxy server's address
+        * proxy_port=None - Proxy server's port
+        * proxy_username=None - If SOCKS5 is used, a proxy username/password can be specified.
+        * proxy_password=None - If SOCKS5 is used, a proxy username/password can be specified.
         """
         with self.lock:
             self.current_nick = nick
             if tls:
                 if not port:
                     port = 6697
-                self._connect(server, port, tls, tls_verify)
+                self._connect(server, port, tls, tls_verify, proxy, proxy_type, proxy_server, proxy_port, proxy_username, proxy_password)
             else:
                 if not port:
                     port = 6667
 
-                self._connect(server, port, tls, tls_verify)
+                self._connect(server, port, tls, tls_verify, proxy, proxy_type, proxy_server, proxy_port, proxy_username, proxy_password)
             while self.readable(2):
                 data = self.recv()
                 if data[0] == 'NOTICE':
