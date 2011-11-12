@@ -31,7 +31,10 @@ class _Variables(object):
     _select = select
     _m_tls = tls
     _m_time = time
-    _m_proxy = socks
+    try:
+        _m_proxy = socks
+    except NameError:
+        pass
 
     _crlf = '\r\n'
     priv_types = ('~', '&', '@', '%', '+')
