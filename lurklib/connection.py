@@ -46,14 +46,20 @@ class _Connection(object):
                 self._socket.setproxy(proxytype=proxy_type, addr=proxy_server, port=proxy_port, username=proxy_username, password=proxy_password)
 
             if tls:
-#                if tls_verify:
-#                    cert_required = self._m_tls.CERT_REQUIRED
-#                    self._socket = \
-#                    self._m_tls.wrap_socket(self._socket, \
-#                                            cert_reqs=cert_required)
-#                else:
-                self._socket = self._m_tls.wrap_socket(self._socket)
-            self._socket.connect((server, port))
+                if tls_verify:
+                    ca_bundle = self._m_tempfile.NamedTemporaryFile().name
+                    with open(ca_bundle, 'w') as bundle_file:
+                        bundle_file.write(self._ca_bundle)
+                    cert_required = self._m_tls.CERT_REQUIRED
+                    self._socket = \
+                    self._m_tls.wrap_socket(self._socket, \
+                                            cert_reqs=cert_required, ca_certs=ca_bundle)
+                    self._socket.connect((server, port))
+                    self._m_tls.match_hostname(self._socket.getpeercert(), server)
+                else:
+                    self._socket = self._m_tls.wrap_socket(self._socket)
+            if not tls_verify:
+                self._socket.connect((server, port))
 
     def _register(self, nick, user, real_name, password=None):
         """
