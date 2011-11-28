@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 from distutils.core import setup
 setup(
-        name='lurklib',
-        packages=['lurklib'],
-        version='0.9',
+        name='Lurklib',
+        packages=['Lurklib'],
+        version='0.9.1',
         author='LK-',
         license='GPL V3',
-        author_email='lk07805@gmail.com',
+        author_email='lk@lkay.org',
         description='Event-driven IRC library.',
         url='https://github.com/LK-/lurklib/',
         keywords=['irc', 'internet relay chat'],

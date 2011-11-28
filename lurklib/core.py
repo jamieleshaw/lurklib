@@ -52,6 +52,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
         * password=None - IRC server password.
         * tls=True - Should the connection use TLS/SSL?
         * tls_verify=True - Verify the TLS certificate?
+                Only works with Python 3.
         * encoding='UTF-8' - The encoding that should be used.
             if the IRC server specifies a CHARSET it will be used instead,
             however in the event of a LookupError it will fallback to this.
@@ -162,7 +163,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
             self._index += 1
             return msg
 
-    def readable(self, timeout=1):
+    def readable(self, timeout=2):
         """
         Checks whether self.recv() will block or not.
         Optional arguments:

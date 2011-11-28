@@ -29,6 +29,7 @@ class _Connection(object):
         Optional arguments:
         * tls=True - Should we use TLS/SSL?
         * tls_verify=True - Verify the TLS certificate?
+                Only works with Python 3.
         * proxy=False - Should we use a proxy?
         * proxy_type='SOCKS5' - Proxy type: SOCKS5, SOCKS4 or HTTP
         * proxy_server=None - Proxy server's address
@@ -111,6 +112,7 @@ class _Connection(object):
         * port - Port to use.
         * tls=True - Should we use TLS/SSL?
         * tls_verify=True - Verify the TLS certificate?
+                Only works with Python 3.
         * proxy=False - Should we use a proxy?
         * proxy_type='SOCKS5' - Proxy type: SOCKS5, SOCKS4 or HTTP
         * proxy_server=None - Proxy server's address
