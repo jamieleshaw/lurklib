@@ -18,7 +18,9 @@ from __future__ import with_statement
 
 
 class _Connection(object):
-    def _connect(self, server, port, tls=True, tls_verify=True, proxy=False, proxy_type='SOCKS5', proxy_server=None, proxy_port=None, proxy_username=None, proxy_password=None):
+    def _connect(self, server, port, tls=True, tls_verify=True, proxy=False,
+                 proxy_type='SOCKS5', proxy_server=None,
+                 proxy_port=None, proxy_username=None, proxy_password=None):
         """
         Connects the socket to an IRC server.
         Required arguments:
@@ -31,8 +33,10 @@ class _Connection(object):
         * proxy_type='SOCKS5' - Proxy type: SOCKS5, SOCKS4 or HTTP
         * proxy_server=None - Proxy server's address
         * proxy_port=None - Proxy server's port
-        * proxy_username=None - If SOCKS5 is used, a proxy username/password can be specified.
-        * proxy_password=None - If SOCKS5 is used, a proxy username/password can be specified.
+        * proxy_username=None - If SOCKS5 is used,
+                a proxy username/password can be specified.
+        * proxy_password=None - If SOCKS5 is used,
+                a proxy username/password can be specified.
         """
         with self.lock:
             if proxy:
@@ -43,7 +47,11 @@ class _Connection(object):
                 elif proxy_type == 'HTTP':
                     proxy_type = self._m_proxy.PROXY_TYPE_HTTP
                 self._socket = self._m_proxy.socksocket()
-                self._socket.setproxy(proxytype=proxy_type, addr=proxy_server, port=proxy_port, username=proxy_username, password=proxy_password)
+                self._socket.setproxy(proxytype=proxy_type, \
+                                      addr=proxy_server, \
+                                      port=proxy_port, \
+                                      username=proxy_username, \
+                                      password=proxy_password)
 
             if tls:
                 if tls_verify:
@@ -53,9 +61,11 @@ class _Connection(object):
                     cert_required = self._m_tls.CERT_REQUIRED
                     self._socket = \
                     self._m_tls.wrap_socket(self._socket, \
-                                            cert_reqs=cert_required, ca_certs=ca_bundle)
+                                            cert_reqs=cert_required, \
+                                            ca_certs=ca_bundle)
                     self._socket.connect((server, port))
-                    self._m_tls.match_hostname(self._socket.getpeercert(), server)
+                    self._m_tls.match_hostname(self._socket.getpeercert(), \
+                                               server)
                 else:
                     self._socket = self._m_tls.wrap_socket(self._socket)
             if not tls_verify:
@@ -81,8 +91,10 @@ class _Connection(object):
             self.nick(nick)
             self._user(user, real_name)
 
-    def _init(self, server, nick, user, real_name,
-              password, port=None, tls=True, tls_verify=True, proxy=False, proxy_type='SOCKS5', proxy_server=None, proxy_port=None, proxy_username=None, proxy_password=None):
+    def _init(self, server, nick, user, real_name, password, port=None,
+              tls=True, tls_verify=True,
+              proxy=False, proxy_type='SOCKS5', proxy_server=None,
+              proxy_port=None, proxy_username=None, proxy_password=None):
         """
         Connect and register with the IRC server and -
             set server-related information variables.
@@ -103,20 +115,26 @@ class _Connection(object):
         * proxy_type='SOCKS5' - Proxy type: SOCKS5, SOCKS4 or HTTP
         * proxy_server=None - Proxy server's address
         * proxy_port=None - Proxy server's port
-        * proxy_username=None - If SOCKS5 is used, a proxy username/password can be specified.
-        * proxy_password=None - If SOCKS5 is used, a proxy username/password can be specified.
+        * proxy_username=None - If SOCKS5 is used,
+                a proxy username/password can be specified.
+        * proxy_password=None - If SOCKS5 is used,
+                a proxy username/password can be specified.
         """
         with self.lock:
             self.current_nick = nick
             if tls:
                 if not port:
                     port = 6697
-                self._connect(server, port, tls, tls_verify, proxy, proxy_type, proxy_server, proxy_port, proxy_username, proxy_password)
+                self._connect(server, port, tls, tls_verify, proxy, \
+                              proxy_type, proxy_server, proxy_port, \
+                              proxy_username, proxy_password)
             else:
                 if not port:
                     port = 6667
 
-                self._connect(server, port, tls, tls_verify, proxy, proxy_type, proxy_server, proxy_port, proxy_username, proxy_password)
+                self._connect(server, port, tls, tls_verify, proxy, \
+                              proxy_type, proxy_server, proxy_port, \
+                              proxy_username, proxy_password)
             while self.readable(2):
                 data = self.recv()
                 if data[0] == 'NOTICE':
@@ -170,7 +188,7 @@ class _Connection(object):
     def _password(self, password):
         """
         Authenticates with the IRC server.
-        NOTE: Method will not raise an exception, \
+        NOTE: Method will not raise an exception,
         if the password is wrong. It will just fail..
         Required arguments:
         * password - Password to send.

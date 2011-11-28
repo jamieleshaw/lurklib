@@ -26,6 +26,7 @@ try:
 except ImportError:
     pass
 
+
 class _Variables(object):
     """ Set Lurklib module variables/objects. """
     _m_socket = socket

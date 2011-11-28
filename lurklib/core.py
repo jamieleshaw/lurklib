@@ -30,7 +30,10 @@ class _Core(variables._Variables, exceptions._Exceptions,
                   user='Lurklib',
                   real_name='The Lurk Internet Relay Chat Library',
                   password=None, tls=True, tls_verify=True, encoding='UTF-8',
-                  hide_called_events=True, UTC=False, proxy=False, proxy_type='SOCKS5', proxy_server=None, proxy_port=None, proxy_username=None, proxy_password=None):
+                  hide_called_events=True, UTC=False,
+                  proxy=False, proxy_type='SOCKS5',
+                  proxy_server=None, proxy_port=None,
+                  proxy_username=None, proxy_password=None):
         """
         Initializes Lurklib and connects to the IRC server.
         Required arguments:
@@ -60,8 +63,10 @@ class _Core(variables._Variables, exceptions._Exceptions,
         * proxy_type='SOCKS5' - Proxy type: SOCKS5, SOCKS4 or HTTP
         * proxy_server=None - Proxy server's address
         * proxy_port=None - Proxy server's port
-        * proxy_username=None - If SOCKS5 is used, a proxy username/password can be specified.
-        * proxy_password=None - If SOCKS5 is used, a proxy username/password can be specified.
+        * proxy_username=None - If SOCKS5 is used,
+                a proxy username/password can be specified.
+        * proxy_password=None - If SOCKS5 is used
+                a proxy username/password can be specified.
         """
         variables._Variables.__init__(self)
 
@@ -71,7 +76,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
         self.encoding = encoding
 
         self._init(server, nick, user, real_name, password, port, tls, \
-                   tls_verify, proxy, proxy_type, proxy_server, proxy_port, proxy_username, proxy_password)
+                   tls_verify, proxy, proxy_type, \
+                   proxy_server, proxy_port, proxy_username, proxy_password)
 
     def find(self, haystack, needle):
         """
@@ -99,7 +105,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
         Required arguments:
         * msg - Message to send.
         Optional arguments:
-        * error_check=False - Check for errors. \
+        * error_check=False - Check for errors.
         If an error is found the relevant exception will be raised.
         """
         with self.lock:
@@ -208,8 +214,8 @@ class _Core(variables._Variables, exceptions._Exceptions,
         except IndexError:
             return who
 
-    def _recv(self, rm_colon=False, blocking=True, \
-              expected_replies=None, default_rvalue=[''], \
+    def _recv(self, rm_colon=False, blocking=True,
+              expected_replies=None, default_rvalue=[''],
               ignore_unexpected_replies=True, rm_first=True, recur_limit=10):
         """
         Receives and processes an IRC protocol message.
@@ -231,9 +237,9 @@ class _Core(variables._Variables, exceptions._Exceptions,
                                     unexpected reply is encountered,
                                     should we keep going,
                                     until we get a valid reply?
-                                    If False, it will just return \
+                                    If False, it will just return
                         default_rvalue(If a valid reply isn't found).
-        * rm_first=True - If True, \
+        * rm_first=True - If True,
         remove [0] from the message before returning it.
         """
         append = False
