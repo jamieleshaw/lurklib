@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from distutils.core import setup
 setup(
-        name='Lurklib',
-        packages=['Lurklib'],
+        name='lurklib',
+        packages=['kurklib'],
         version='0.9.1',
         author='LK-',
         license='GPL V3',
