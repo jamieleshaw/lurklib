@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 from distutils.core import setup
+import lurklib
+
 setup(
         name='lurklib',
         packages=['lurklib'],
-        version='0.9.1',
+        version=lurklib.__version__,
         author='LK-',
         license='GPL V3',
         author_email='lk@lkay.org',

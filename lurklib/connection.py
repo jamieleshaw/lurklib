@@ -67,10 +67,12 @@ class _Connection(object):
                     self._socket.connect((server, port))
                     self._m_tls.match_hostname(self._socket.getpeercert(), \
                                                server)
+                    return None
                 else:
                     self._socket = self._m_tls.wrap_socket(self._socket)
             if not tls_verify:
                 self._socket.connect((server, port))
+            self._socket.connect((server, port))
 
     def _register(self, nick, user, real_name, password=None):
         """

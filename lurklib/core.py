@@ -325,7 +325,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
                 rvalue = 'PRIVMSG', (who, segments[2], msg)
 
                 if msg.find('\001') == 0:
-                    rctcp = self.ctcp_decode(msg).upper()
+                    rctcp = self.ctcp_decode(msg)
                     return 'CTCP', (rvalue[1][0], rvalue[1][1], rctcp)
                 else:
                     return rvalue

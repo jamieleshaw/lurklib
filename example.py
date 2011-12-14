@@ -27,13 +27,13 @@ class HelloBot(lurklib.Client):
         """ Join #bots upon connecting. """
         self.join_('#bots')
 
-    def on_privmsg(self, event):
-        """ Event handlers for PRIVMSGs. """
-        if event[2].lower() == 'hello':
-            self.privmsg(event[1], 'Hello, %s!' % event[0][0])
-            print('%s said hello!' % event[0][0])
+    def on_chanmsg(self, from_, channel, message):
+        """ Event handlers for channel messages. """
+        if message == 'hello':
+            self.privmsg(channel, 'Hello, %s!' % from_[0])
+            print('%s said hello!' % from_[0])
 
-        elif event[2].lower() == '!quit':
+        elif message == '!quit':
             self.quit('Bye!')
 
 if __name__ == '__main__':
