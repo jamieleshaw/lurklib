@@ -63,7 +63,8 @@ class Client(core._Core):
                     else:
                         self.on_cmode(event_c[0], event_c[1], event_c[2])
                 elif event_t == 'KICK':
-                    self.on_kick(event_c[0], event_c[1], event_c[2], event_c[3])
+                    self.on_kick(event_c[0], event_c[1], event_c[2], \
+                    event_c[3])
                 elif event_t == 'INVITE':
                     self.on_invite(event_c[0], event_c[2])
                 elif event_t == 'NICK':
