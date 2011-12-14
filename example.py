@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #    This file is part of Lurklib.
 #    Copyright (C) 2011  LK-
 #
@@ -28,11 +28,10 @@ class HelloBot(lurklib.Client):
         self.join_('#bots')
 
     def on_chanmsg(self, from_, channel, message):
-        """ Event handlers for channel messages. """
+        """ Event handler for channel messages. """
         if message == 'hello':
             self.privmsg(channel, 'Hello, %s!' % from_[0])
             print('%s said hello!' % from_[0])
-
         elif message == '!quit':
             self.quit('Bye!')
 
