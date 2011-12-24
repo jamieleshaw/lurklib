@@ -70,7 +70,7 @@ class Client(core._Core):
                 elif event_t == 'NICK':
                     self.on_nick(event_c[0], event_c[1])
                 elif event_t == 'TOPIC':
-                    self.on_topic(event_c[0], event_c[1], event_c[1])
+                    self.on_topic(event_c[0], event_c[1], event_c[2])
                 elif event_t == 'QUIT':
                     self.on_quit(event_c[0], event_c[1])
                 elif event_t == 'LUSERS':
