@@ -1,3 +1,6 @@
+Project inactive, bug fixes only.
+
+
 About
 -----
 Lurklib is a threading-safe, event-driven IRC library designed for creating anything from bots to full-fledged IRC clients.
