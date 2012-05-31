@@ -213,7 +213,7 @@ class _Core(variables._Variables, exceptions._Exceptions,
             host = host[1]
             return nick, ident, host
         except IndexError:
-            return who
+            return who, '', ''
 
     def _recv(self, rm_colon=False, blocking=True,
               expected_replies=None, default_rvalue=[''],
